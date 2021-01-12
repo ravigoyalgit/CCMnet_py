@@ -1,0 +1,15 @@
+Package: CCMnet_py
+Type: Package
+Title: CCMnet for python
+Version: 0.1.0
+Authors@R: person("Ravi", "Goyal", email = "ravi.j.goyal@gmail.com",
+                  role = c("aut", "cre"))
+Description: Need to complete
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports:
+  igraph,
+dplyr
+Suggests:
+  reticulate

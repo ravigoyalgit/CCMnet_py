@@ -125,6 +125,49 @@ def calc_prob(g_net_stat, Network_stats, Prob_Distr, Prob_Distr_Params):
 
   return prob_g
 
+def save_stats(g_net_stat, results, counter):
+  if Network_stats[0] == "Mixing" and len(Network_stats) == 1:
+    results[counter] = g_net_stat[np.triu_indices(g_net_stat.shape[0])]
+
+def bayes_inf_MH_prob_calc(MH_prob, g, proposal_edge, P, Ia, Il, R, epi_params):
+
+  if g.has_edge(proposal_edge[0], proposal_edge[1]):  
+    p_edge1 = 1 / (1 + math.exp(MH_prob))
+  else:
+    p_edge1 = math.exp(MH_prob) / (1 + math.exp(MH_prob));
+
+  if g.has_edge(proposal_edge[0], proposal_edge[1]): 
+    #Reject the toggle
+    MH_prob = log(0)
+
+  else:
+    if Ia[proposal_edge[0]] < 999999 or Ia[proposal_edge[1]] < 999999:  
+
+      Il_i = Il[proposal_edge[0]];
+      Ia_i = Ia[proposal_edge[0]];
+      R_i = R_times[proposal_edge[0]];
+      Il_j = Il[proposal_edge[1]];
+      Ia_j = Ia[proposal_edge[1]];
+      R_j = R_times[proposal_edge[1]];
+      
+      if (Ia_j < Ia_i):
+        time_a = min(Il_j,Ia_i)-Ia_j;
+        time_l = max(min(R_j,Ia_i),Il_j) - Il_j;
+        muij = math.exp(-beta_a_val*time_a) * math.exp(-beta_l_val*time_l);
+      else:
+        time_a = min(Il_i,Ia_j)-Ia_i;
+        time_l = max(min(R_i,Ia_j),Il_i) - Il_i;
+        muij = math.exp(-beta_a_val*time_a) * math.exp(-beta_l_val*time_l);
+    
+      p_noinfect = (muij*p_edge1)/((1-p_edge1) + muij*p_edge1);
+      
+      if g.has_edge(proposal_edge[0], proposal_edge[1]): 
+        MH_prob = math.log((1-p_noinfect) / p_noinfect)
+      else:
+        MH_prob = math.log(p_noinfect / (1 - p_noinfect)) 
+
+  return MH_prob 
+
 def CCMnet_constr_py(Network_stats,
                           Prob_Distr,
                           Prob_Distr_Params, 
@@ -135,6 +178,11 @@ def CCMnet_constr_py(Network_stats,
                           P,
                           population, 
                           covPattern,
+                          bayesian_inference,
+                          Ia, 
+                          Il, 
+                          R, 
+                          epi_params,
                           print_calculations):
                             
   g = generate_initial_g(population, covPattern)
@@ -145,6 +193,9 @@ def CCMnet_constr_py(Network_stats,
 
   if print_calculations:
     print("g:", g_net_stat)
+
+  results = [[] for _ in range(samplesize)]
+  counter = 0
 
   for i in range(burnin+samplesize*interval):
     proposal_edge = proposal_edge_func(g)
@@ -179,7 +230,10 @@ def CCMnet_constr_py(Network_stats,
     if print_calculations:
       print(MH_prob)
 
-    if MH_prob > np.random.uniform(0,1,1):
+    if bayesian_inference == 1:
+      MH_prob = bayes_inf_MH_prob_calc(MH_prob, g, P, Ia, Il, R, epi_params)
+
+    if MH_prob >= 0 or math.log(np.random.uniform(0,1,1)) < MH_prob:
       #Accept proposal
       g = nx.Graph(g2)
       g_net_stat = np.copy(g2_net_stat)
@@ -188,12 +242,14 @@ def CCMnet_constr_py(Network_stats,
       g2 = nx.Graph(g)
       g2_net_stat = np.copy(g_net_stat)
 
-    if statsonly:
-      save_stats()
-    else:
-      save_network()
+    if (i+1) % interval == 0 and (i+1) > burnin:
+      if statsonly:
+        save_stats(g_net_stat, results, counter)
+      else:
+        save_network(results, counter)
+      counter = counter + 1
 
-  return g
+  return g, results
 
 #################################
 #################################
@@ -201,19 +257,24 @@ def CCMnet_constr_py(Network_stats,
 
 Network_stats = ["Mixing"]
 Prob_Distr = ["Multinomial_Poisson"]
-Prob_Distr_Params = np.array([[4], [0.3, 0.4, 0.3]])  
-samplesize = 1
-burnin = 2
-interval = 1
+Prob_Distr_Params = np.array([[10], [0.3, 0.4, 0.3]])  
+samplesize = 100
+burnin = 100
+interval = 10
 statsonly = True 
 P = 0
 population = 10
 covPattern_keys = list(range(0, population))
 covPattern_values = [0,0,0,0,0,1,1,1,1,1]
 covPattern = dict(zip(covPattern_keys, covPattern_values)) 
+bayesian_inference = False
+Ia = [0,0,0,0,0,1,1,1,1,1] 
+Il = [0,0,0,0,0,1,1,1,1,1]
+R = [0,0,0,0,0,1,1,1,1,1]
+epi_params = [0,0,0,0]
 print_calculations = False
 
-g = CCMnet_constr_py(Network_stats,
+g, results = CCMnet_constr_py(Network_stats,
                           Prob_Distr,
                           Prob_Distr_Params, 
                           samplesize,
@@ -223,4 +284,11 @@ g = CCMnet_constr_py(Network_stats,
                           P,
                           population, 
                           covPattern,
+                          bayesian_inference,
+                          Ia, 
+                          Il, 
+                          R, 
+                          epi_params,
                           print_calculations)
+
+print(np.mean(results, axis=0))

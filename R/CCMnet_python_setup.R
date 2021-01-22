@@ -4,6 +4,6 @@ CCMnet_python_setup <- function() {
     stop("Package \"reticulate\" and Python are needed for this function to work. Please install it.",
          call. = FALSE)
   }
-  reticulate::source_python(paste(find.package("CCMnet_py"), "/python/CCMnet.py", sep = ""), envir = globalenv())
+  reticulate::source_python(paste(find.package("CCMnetpy"), "/python/CCMnet.py", sep = ""), envir = globalenv())
 }
 

@@ -249,46 +249,46 @@ def CCMnet_constr_py(Network_stats,
         save_network(results, counter)
       counter = counter + 1
 
-  return g, results
+  return results
 
 #################################
 #################################
 #################################
 
-Network_stats = ["Mixing"]
-Prob_Distr = ["Multinomial_Poisson"]
-Prob_Distr_Params = np.array([[10], [0.3, 0.4, 0.3]])  
-samplesize = 100
-burnin = 100
-interval = 10
-statsonly = True 
-P = 0
-population = 10
-covPattern_keys = list(range(0, population))
-covPattern_values = [0,0,0,0,0,1,1,1,1,1]
-covPattern = dict(zip(covPattern_keys, covPattern_values)) 
-bayesian_inference = False
-Ia = [0,0,0,0,0,1,1,1,1,1] 
-Il = [0,0,0,0,0,1,1,1,1,1]
-R = [0,0,0,0,0,1,1,1,1,1]
-epi_params = [0,0,0,0]
-print_calculations = False
+# Network_stats = ["Mixing"]
+# Prob_Distr = ["Multinomial_Poisson"]
+# Prob_Distr_Params = np.array([[10], [0.3, 0.4, 0.3]])  
+# samplesize = 100
+# burnin = 100
+# interval = 10
+# statsonly = True 
+# P = 0
+# population = 10
+# covPattern_keys = list(range(0, population))
+# covPattern_values = [0,0,0,0,0,1,1,1,1,1]
+# covPattern = dict(zip(covPattern_keys, covPattern_values)) 
+# bayesian_inference = False
+# Ia = [0,0,0,0,0,1,1,1,1,1] 
+# Il = [0,0,0,0,0,1,1,1,1,1]
+# R = [0,0,0,0,0,1,1,1,1,1]
+# epi_params = [0,0,0,0]
+# print_calculations = False
 
-g, results = CCMnet_constr_py(Network_stats,
-                          Prob_Distr,
-                          Prob_Distr_Params, 
-                          samplesize,
-                          burnin, 
-                          interval,
-                          statsonly, 
-                          P,
-                          population, 
-                          covPattern,
-                          bayesian_inference,
-                          Ia, 
-                          Il, 
-                          R, 
-                          epi_params,
-                          print_calculations)
+# g, results = CCMnet_constr_py(Network_stats,
+#                           Prob_Distr,
+#                           Prob_Distr_Params, 
+#                           samplesize,
+#                           burnin, 
+#                           interval,
+#                           statsonly, 
+#                           P,
+#                           population, 
+#                           covPattern,
+#                           bayesian_inference,
+#                           Ia, 
+#                           Il, 
+#                           R, 
+#                           epi_params,
+#                           print_calculations)
 
-print(np.mean(results, axis=0))
+# print(np.mean(results, axis=0))

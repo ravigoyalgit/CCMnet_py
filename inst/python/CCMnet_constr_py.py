@@ -1,5 +1,6 @@
 
 import networkx as nx
+import pandas as pd
 import numpy as np
 import random
 import operator as op
@@ -18,7 +19,8 @@ def ncr(n, r):
 def generate_initial_g(population, covPattern):
   
   g = nx.empty_graph(population)
-  nx.set_node_attributes(g, values = covPattern, name = 'covPattern')
+  nx.set_node_attributes(g, values = dict(zip(list(range(0, population)), covPattern)) , name = 'covPattern')
+
   return g
 
 def proposal_edge_func(g):
@@ -125,7 +127,7 @@ def calc_prob(g_net_stat, Network_stats, Prob_Distr, Prob_Distr_Params):
 
   return prob_g
 
-def save_stats(g_net_stat, results, counter):
+def save_stats(g_net_stat, results, counter, Network_stats):
   if Network_stats[0] == "Mixing" and len(Network_stats) == 1:
     results[counter] = g_net_stat[np.triu_indices(g_net_stat.shape[0])]
 
@@ -184,15 +186,20 @@ def CCMnet_constr_py(Network_stats,
                           R, 
                           epi_params,
                           print_calculations):
-                            
+    
+  Prob_Distr_Params = np.array(Prob_Distr_Params)                          
   g = generate_initial_g(population, covPattern)
+
+  if print_calculations:
+    print("g info:", nx.info(g))
+
   g2 = nx.Graph(g)
 
   g_net_stat = calc_network_stat(g, Network_stats)
   g2_net_stat = np.copy(g_net_stat)
 
   if print_calculations:
-    print("g:", g_net_stat)
+    print("g statistics:", g_net_stat)
 
   results = [[] for _ in range(samplesize)]
   counter = 0
@@ -244,12 +251,52 @@ def CCMnet_constr_py(Network_stats,
 
     if (i+1) % interval == 0 and (i+1) > burnin:
       if statsonly:
-        save_stats(g_net_stat, results, counter)
+        save_stats(g_net_stat, results, counter, Network_stats)
       else:
         save_network(results, counter)
       counter = counter + 1
 
-  return results
+    g_df = nx.to_pandas_edgelist(g)
+
+  results = pd.DataFrame(np.row_stack(results))
+
+  return g_df, results
+
+def R_python_interface_test(Network_stats,
+                          Prob_Distr,
+                          Prob_Distr_Params, 
+                          samplesize,
+                          burnin, 
+                          interval,
+                          statsonly, 
+                          P,
+                          population, 
+                          covPattern,
+                          bayesian_inference,
+                          Ia, 
+                          Il, 
+                          R, 
+                          epi_params,
+                          print_calculations):
+
+  print("Network_stats:", Network_stats, " Type:", type(Network_stats))
+  print("Prob_Distr:", Prob_Distr, " Type:", type(Prob_Distr))
+  print("Prob_Distr_Params:", Prob_Distr_Params, " Type:", type(Prob_Distr_Params))
+  print("samplesize:", samplesize, " Type:", type(samplesize))
+  print("burnin:", burnin, " Type:", type(burnin))
+  print("interval:", interval, " Type:", type(interval))
+  print("statsonly:", statsonly, " Type:", type(statsonly))
+  print("P:", P, " Type:", type(P))
+  print("population:", population, " Type:", type(population))
+  print("covPattern:", covPattern, " Type:", type(covPattern))
+  print("bayesian_inference:", bayesian_inference, " Type:", type(bayesian_inference))
+  print("Ia:", Ia, " Type:", type(Ia))
+  print("Il:", Il, " Type:", type(Il))  
+  print("R:", R, " Type:", type(R))
+  print("epi_params:", epi_params, " Type:", type(epi_params))
+  print("print_calculations:", print_calculations, " Type:", type(print_calculations))
+
+  return(Network_stats)
 
 #################################
 #################################
@@ -257,16 +304,15 @@ def CCMnet_constr_py(Network_stats,
 
 # Network_stats = ["Mixing"]
 # Prob_Distr = ["Multinomial_Poisson"]
-# Prob_Distr_Params = np.array([[10], [0.3, 0.4, 0.3]])  
+# Prob_Distr_Params = [[10], [0.3, 0.4, 0.3]]  
+
 # samplesize = 100
 # burnin = 100
 # interval = 10
 # statsonly = True 
 # P = 0
 # population = 10
-# covPattern_keys = list(range(0, population))
-# covPattern_values = [0,0,0,0,0,1,1,1,1,1]
-# covPattern = dict(zip(covPattern_keys, covPattern_values)) 
+# covPattern = [0,0,0,0,0,1,1,1,1,1]
 # bayesian_inference = False
 # Ia = [0,0,0,0,0,1,1,1,1,1] 
 # Il = [0,0,0,0,0,1,1,1,1,1]
@@ -274,7 +320,24 @@ def CCMnet_constr_py(Network_stats,
 # epi_params = [0,0,0,0]
 # print_calculations = False
 
-# g, results = CCMnet_constr_py(Network_stats,
+# print("Network_stats:", Network_stats, " Type:", type(Network_stats))
+# print("Prob_Distr:", Prob_Distr, " Type:", type(Prob_Distr))
+# print("Prob_Distr_Params:", Prob_Distr_Params, " Type:", type(Prob_Distr_Params))
+# print("samplesize:", samplesize, " Type:", type(samplesize))
+# print("burnin:", burnin, " Type:", type(burnin))
+# print("interval:", interval, " Type:", type(interval))
+# print("statsonly:", statsonly, " Type:", type(statsonly))
+# print("P:", P, " Type:", type(P))
+# print("population:", population, " Type:", type(population))
+# print("covPattern:", covPattern, " Type:", type(covPattern))
+# print("bayesian_inference:", bayesian_inference, " Type:", type(bayesian_inference))
+# print("Ia:", Ia, " Type:", type(Ia))
+# print("Il:", Il, " Type:", type(Il))  
+# print("R:", R, " Type:", type(R))
+# print("epi_params:", epi_params, " Type:", type(epi_params))
+# print("print_calculations:", print_calculations, " Type:", type(print_calculations))
+
+# results = CCMnet_constr_py(Network_stats,
 #                           Prob_Distr,
 #                           Prob_Distr_Params, 
 #                           samplesize,
@@ -291,4 +354,8 @@ def CCMnet_constr_py(Network_stats,
 #                           epi_params,
 #                           print_calculations)
 
+# print(results)
+
+# print(type(results))
+# print(results)
 # print(np.mean(results, axis=0))

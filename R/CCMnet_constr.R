@@ -8,20 +8,42 @@ CCMnet_constr <- function(Network_stats,
                           statsonly, 
                           P,
                           population, 
-                          covPattern) {
+                          covPattern,
+                          bayesian_inference,
+                          Ia, 
+                          Il, 
+                          R, 
+                          epi_params,
+                          print_calculations) {
   
-  CCMnet_Result = CCMnet_constr_py(Network_stats=Network_stats,
-                                Prob_Distr=Prob_Distr,
-                                Prob_Distr_Params=Prob_Distr_Params, 
-                                samplesize = samplesize,
-                                burnin=burnin, 
-                                interval=interval,
-                                statsonly=statsonly, 
-                                P=P,
-                                population=population, 
-                                covPattern = covPattern) 
+  samplesize = as.integer(samplesize)
+  burnin = as.integer(burnin)
+  interval = as.integer(interval)
+  population = as.integer(population)
+  covPattern = as.integer(covPattern)
   
-  return(CCMnet_Result)
+  results = CCMnet_constr_py(Network_stats,
+                   Prob_Distr,
+                   Prob_Distr_Params, 
+                   samplesize,
+                   burnin, 
+                   interval,
+                   statsonly, 
+                   P,
+                   population, 
+                   covPattern,
+                   bayesian_inference,
+                   Ia, 
+                   Il, 
+                   R, 
+                   epi_params,
+                   print_calculations)
+  
+  nodes_attr_df = data.frame(name = c(0:(population-1)), 
+                             covPattern = covPattern)
+  g = graph_from_data_frame(results[[1]], directed=FALSE, vertices = nodes_attr_df)
+
+  return(list(g, results[[2]]))
 }
   
   

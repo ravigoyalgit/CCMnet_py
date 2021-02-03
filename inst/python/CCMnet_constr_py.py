@@ -9,6 +9,7 @@ import pandas as pd
 from itertools import cycle, islice
 import math
 import scipy.stats as stats
+import cProfile
 
 def ncr(n, r):
     r = min(r, n-r)
@@ -26,7 +27,6 @@ def generate_initial_g(population, covPattern):
 def proposal_edge_func(g):
 
   proposal_edge = random.sample(g.nodes, 2)
-
   return proposal_edge
 
 def proposal_g2(g, proposal_edge):
@@ -40,17 +40,19 @@ def proposal_g2(g, proposal_edge):
 
   return g
 
-def calc_f_mixing(g, g_net_stat, proposal_edge):
+def calc_f_mixing(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat):
 
-  cov0 = g.nodes[proposal_edge[0]]['covPattern']
-  cov1 = g.nodes[proposal_edge[1]]['covPattern']
+  cov0 = covPattern[proposal_edge[0]]
+  cov1 = covPattern[proposal_edge[1]]
 
-  n_cov0 = sum(x == cov0 for x in nx.get_node_attributes(g, "covPattern").values())
-  n_cov1 = sum(x == cov1 for x in nx.get_node_attributes(g, "covPattern").values())
+  n_cov0 = sum(x == cov0 for x in covPattern)
+  n_cov1 = sum(x == cov1 for x in covPattern)
 
-  if g.has_edge(proposal_edge[0], proposal_edge[1]):
+  if g_proposal_edge:
     #g->g2 remove edge
       prob_g_g2 = g_net_stat[cov0][cov1]
+      if bayesian_inference:
+          prob_g_g2 = prob_g_g2 - P_net_stat[cov0][cov1]
   else:
     #g->g2 add edge
     if cov0 == cov1:
@@ -60,10 +62,10 @@ def calc_f_mixing(g, g_net_stat, proposal_edge):
 
   return prob_g_g2  
 
-def calc_f(g,g2,Network_stats,g_net_stat, g2_net_stat, proposal_edge):
+def calc_f(Network_stats,g_net_stat, g2_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat):
   
   if Network_stats[0] == "Mixing" and len(Network_stats) == 1:
-    prob_g_g2 = calc_f_mixing(g,g_net_stat, proposal_edge)
+    prob_g_g2 = calc_f_mixing(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat)
 
   return prob_g_g2
 
@@ -80,12 +82,12 @@ def calc_network_stat(g, Network_stats):
 
   return g_net_stat
 
-def calc_network_stat_mixing_2(g, proposal_edge, g_net_stat, g2_net_stat):
+def calc_network_stat_mixing_2(proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern):
 
-  cov0 = g.nodes[proposal_edge[0]]['covPattern']
-  cov1 = g.nodes[proposal_edge[1]]['covPattern']
+  cov0 = covPattern[proposal_edge[0]]
+  cov1 = covPattern[proposal_edge[1]]
 
-  if g.has_edge(proposal_edge[0], proposal_edge[1]):
+  if g_proposal_edge:
     if cov0 == cov1:
       g2_net_stat[cov0][cov1] = g2_net_stat[cov0][cov1] - 1
     else:
@@ -100,10 +102,10 @@ def calc_network_stat_mixing_2(g, proposal_edge, g_net_stat, g2_net_stat):
 
   return g2_net_stat
 
-def calc_network_stat_2(g, Network_stats, proposal_edge, g_net_stat, g2_net_stat):
+def calc_network_stat_2(Network_stats, proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern):
 
   if Network_stats[0] == "Mixing" and len(Network_stats) == 1:
-    g2_net_stat = calc_network_stat_mixing_2(g, proposal_edge, g_net_stat, g2_net_stat)
+    g2_net_stat = calc_network_stat_mixing_2(proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern)
 
   return g2_net_stat
 
@@ -127,30 +129,62 @@ def calc_prob(g_net_stat, Network_stats, Prob_Distr, Prob_Distr_Params):
 
   return prob_g
 
+
+def calc_probs_mixing(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_Distr, Prob_Distr_Params):
+
+  x_g = sum(g_net_stat[np.triu_indices(g_net_stat.shape[0])])
+  x_g2 = sum(g2_net_stat[np.triu_indices(g2_net_stat.shape[0])])
+
+  cov0 = covPattern[proposal_edge[0]]
+  cov1 = covPattern[proposal_edge[1]]
+
+  entry_id = sum(range(cov1+1)) + cov0
+
+  if x_g > x_g2:
+    #removed edge
+    log_prob_x_g2 = -math.log(Prob_Distr_Params[0]) + math.log(x_g)
+    log_prob_x2_g2 = -math.log(x_g) + math.log(g_net_stat[cov0][cov1]) - math.log(Prob_Distr_Params[1][entry_id])
+  else:
+    log_prob_x_g2 = math.log(Prob_Distr_Params[0]) - math.log(x_g2)
+    log_prob_x2_g2 = math.log(x_g2) - math.log(g2_net_stat[cov0][cov1]) + math.log(Prob_Distr_Params[1][entry_id])
+
+  prob_g = 0
+  prob_g2 = log_prob_x_g2 + log_prob_x2_g2
+
+  return prob_g, prob_g2
+
+def calc_probs(g_net_stat, g2_net_stat, proposal_edge, covPattern, Network_stats, Prob_Distr, Prob_Distr_Params):
+  if Network_stats[0] == "Mixing" and len(Network_stats) == 1:
+    prob_g, prob_g2 = calc_probs_mixing(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_Distr, Prob_Distr_Params)
+
+  return prob_g, prob_g2
+
 def save_stats(g_net_stat, results, counter, Network_stats):
   if Network_stats[0] == "Mixing" and len(Network_stats) == 1:
     results[counter] = g_net_stat[np.triu_indices(g_net_stat.shape[0])]
 
-def bayes_inf_MH_prob_calc(MH_prob, g, proposal_edge, P, Ia, Il, R, epi_params):
+def bayes_inf_MH_prob_calc(MH_prob, g, proposal_edge, Pnet, Ia, Il, R, epi_params):
+
+  beta_a_val = epi_params[0]
+  beta_l_val = epi_params[1]
 
   if g.has_edge(proposal_edge[0], proposal_edge[1]):  
     p_edge1 = 1 / (1 + math.exp(MH_prob))
   else:
     p_edge1 = math.exp(MH_prob) / (1 + math.exp(MH_prob));
 
-  if g.has_edge(proposal_edge[0], proposal_edge[1]): 
+  if Pnet.has_edge(proposal_edge[0], proposal_edge[1]): 
     #Reject the toggle
-    MH_prob = log(0)
-
+    MH_prob = -math.inf
   else:
     if Ia[proposal_edge[0]] < 999999 or Ia[proposal_edge[1]] < 999999:  
 
       Il_i = Il[proposal_edge[0]];
       Ia_i = Ia[proposal_edge[0]];
-      R_i = R_times[proposal_edge[0]];
+      R_i = R[proposal_edge[0]];
       Il_j = Il[proposal_edge[1]];
       Ia_j = Ia[proposal_edge[1]];
-      R_j = R_times[proposal_edge[1]];
+      R_j = R[proposal_edge[1]];
       
       if (Ia_j < Ia_i):
         time_a = min(Il_j,Ia_i)-Ia_j;
@@ -163,12 +197,19 @@ def bayes_inf_MH_prob_calc(MH_prob, g, proposal_edge, P, Ia, Il, R, epi_params):
     
       p_noinfect = (muij*p_edge1)/((1-p_edge1) + muij*p_edge1);
       
-      if g.has_edge(proposal_edge[0], proposal_edge[1]): 
-        MH_prob = math.log((1-p_noinfect) / p_noinfect)
-      else:
-        MH_prob = math.log(p_noinfect / (1 - p_noinfect)) 
+      #if g.has_edge(proposal_edge[0], proposal_edge[1]): 
+      #  MH_prob = math.log((1-p_noinfect) / p_noinfect)
+      #else:
+      #  MH_prob = math.log(p_noinfect / (1 - p_noinfect)) 
 
   return MH_prob 
+
+def generate_net(population, P, covPattern):
+  Pnet = nx.empty_graph(population)
+  Pnet.add_edges_from(P)
+  nx.set_node_attributes(Pnet, values = dict(zip(list(range(0, population)), covPattern)) , name = 'covPattern')
+
+  return Pnet
 
 def CCMnet_constr_py(Network_stats,
                           Prob_Distr,
@@ -177,6 +218,7 @@ def CCMnet_constr_py(Network_stats,
                           burnin, 
                           interval,
                           statsonly, 
+                          G,
                           P,
                           population, 
                           covPattern,
@@ -188,33 +230,47 @@ def CCMnet_constr_py(Network_stats,
                           print_calculations):
     
   Prob_Distr_Params = np.array(Prob_Distr_Params)                          
-  g = generate_initial_g(population, covPattern)
 
-  if print_calculations:
-    print("g info:", nx.info(g))
-
-  g2 = nx.Graph(g)
+  if bayesian_inference == 1:
+    g = generate_net(population, G, covPattern)
+  else:
+    g = generate_initial_g(population, covPattern)
 
   g_net_stat = calc_network_stat(g, Network_stats)
   g2_net_stat = np.copy(g_net_stat)
+  #g2 = nx.Graph(g)
 
   if print_calculations:
+    print("g info:", nx.info(g))
     print("g statistics:", g_net_stat)
+
+  if bayesian_inference == 1:
+    Pnet = generate_net(population, P, covPattern)
+    P_net_stat = calc_network_stat(Pnet, Network_stats)
+    if print_calculations:
+      print("P info:", nx.info(Pnet))
+      print("Pnet statistics:", P_net_stat)
+  else:
+    P_net_stat = 0
 
   results = [[] for _ in range(samplesize)]
   counter = 0
 
   for i in range(burnin+samplesize*interval):
     proposal_edge = proposal_edge_func(g)
-    g2 = proposal_g2(g2, proposal_edge)
+    g_proposal_edge = g.has_edge(proposal_edge[0], proposal_edge[1])
+    g2_proposal_edge = not g_proposal_edge
 
-    g2_net_stat = calc_network_stat_2(g, Network_stats, proposal_edge, g_net_stat, g2_net_stat)
+    #g2 = proposal_g2(g2, proposal_edge)
 
-    f_g_g2 = calc_f(g,g2,Network_stats, g_net_stat, g2_net_stat, proposal_edge)
-    f_g2_g = calc_f(g2,g,Network_stats, g2_net_stat, g_net_stat, proposal_edge)
+    g2_net_stat = calc_network_stat_2(Network_stats, proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern)
 
-    prob_g = calc_prob(g_net_stat, Network_stats, Prob_Distr, Prob_Distr_Params)
-    prob_g2 = calc_prob(g2_net_stat, Network_stats, Prob_Distr, Prob_Distr_Params)
+    f_g_g2 = calc_f(Network_stats,g_net_stat, g2_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat)
+    f_g2_g = calc_f(Network_stats,g2_net_stat, g_net_stat, proposal_edge, g2_proposal_edge, covPattern, bayesian_inference, P_net_stat)
+
+    prob_g, prob_g2 = calc_probs(g_net_stat, g2_net_stat, proposal_edge, covPattern, Network_stats, Prob_Distr, Prob_Distr_Params)
+    #prob_g = calc_prob(g_net_stat, Network_stats, Prob_Distr, Prob_Distr_Params)
+    #prob_g2 = calc_prob(g2_net_stat, Network_stats, Prob_Distr, Prob_Distr_Params)
 
     if print_calculations:
       print("g############")
@@ -228,25 +284,25 @@ def CCMnet_constr_py(Network_stats,
       print(prob_g2)
 
     if math.isnan(prob_g):
-      MH_prob = 1
-    elif math.isnan(prob_g2):
       MH_prob = 0
+    elif math.isnan(prob_g2) or f_g_g2==0:
+      MH_prob = -math.inf
     else: 
       MH_prob = math.log(f_g2_g) + prob_g2 - (math.log(f_g_g2) + prob_g)
     
     if print_calculations:
       print(MH_prob)
 
-    if bayesian_inference == 1:
-      MH_prob = bayes_inf_MH_prob_calc(MH_prob, g, P, Ia, Il, R, epi_params)
+    if bayesian_inference == 1 and MH_prob > 0 and MH_prob < 1:
+      MH_prob = bayes_inf_MH_prob_calc(MH_prob, g, proposal_edge, Pnet, Ia, Il, R, epi_params)
 
     if MH_prob >= 0 or math.log(np.random.uniform(0,1,1)) < MH_prob:
       #Accept proposal
-      g = nx.Graph(g2)
+      g = proposal_g2(g, proposal_edge)
       g_net_stat = np.copy(g2_net_stat)
     else:   
       #Reject proposal
-      g2 = nx.Graph(g)
+      #g2 = nx.Graph(g)
       g2_net_stat = np.copy(g_net_stat)
 
     if (i+1) % interval == 0 and (i+1) > burnin:
@@ -256,8 +312,7 @@ def CCMnet_constr_py(Network_stats,
         save_network(results, counter)
       counter = counter + 1
 
-    g_df = nx.to_pandas_edgelist(g)
-
+  g_df = nx.to_pandas_edgelist(g)
   results = pd.DataFrame(np.row_stack(results))
 
   return g_df, results
@@ -268,7 +323,8 @@ def R_python_interface_test(Network_stats,
                           samplesize,
                           burnin, 
                           interval,
-                          statsonly, 
+                          statsonly,
+                          G, 
                           P,
                           population, 
                           covPattern,
@@ -286,6 +342,8 @@ def R_python_interface_test(Network_stats,
   print("burnin:", burnin, " Type:", type(burnin))
   print("interval:", interval, " Type:", type(interval))
   print("statsonly:", statsonly, " Type:", type(statsonly))
+  print("G:", G, " Type:", type(G))
+  print("G[1]:", G[1], " Type:", type(G[1]))
   print("P:", P, " Type:", type(P))
   print("population:", population, " Type:", type(population))
   print("covPattern:", covPattern, " Type:", type(covPattern))
@@ -302,60 +360,68 @@ def R_python_interface_test(Network_stats,
 #################################
 #################################
 
-# Network_stats = ["Mixing"]
-# Prob_Distr = ["Multinomial_Poisson"]
-# Prob_Distr_Params = [[10], [0.3, 0.4, 0.3]]  
+Network_stats = ["Mixing"]
+Prob_Distr = ["Multinomial_Poisson"]
+Prob_Distr_Params = [10, [0.3, 0.4, 0.3]]  
 
-# samplesize = 100
-# burnin = 100
-# interval = 10
-# statsonly = True 
-# P = 0
-# population = 10
-# covPattern = [0,0,0,0,0,1,1,1,1,1]
-# bayesian_inference = False
-# Ia = [0,0,0,0,0,1,1,1,1,1] 
-# Il = [0,0,0,0,0,1,1,1,1,1]
-# R = [0,0,0,0,0,1,1,1,1,1]
-# epi_params = [0,0,0,0]
-# print_calculations = False
+samplesize = 8000
+burnin = 5000
+interval = 10
+statsonly = True
+G = [(1,2),(2,3)] 
+P = [(1,2),(2,3)]
+population = 10
+covPattern = [0,0,0,0,0,1,1,1,1,1]
+bayesian_inference = True
+Ia = [0,0,0,0,0,1,1,1,1,1] 
+Il = [0,0,0,0,0,1,1,1,1,1]
+R = [0,0,0,0,0,1,1,1,1,1]
+epi_params = [10,5]
+print_calculations = False
 
-# print("Network_stats:", Network_stats, " Type:", type(Network_stats))
-# print("Prob_Distr:", Prob_Distr, " Type:", type(Prob_Distr))
-# print("Prob_Distr_Params:", Prob_Distr_Params, " Type:", type(Prob_Distr_Params))
-# print("samplesize:", samplesize, " Type:", type(samplesize))
-# print("burnin:", burnin, " Type:", type(burnin))
-# print("interval:", interval, " Type:", type(interval))
-# print("statsonly:", statsonly, " Type:", type(statsonly))
-# print("P:", P, " Type:", type(P))
-# print("population:", population, " Type:", type(population))
-# print("covPattern:", covPattern, " Type:", type(covPattern))
-# print("bayesian_inference:", bayesian_inference, " Type:", type(bayesian_inference))
-# print("Ia:", Ia, " Type:", type(Ia))
-# print("Il:", Il, " Type:", type(Il))  
-# print("R:", R, " Type:", type(R))
-# print("epi_params:", epi_params, " Type:", type(epi_params))
-# print("print_calculations:", print_calculations, " Type:", type(print_calculations))
+#cProfile.run('CCMnet_constr_py(Network_stats, Prob_Distr, Prob_Distr_Params, samplesize, burnin,  interval, statsonly, P, population, covPattern, bayesian_inference,Ia, Il, R,  epi_params, print_calculations)')
 
-# results = CCMnet_constr_py(Network_stats,
-#                           Prob_Distr,
-#                           Prob_Distr_Params, 
-#                           samplesize,
-#                           burnin, 
-#                           interval,
-#                           statsonly, 
-#                           P,
-#                           population, 
-#                           covPattern,
-#                           bayesian_inference,
-#                           Ia, 
-#                           Il, 
-#                           R, 
-#                           epi_params,
-#                           print_calculations)
 
-# print(results)
+print("Network_stats:", Network_stats, " Type:", type(Network_stats))
+print("Prob_Distr:", Prob_Distr, " Type:", type(Prob_Distr))
+print("Prob_Distr_Params:", Prob_Distr_Params, " Type:", type(Prob_Distr_Params))
+print("samplesize:", samplesize, " Type:", type(samplesize))
+print("burnin:", burnin, " Type:", type(burnin))
+print("interval:", interval, " Type:", type(interval))
+print("statsonly:", statsonly, " Type:", type(statsonly))
+print("G:", G, " Type:", type(G))
+print("G[1]:", G[1], " Type:", type(G[1]))
+print("P:", P, " Type:", type(P))
+print("population:", population, " Type:", type(population))
+print("covPattern:", covPattern, " Type:", type(covPattern))
+print("bayesian_inference:", bayesian_inference, " Type:", type(bayesian_inference))
+print("Ia:", Ia, " Type:", type(Ia))
+print("Il:", Il, " Type:", type(Il))  
+print("R:", R, " Type:", type(R))
+print("epi_params:", epi_params, " Type:", type(epi_params))
+print("print_calculations:", print_calculations, " Type:", type(print_calculations))
 
-# print(type(results))
-# print(results)
-# print(np.mean(results, axis=0))
+results = CCMnet_constr_py(Network_stats, 
+  Prob_Distr, 
+  Prob_Distr_Params, 
+  samplesize, 
+  burnin,  
+  interval, 
+  statsonly,
+  G, 
+  P, 
+  population, 
+  covPattern, 
+  bayesian_inference,
+  Ia, 
+  Il, 
+  R,  
+  epi_params, 
+  print_calculations)
+
+
+#print(results)
+
+#print(type(results))
+#print(results[1])
+#print(np.mean(results[1], axis=0))

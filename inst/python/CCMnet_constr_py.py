@@ -283,7 +283,7 @@ def CCMnet_constr_py(Network_stats,
       print(prob_g2)
 
     if math.isnan(prob_g):
-      MH_prob = 0
+      MH_prob = math.inf
     elif math.isnan(prob_g2) or f_g_g2==0:
       MH_prob = -math.inf
     else: 
@@ -292,7 +292,7 @@ def CCMnet_constr_py(Network_stats,
     if print_calculations:
       print(MH_prob)
 
-    if bayesian_inference == 1 and MH_prob > 0 and MH_prob < 1:
+    if bayesian_inference == 1 and MH_prob < math.inf:
       MH_prob = bayes_inf_MH_prob_calc(MH_prob, g, proposal_edge, Pnet, Ia, Il, R, epi_params)
 
     if MH_prob >= 0 or math.log(np.random.uniform(0,1,1)) < MH_prob:

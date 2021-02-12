@@ -52,7 +52,7 @@ def calc_f_mixing(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesi
     #g->g2 remove edge
       prob_g_g2 = g_net_stat[cov0][cov1]
       if bayesian_inference:
-          prob_g_g2 = prob_g_g2 - P_net_stat[cov0][cov1]
+          prob_g_g2 = prob_g_g2 #- P_net_stat[cov0][cov1]
   else:
     #g->g2 add edge
     if cov0 == cov1:

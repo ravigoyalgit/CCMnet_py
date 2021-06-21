@@ -319,11 +319,14 @@ def bayes_inf_MH_prob_calc_2(MH_prob, g, proposal_edge, Pnet, Ia, Il, R, epi_par
       if (Ia_j < Ia_i):
         time_a = min(Il_j,Ia_i)-Ia_j;
         time_l = max(min(R_j,Ia_i),Il_j) - Il_j;
-        muij = math.exp(-beta_a_val*time_a) * math.exp(-beta_l_val*time_l);
+#        muij = math.exp(-beta_a_val*time_a) * math.exp(-beta_l_val*time_l);
+        muij = math.exp(-beta_l_val*time_l);
+        
       else:
         time_a = min(Il_i,Ia_j)-Ia_i;
         time_l = max(min(R_i,Ia_j),Il_i) - Il_i;
-        muij = math.exp(-beta_a_val*time_a) * math.exp(-beta_l_val*time_l);
+#        muij = math.exp(-beta_a_val*time_a) * math.exp(-beta_l_val*time_l);
+        muij = math.exp(-beta_l_val*time_l);
     
       p_noinfect = (muij*p_edge1)/((1-p_edge1) + muij*p_edge1);
       
@@ -443,7 +446,7 @@ def CCMnet_constr_py(Network_stats,
 
     if math.isnan(prob_g):
       MH_prob = math.inf
-    elif math.isnan(prob_g2) or f_g_g2==0:
+    elif math.isnan(prob_g2) or f_g_g2<=0 or f_g2_g<=0:
       MH_prob = -math.inf
     else: 
       MH_prob = math.log(f_g2_g) + prob_g2 - (math.log(f_g_g2) + prob_g)

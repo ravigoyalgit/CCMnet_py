@@ -15,7 +15,9 @@ CCMnet_constr <- function(Network_stats,
                           Il, 
                           R, 
                           epi_params,
-                          print_calculations) {
+                          print_calculations,
+                          use_G = FALSE,
+                          outfile = "none") {
   
   samplesize = as.integer(samplesize)
   burnin = as.integer(burnin)
@@ -39,7 +41,9 @@ CCMnet_constr <- function(Network_stats,
                    Il, 
                    R, 
                    epi_params,
-                   print_calculations)
+                   print_calculations,
+                   use_G,
+                   outfile)
   
   nodes_attr_df = data.frame(name = c(0:(population-1)), 
                              covPattern = covPattern)

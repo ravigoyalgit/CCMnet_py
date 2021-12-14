@@ -182,24 +182,49 @@ def calc_network_stat_2(Network_stats, proposal_edge, g_net_stat, g2_net_stat, g
 
 def calc_probs_mixing(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_Distr, Prob_Distr_Params):
 
-  x_g = sum(g_net_stat[np.triu_indices(g_net_stat.shape[0])])
-  x_g2 = sum(g2_net_stat[np.triu_indices(g2_net_stat.shape[0])])
+  if (Prob_Distr[0] == "NP"):
+    x_g = sum(g_net_stat[np.triu_indices(g_net_stat.shape[0])])
+    x_g2 = sum(g2_net_stat[np.triu_indices(g2_net_stat.shape[0])])
 
-  cov0 = covPattern[proposal_edge[0]]
-  cov1 = covPattern[proposal_edge[1]]
+    cov0 = covPattern[proposal_edge[0]]
+    cov1 = covPattern[proposal_edge[1]]
+    
+    g_val = int(round(g_net_stat[cov0][cov1]))
+    entry_id = sum(range(cov1+1)) + cov0 
 
-  entry_id = sum(range(cov1+1)) + cov0
+#    print("x_g:", x_g)
+#    print("x_g2:", x_g2)
+#    print("cov0:", cov0)
+#    print("cov1:", cov1)
+#    print("g_val", g_val)
+#    print("entry_id", entry_id)
 
-  if x_g > x_g2:
-    #removed edge
-    log_prob_x_g2 = -math.log(Prob_Distr_Params[0]) + math.log(x_g)
-    log_prob_x2_g2 = -math.log(x_g) + math.log(g_net_stat[cov0][cov1]) - math.log(Prob_Distr_Params[1][entry_id])
+    if x_g > x_g2:
+      #removed edge
+      prob_g2 = math.log(Prob_Distr_Params[0][g_val-1][entry_id]) - math.log(Prob_Distr_Params[0][g_val][entry_id])
+    else:
+      prob_g2 = math.log(Prob_Distr_Params[0][g_val+1][entry_id]) - math.log(Prob_Distr_Params[0][g_val][entry_id])
+    prob_g = 0
+
   else:
-    log_prob_x_g2 = math.log(Prob_Distr_Params[0]) - math.log(x_g2)
-    log_prob_x2_g2 = math.log(x_g2) - math.log(g2_net_stat[cov0][cov1]) + math.log(Prob_Distr_Params[1][entry_id])
+    x_g = sum(g_net_stat[np.triu_indices(g_net_stat.shape[0])])
+    x_g2 = sum(g2_net_stat[np.triu_indices(g2_net_stat.shape[0])])
 
-  prob_g = 0
-  prob_g2 = log_prob_x_g2 + log_prob_x2_g2
+    cov0 = covPattern[proposal_edge[0]]
+    cov1 = covPattern[proposal_edge[1]]
+
+    entry_id = sum(range(cov1+1)) + cov0
+
+    if x_g > x_g2:
+      #removed edge
+      log_prob_x_g2 = -math.log(Prob_Distr_Params[0]) + math.log(x_g)
+      log_prob_x2_g2 = -math.log(x_g) + math.log(g_net_stat[cov0][cov1]) - math.log(Prob_Distr_Params[1][entry_id])
+    else:
+      log_prob_x_g2 = math.log(Prob_Distr_Params[0]) - math.log(x_g2)
+      log_prob_x2_g2 = math.log(x_g2) - math.log(g2_net_stat[cov0][cov1]) + math.log(Prob_Distr_Params[1][entry_id])
+
+    prob_g = 0
+    prob_g2 = log_prob_x_g2 + log_prob_x2_g2
 
   return prob_g, prob_g2
 
@@ -374,11 +399,13 @@ def CCMnet_constr_py(Network_stats,
                           Il, 
                           R, 
                           epi_params,
-                          print_calculations):
+                          print_calculations,
+                          use_G,
+                          outfile):
     
   Prob_Distr_Params = np.array(Prob_Distr_Params)                          
 
-  if bayesian_inference == 1:
+  if use_G == 1:
     G_list = [tuple(r) for r in G.to_numpy().tolist()]
     g = generate_net(population, G_list, covPattern)
   else:
@@ -475,7 +502,10 @@ def CCMnet_constr_py(Network_stats,
   g_df = nx.to_pandas_edgelist(g)
   results = pd.DataFrame(np.row_stack(results))
 
-  return g_df, results
+  if outfile == "favites":
+    return g
+  else:
+    return g_df, results
 
 def R_python_interface_test(Network_stats,
                           Prob_Distr,
@@ -498,6 +528,12 @@ def R_python_interface_test(Network_stats,
   print("Network_stats:", Network_stats, " Type:", type(Network_stats))
   print("Prob_Distr:", Prob_Distr, " Type:", type(Prob_Distr))
   print("Prob_Distr_Params:", Prob_Distr_Params, " Type:", type(Prob_Distr_Params))
+  print("Prob_Distr_Params[0]:", Prob_Distr_Params[0], " Type:", type(Prob_Distr_Params[0]))
+  print("Prob_Distr_Params[0][1]:", Prob_Distr_Params[0][1], " Type:", type(Prob_Distr_Params[0][1]))
+  #print("Prob_Distr_Params[0][171][4]:", Prob_Distr_Params[0][171][4], " Type:", type(Prob_Distr_Params[0][171][4]))
+  #print("Prob_Distr_Params[0][171][3]:", Prob_Distr_Params[0][171][3], " Type:", type(Prob_Distr_Params[0][171][3]))
+  #print("Prob_Distr_Params[0][170][4]:", Prob_Distr_Params[0][170][4], " Type:", type(Prob_Distr_Params[0][170][4]))
+  #print("Prob_Distr_Params[0][170][3]:", Prob_Distr_Params[0][170][3], " Type:", type(Prob_Distr_Params[0][170][3]))
   print("samplesize:", samplesize, " Type:", type(samplesize))
   print("burnin:", burnin, " Type:", type(burnin))
   print("interval:", interval, " Type:", type(interval))
@@ -515,7 +551,6 @@ def R_python_interface_test(Network_stats,
 
   return(Network_stats)
 
-
 #################################
 #################################
 #################################
@@ -525,7 +560,7 @@ def R_python_interface_test(Network_stats,
 # Prob_Distr_Params = [10, [0.0001, 0.0001, 0.3, 0.4, 0.3, 0.0001] + [0.0001]*494]  
 
 # samplesize = 5
-# burnin = 100000
+# burnin = 1000
 # interval = 1
 # statsonly = True
 # G = pd.DataFrame([[1,2],[2,3]])
@@ -538,7 +573,8 @@ def R_python_interface_test(Network_stats,
 # R = [0]*250 + [1]*250
 # epi_params = [10,5]
 # print_calculations = False
-
+# use_G = 0
+# outfile = "favites"
 
 # cProfile.run('CCMnet_constr_py(Network_stats, Prob_Distr, Prob_Distr_Params, samplesize, burnin,  interval, statsonly, P, population, covPattern, bayesian_inference,Ia, Il, R,  epi_params, print_calculations)')
 
@@ -578,12 +614,16 @@ def R_python_interface_test(Network_stats,
 #   Il, 
 #   R,  
 #   epi_params, 
-#   print_calculations)
+#   print_calculations,
+#   use_G,
+#   outfile)
 
 
-#print(results)
+# print(results)
 
-#rint(type(results))
-#print(results[1])
-#print(np.mean(results[1], axis=0))
+# print(type(results))
+# print(results[1])
+# print(np.mean(results[1], axis=0))
 
+
+print(results[2])

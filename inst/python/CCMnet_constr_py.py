@@ -5,10 +5,8 @@ import numpy as np
 import random
 import operator as op
 from functools import reduce
-import pandas as pd
 from itertools import cycle, islice
 import math
-import scipy.stats as stats
 import cProfile
 
 def ncr(n, r):

@@ -627,3 +627,7 @@ def R_python_interface_test(Network_stats,
 
 
 #print(results[2])
+
+#print(nx.__version__)
+#print(pd.__version__)
+#print(nx.__version__)

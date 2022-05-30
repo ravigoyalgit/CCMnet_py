@@ -2,7 +2,7 @@
 import networkx as nx
 import pandas as pd
 import numpy as np
-import random
+import random, json
 import operator as op
 from functools import reduce
 from itertools import cycle, islice
@@ -381,27 +381,33 @@ def generate_net(population, P, covPattern):
 
   return Pnet
 
-def CCMnet_constr_py(Network_stats,
-                          Prob_Distr,
-                          Prob_Distr_Params, 
-                          samplesize,
-                          burnin, 
-                          interval,
-                          statsonly, 
-                          G,
-                          P,
-                          population, 
-                          covPattern,
-                          bayesian_inference,
-                          Ia, 
-                          Il, 
-                          R, 
-                          epi_params,
-                          print_calculations,
-                          use_G,
-                          outfile):
-    
-  Prob_Distr_Params = np.array(Prob_Distr_Params)                          
+
+def pad_deg_dist(deg_dict,small_prob, num_nodes):
+    '''
+    Given the nonzero values of a degree distribution, pad all remaining degree sizes with a small probability. 
+    '''
+    deg_dict = { int(k) : v for k,v in deg_dict.items() }
+    deg_dist = []
+    for k in range(num_nodes):
+        if k not in deg_dict or (k in deg_dict and deg_dict[k] == 0):
+            # need to avoid zero values in deg dist for computational reasons
+            deg_dist.append(small_prob)
+        else:
+            deg_dist.append(deg_dict[k])
+    return deg_dist
+
+
+def readconfig(CCMconfig):
+  ccmc = json.load(open(CCMconfig))
+  deg_dist = pad_deg_dist(ccmc["degree_distribution"],ccmc["small_prob"],ccmc["population"])
+  Prob_Distr_Params = [ccmc["Prob_Distr_Params"][0], np.array(deg_dist)]
+  return ccmc["Network_stats"],ccmc["Prob_Distr"],Prob_Distr_Params, ccmc["samplesize"],ccmc["burnin"], ccmc["interval"],ccmc["statsonly"], ccmc["G"],ccmc["P"],ccmc["population"], ccmc["covPattern"],ccmc["bayesian_inference"],ccmc["Ia"], ccmc["Il"], ccmc["R"], ccmc["epi_params"],ccmc["print_calculations"],ccmc["use_G"],ccmc["outfile"]
+
+
+def CCMnet_constr_py(CCMconfig):
+  # CCMconfig is either a json file name or a python dictionary
+
+  Network_stats,Prob_Distr,Prob_Distr_Params, samplesize,burnin, interval,statsonly, G,P,population, covPattern,bayesian_inference,Ia, Il, R, epi_params,print_calculations,use_G,outfile = readconfig(CCMconfig)
 
   if use_G == 1:
     if isinstance(G,str):
@@ -419,6 +425,8 @@ def CCMnet_constr_py(Network_stats,
     print("g statistics:", g_net_stat)
 
   if bayesian_inference == 1:
+    if isinstance(P,str):
+      P = pd.read_csv(P)
     P_list = [tuple(r) for r in P.to_numpy().tolist()]
     Pnet = generate_net(population, P_list, covPattern)
     P_net_stat = calc_network_stat(Pnet, Network_stats)
@@ -631,3 +639,10 @@ def R_python_interface_test(Network_stats,
 #print(nx.__version__)
 #print(pd.__version__)
 #print(nx.__version__)
+
+
+if __name__ == "__main__":
+  import sys
+  g = CCMnet_constr_py(sys.argv[1])
+  print(g.number_of_nodes())
+  print(g.number_of_edges())

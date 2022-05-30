@@ -398,7 +398,10 @@ def pad_deg_dist(deg_dict,small_prob, num_nodes):
 
 
 def readconfig(CCMconfig):
-  ccmc = json.load(open(CCMconfig))
+  if isinstance(CCMconfig,str):
+    ccmc = json.load(open(CCMconfig))
+  else:
+    ccmc = CCMconfig
   deg_dist = pad_deg_dist(ccmc["degree_distribution"],ccmc["small_prob"],ccmc["population"])
   Prob_Distr_Params = [ccmc["Prob_Distr_Params"][0], np.array(deg_dist)]
   return ccmc["Network_stats"],ccmc["Prob_Distr"],Prob_Distr_Params, ccmc["samplesize"],ccmc["burnin"], ccmc["interval"],ccmc["statsonly"], ccmc["G"],ccmc["P"],ccmc["population"], ccmc["covPattern"],ccmc["bayesian_inference"],ccmc["Ia"], ccmc["Il"], ccmc["R"], ccmc["epi_params"],ccmc["print_calculations"],ccmc["use_G"],ccmc["outfile"]

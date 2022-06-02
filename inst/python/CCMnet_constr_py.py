@@ -393,7 +393,7 @@ def pad_deg_dist(deg_dict,small_prob, num_nodes):
             # need to avoid zero values in deg dist for computational reasons
             deg_dist.append(small_prob)
         else:
-            deg_dist.append(deg_dict[k])
+            deg_dist.append(deg_dict[k]+small_prob)
     return deg_dist
 
 

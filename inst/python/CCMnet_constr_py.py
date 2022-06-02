@@ -398,20 +398,40 @@ def pad_deg_dist(deg_dict,small_prob, num_nodes):
 
 
 def readconfig(CCMconfig):
-  if isinstance(CCMconfig,str):
-    ccmc = json.load(open(CCMconfig))
-  else:
-    ccmc = CCMconfig
+  ccmc = json.load(open(CCMconfig))
   deg_dist = pad_deg_dist(ccmc["degree_distribution"],ccmc["small_prob"],ccmc["population"])
   Prob_Distr_Params = [ccmc["Prob_Distr_Params"][0], np.array(deg_dist)]
   return ccmc["Network_stats"],ccmc["Prob_Distr"],Prob_Distr_Params, ccmc["samplesize"],ccmc["burnin"], ccmc["interval"],ccmc["statsonly"], ccmc["G"],ccmc["P"],ccmc["population"], ccmc["covPattern"],ccmc["bayesian_inference"],ccmc["Ia"], ccmc["Il"], ccmc["R"], ccmc["epi_params"],ccmc["print_calculations"],ccmc["use_G"],ccmc["outfile"]
 
 
-def CCMnet_constr_py(CCMconfig):
-  # CCMconfig is either a json file name or a python dictionary
+def CCMnet_constr_py(Network_stats=["Degree"],
+                          Prob_Distr=["MultinomialPoisson"],
+                          Prob_Distr_Params=[0,[]],
+                          samplesize=1,
+                          burnin=1000, 
+                          interval=1,
+                          statsonly=True, 
+                          G=None,
+                          P=None,
+                          population=0, 
+                          covPattern=[],
+                          bayesian_inference=0,
+                          Ia=[], 
+                          Il=[], 
+                          R=[], 
+                          epi_params=[],
+                          print_calculations=False,
+                          use_G=0,
+                          outfile="favites",
+                          config_file=None,
+                          degree_distribution=None,
+                          small_prob=None):
 
-  Network_stats,Prob_Distr,Prob_Distr_Params, samplesize,burnin, interval,statsonly, G,P,population, covPattern,bayesian_inference,Ia, Il, R, epi_params,print_calculations,use_G,outfile = readconfig(CCMconfig)
-
+  if config_file:
+    Network_stats,Prob_Distr,Prob_Distr_Params, samplesize,burnin, interval,statsonly, G,P,population, covPattern,bayesian_inference,Ia, Il, R, epi_params,print_calculations,use_G,outfile = readconfig(config_file)
+  if degree_distribution:
+    deg_dist = pad_deg_dist(degree_distribution,small_prob,population)
+    Prob_Distr_Params = [Prob_Distr_Params[0], np.array(deg_dist)]
   if use_G == 1:
     if isinstance(G,str):
       G = pd.read_csv(G)

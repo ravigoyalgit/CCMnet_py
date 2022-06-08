@@ -170,10 +170,10 @@ def calc_network_stat_degree_2(proposal_edge, g_net_stat, g2_net_stat, g_proposa
 
 def calc_network_stat_2(Network_stats, proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern, g):
 
-  if Network_stats[0] == "Mixing" and len(Network_stats) == 1:
+  if Network_stats[0].strip().lower() == "mixing" and len(Network_stats) == 1:
     g2_net_stat = calc_network_stat_mixing_2(proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern)
 
-  if Network_stats[0] == "Degree" and len(Network_stats) == 1:
+  if Network_stats[0].strip().lower() == "degree" and len(Network_stats) == 1:
     g2_net_stat = calc_network_stat_degree_2(proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern, g)
 
   return g2_net_stat

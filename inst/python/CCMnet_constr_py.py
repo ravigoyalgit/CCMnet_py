@@ -664,8 +664,8 @@ def R_python_interface_test(Network_stats,
 #print(nx.__version__)
 
 
-if __name__ == "__main__":
-  import sys
-  g = CCMnet_constr_py(sys.argv[1])
-  print(g.number_of_nodes())
-  print(g.number_of_edges())
+# if __name__ == "__main__":
+#   import sys
+#   g = CCMnet_constr_py(sys.argv[1])
+#   print(g.number_of_nodes())
+#   print(g.number_of_edges())

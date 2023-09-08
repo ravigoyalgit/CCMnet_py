@@ -17,7 +17,10 @@ CCMnet_constr <- function(Network_stats,
                           epi_params,
                           print_calculations,
                           use_G = FALSE,
-                          outfile = "none") {
+                          outfile = "none",
+                          partial_network=0,
+                          obs_nodes,
+                          MH_proposal_type= "random") {
   
   samplesize = as.integer(samplesize)
   burnin = as.integer(burnin)
@@ -43,7 +46,10 @@ CCMnet_constr <- function(Network_stats,
                    epi_params,
                    print_calculations,
                    use_G,
-                   outfile)
+                   outfile,
+                   partial_network,
+                   obs_nodes,
+                   MH_proposal_type)
   
   nodes_attr_df = data.frame(name = c(0:(population-1)), 
                              covPattern = covPattern)

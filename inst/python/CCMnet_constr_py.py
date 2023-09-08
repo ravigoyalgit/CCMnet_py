@@ -22,9 +22,16 @@ def generate_initial_g(population, covPattern):
 
   return g
 
-def proposal_edge_func(g):
+def proposal_edge_func(g, MH_proposal_type):
 
-  proposal_edge = random.sample(g.nodes, 2)
+  if MH_proposal_type=="random":
+    proposal_edge = random.sample(list(g.nodes), 2)
+  if MH_proposal_type=="TNT":
+    if np.random.uniform(0,1,1) < 0.5 and g.number_of_edges() > 0:
+      proposal_edge = list(random.choice(list(g.edges())))     
+    else:
+      proposal_edge = random.sample(list(g.nodes), 2)
+
   return proposal_edge
 
 def proposal_g2(g, proposal_edge):
@@ -423,6 +430,9 @@ def CCMnet_constr_py(Network_stats=["Degree"],
                           print_calculations=False,
                           use_G=0,
                           outfile="favites",
+                          partial_network=0,
+                          obs_nodes=[],
+                          MH_proposal_type="random",
                           config_file=None,
                           degree_distribution=None,
                           small_prob=None):
@@ -463,7 +473,7 @@ def CCMnet_constr_py(Network_stats=["Degree"],
   counter = 0
 
   for i in range(burnin+samplesize*interval):
-    proposal_edge = proposal_edge_func(g)
+    proposal_edge = proposal_edge_func(g, MH_proposal_type)
     g_proposal_edge = g.has_edge(proposal_edge[0], proposal_edge[1])
     g2_proposal_edge = not g_proposal_edge
 
@@ -509,12 +519,35 @@ def CCMnet_constr_py(Network_stats=["Degree"],
     else: 
       MH_prob = math.log(f_g2_g) + prob_g2 - (math.log(f_g_g2) + prob_g)
     
+    if MH_proposal_type == "TNT":
+      nedges = g.number_of_edges()
+      num_nodes = g.number_of_nodes()
+      ndyads = num_nodes * (num_nodes-1) * 0.5
+      if g_proposal_edge:
+        if nedges == 1:
+          MH_prob_TNT = math.log(1.0/(ndyads + 0.5))
+        else:
+          #MH_prob_TNT = math.log(nedges / (2.0*ndyads + nedges))
+          MH_prob_TNT = math.log(nedges / (ndyads + nedges))
+      else:
+        if nedges == 0:
+          MH_prob_TNT = math.log(ndyads + 0.5)
+        else:
+          #MH_prob_TNT = math.log(1.0 + (2.0*ndyads)/(nedges + 1.0))
+          MH_prob_TNT = math.log(1.0 + (ndyads/nedges))
+      MH_prob = MH_prob + MH_prob_TNT
+
     if print_calculations:
       print(MH_prob)
 
     if bayesian_inference == 1 and MH_prob < math.inf:
       MH_prob = bayes_inf_MH_prob_calc(MH_prob, g, proposal_edge, Pnet, Ia, Il, R, epi_params)
 
+    if partial_network == 1:
+        if ((proposal_edge[0] in obs_nodes) and (proposal_edge[1] in obs_nodes)): 
+          #Reject the toggle
+          MH_prob = -math.inf
+      
     if MH_prob >= 0 or math.log(np.random.uniform(0,1,1)) < MH_prob:
       #Accept proposal
       g = proposal_g2(g, proposal_edge)
@@ -554,13 +587,15 @@ def R_python_interface_test(Network_stats,
                           Il, 
                           R, 
                           epi_params,
-                          print_calculations):
+                          print_calculations,
+                          partial_network,
+                          obs_nodes):
 
   print("Network_stats:", Network_stats, " Type:", type(Network_stats))
   print("Prob_Distr:", Prob_Distr, " Type:", type(Prob_Distr))
   print("Prob_Distr_Params:", Prob_Distr_Params, " Type:", type(Prob_Distr_Params))
   print("Prob_Distr_Params[0]:", Prob_Distr_Params[0], " Type:", type(Prob_Distr_Params[0]))
-  print("Prob_Distr_Params[0][1]:", Prob_Distr_Params[0][1], " Type:", type(Prob_Distr_Params[0][1]))
+  #print("Prob_Distr_Params[0][1]:", Prob_Distr_Params[0][1], " Type:", type(Prob_Distr_Params[0][1]))
   #print("Prob_Distr_Params[0][171][4]:", Prob_Distr_Params[0][171][4], " Type:", type(Prob_Distr_Params[0][171][4]))
   #print("Prob_Distr_Params[0][171][3]:", Prob_Distr_Params[0][171][3], " Type:", type(Prob_Distr_Params[0][171][3]))
   #print("Prob_Distr_Params[0][170][4]:", Prob_Distr_Params[0][170][4], " Type:", type(Prob_Distr_Params[0][170][4]))
@@ -579,6 +614,8 @@ def R_python_interface_test(Network_stats,
   print("R:", R, " Type:", type(R))
   print("epi_params:", epi_params, " Type:", type(epi_params))
   print("print_calculations:", print_calculations, " Type:", type(print_calculations))
+  print("partial network:", partial_network, " Type:", type(partial_network))
+  print("obs_nodes:", obs_nodes, " Type:", type(obs_nodes))
 
   return(Network_stats)
 

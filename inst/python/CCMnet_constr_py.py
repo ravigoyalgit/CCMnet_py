@@ -45,6 +45,19 @@ def proposal_g2(g, proposal_edge):
 
   return g
 
+def calc_f_edge(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g):
+  
+  population = g.number_of_nodes()
+  
+  if g_proposal_edge:
+    #g->g2 remove edge
+    prob_g_g2 = g_net_stat
+  else:
+    #g->g2 add edge
+    prob_g_g2 = ncr(population,2) - g_net_stat
+
+  return prob_g_g2 
+
 def calc_f_mixing(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat):
 
   cov0 = covPattern[proposal_edge[0]]
@@ -106,6 +119,9 @@ def calc_f_degree(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesi
 
 def calc_f(Network_stats,g_net_stat, g2_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g, f_g_g2_bool):
   
+  if Network_stats[0].strip().lower() == "edge" and len(Network_stats) == 1:
+    prob_g_g2 = calc_f_edge(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g)
+
   if Network_stats[0].strip().lower() == "mixing" and len(Network_stats) == 1:
     prob_g_g2 = calc_f_mixing(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat)
 
@@ -129,6 +145,9 @@ def calc_network_stat_degree(g):
 
 def calc_network_stat(g, Network_stats):
 
+  if Network_stats[0].strip().lower() == "edge" and len(Network_stats) == 1:
+    g_net_stat = g.number_of_edges()
+    
   if Network_stats[0].strip().lower() == "mixing" and len(Network_stats) == 1:
     g_net_stat = calc_network_stat_mixing(g)
 
@@ -136,6 +155,15 @@ def calc_network_stat(g, Network_stats):
     g_net_stat = calc_network_stat_degree(g)
 
   return g_net_stat
+
+def calc_network_stat_edge_2(proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern):
+
+  if g_proposal_edge:
+    g2_net_stat = g2_net_stat - 1
+  else:
+      g2_net_stat = g2_net_stat + 1
+  
+  return g2_net_stat
 
 def calc_network_stat_mixing_2(proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern):
 
@@ -177,6 +205,9 @@ def calc_network_stat_degree_2(proposal_edge, g_net_stat, g2_net_stat, g_proposa
 
 def calc_network_stat_2(Network_stats, proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern, g):
 
+  if Network_stats[0].strip().lower() == "edge" and len(Network_stats) == 1:
+    g2_net_stat = calc_network_stat_edge_2(proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern)
+
   if Network_stats[0].strip().lower() == "mixing" and len(Network_stats) == 1:
     g2_net_stat = calc_network_stat_mixing_2(proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern)
 
@@ -184,6 +215,16 @@ def calc_network_stat_2(Network_stats, proposal_edge, g_net_stat, g2_net_stat, g
     g2_net_stat = calc_network_stat_degree_2(proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern, g)
 
   return g2_net_stat
+
+def calc_probs_edge(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_Distr, Prob_Distr_Params):
+
+  if (Prob_Distr[0] == "NP"):
+    prob_g = math.log(Prob_Distr_Params[0][g_net_stat])
+    prob_g2 = math.log(Prob_Distr_Params[0][g2_net_stat])
+  else:
+    print("ERROR")
+
+  return prob_g, prob_g2
 
 def calc_probs_mixing(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_Distr, Prob_Distr_Params):
 
@@ -266,6 +307,9 @@ def calc_probs_degree(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_D
 
 def calc_probs(g_net_stat, g2_net_stat, proposal_edge, covPattern, Network_stats, Prob_Distr, Prob_Distr_Params, g, g_proposal_edge):
 
+  if Network_stats[0].strip().lower() == "edge" and len(Network_stats) == 1:
+    prob_g, prob_g2 = calc_probs_edge(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_Distr, Prob_Distr_Params)
+
   if Network_stats[0].strip().lower() == "mixing" and len(Network_stats) == 1:
     prob_g, prob_g2 = calc_probs_mixing(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_Distr, Prob_Distr_Params)
 
@@ -274,7 +318,13 @@ def calc_probs(g_net_stat, g2_net_stat, proposal_edge, covPattern, Network_stats
 
   return prob_g, prob_g2
 
-def save_stats(g_net_stat, results, counter, Network_stats):
+def save_stats(g_net_stat, results, counter, Network_stats, g):
+  if Network_stats[0].strip().lower() == "edge" and len(Network_stats) == 1:
+    #results[counter] = g_net_stat
+    g_net_stat_temp = nx.degree_histogram(g)
+    g_net_stat_temp.extend([0] * (g.number_of_nodes() - len(g_net_stat_temp)))
+    g_net_stat_temp.append(g_net_stat)
+    results[counter] =  g_net_stat_temp
   if Network_stats[0].strip().lower() == "mixing" and len(Network_stats) == 1:
     results[counter] = g_net_stat[np.triu_indices(g_net_stat.shape[0])]
   if Network_stats[0].strip().lower() == "degree" and len(Network_stats) == 1:
@@ -454,7 +504,7 @@ def CCMnet_constr_py(Network_stats=["Degree"],
   g2_net_stat = np.copy(g_net_stat)
 
   if print_calculations:
-    print("g info:", nx.info(g))
+    #print("g info:", nx.info(g))
     print("g statistics:", g_net_stat)
 
   if bayesian_inference == 1:
@@ -558,7 +608,7 @@ def CCMnet_constr_py(Network_stats=["Degree"],
 
     if (i+1) % interval == 0 and (i+1) > burnin:
       if statsonly:
-        save_stats(g_net_stat, results, counter, Network_stats)
+        save_stats(g_net_stat, results, counter, Network_stats, g)
       else:
         save_network(results, counter)
       counter = counter + 1

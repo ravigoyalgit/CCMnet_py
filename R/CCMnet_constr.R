@@ -51,7 +51,7 @@ CCMnet_constr <- function(Network_stats,
                    obs_nodes,
                    MH_proposal_type)
   
-  nodes_attr_df = data.frame(name = c(0:(population-1)), 
+  nodes_attr_df = data.frame(name = c(1:(population)), #data.frame(name = c(0:(population-1)), 
                              covPattern = covPattern)
   g = graph_from_data_frame(results[[1]], directed=FALSE, vertices = nodes_attr_df)
 

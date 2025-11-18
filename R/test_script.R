@@ -83,8 +83,8 @@
 # outfile = "none"
 # partial_network = as.integer(0)
 # obs_nodes = NULL
-# MH_proposal_type = "TNT"
-# 
+# MH_proposal_type = "random"
+# # 
 # CCMnet_Result = CCMnetpy::CCMnet_constr(Network_stats=Network_stats,
 #                                         Prob_Distr=Prob_Distr,
 #                                         Prob_Distr_Params=Prob_Distr_Params,
@@ -110,7 +110,7 @@
 # 
 # CCM_stats = CCMnet_Result[[2]]
 # apply(CCM_stats, 2, mean)[c(1:10)]
-# (Prob_Distr_Params[[2]] *population)[c(1:10)]
+# (Prob_Distr_Params[[1]] *population)[c(1:10)]
 # 
 # plot(CCM_stats[,2])
 # plot(CCM_stats[,1])

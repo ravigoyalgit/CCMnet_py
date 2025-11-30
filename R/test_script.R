@@ -117,3 +117,65 @@
 # 
 # mean(rnbinom(10000,size=1.017340,mu=6.192894))
 
+# reticulate::use_condaenv("ccmnet_env", required = TRUE)
+# 
+# library(reticulate)
+# library(CCMnetpy)
+# library(tidyverse)
+# library(igraph)
+# 
+# # Initialize CCMnet Python code
+# CCMnet_python_setup()
+# 
+# population <- 100
+# covPattern <- rep(0L, population)
+# 
+# # Target statistic: edge count
+# Network_stats <- list("Edge")
+# Prob_Distr    <- list("NP")
+# 
+# # Negative binomial prior on number of edges
+# Prob_Distr_Params <- vector("list", 2)
+# Prob_Distr_Params[[1]] <- dnbinom(
+#   0:choose(population, 2),
+#   size = 1.017340,
+#   mu   = 6.192894
+# )
+# 
+# # Run a small MCMC chain (for demonstration)
+# result <- CCMnetpy::CCMnet_constr(
+#   Network_stats      = Network_stats,
+#   Prob_Distr         = Prob_Distr,
+#   Prob_Distr_Params  = Prob_Distr_Params,
+#   G=NULL,
+#   P=NULL,
+#   samplesize         = 1000L,
+#   burnin             = 50000L,
+#   interval           = 10000L,
+#   statsonly          = TRUE,
+#   population         = population,
+#   covPattern         = covPattern,
+#   bayesian_inference = FALSE,
+#   Ia = NULL,
+#   Il = NULL,
+#   R = NULL,
+#   epi_params = NULL,
+#   print_calculations = FALSE,
+#   use_G = FALSE,
+#   outfile = "none",
+#   partial_network = as.integer(0),
+#   obs_nodes = NULL,
+#   MH_proposal_type = "random"
+# )
+# 
+# # Extract results
+# g     <- result[[1]]
+# stats <- result[[2]]
+# 
+# # Empirical mean from the MCMC chain
+# mean_sampled <- mean(stats[,1])
+# mean_sampled
+# 
+# # Mean from the prior distribution
+# mean_prior <- mean(rnbinom(10000, size=1.017340, mu=6.192894))
+# mean_prior

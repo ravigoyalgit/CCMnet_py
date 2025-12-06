@@ -11,112 +11,11 @@
 #
 #reticulate::use_python("/Users/ravigoyal/anaconda3/bin/python", required = TRUE)
 #reticulate::py_config()
-#
-#library(reticulate)
-#library(CCMnetpy)
-#library(tidyverse)
-#library(igraph)
-#
-#CCMnet_python_setup()
-# 
-# #Initialize
-# 
-# deg_dist="nbinom"
-# size=1.017340
-# mu=6.192894
-# 
-# alpha =  1
-# MCMC_wgt = 1
-# 
-# sample_fraction = 0.1
-# n_mcmc_trials = 100 #2000 ########CHANGE
-# 
-# #Population parameters
-# population = 1000
-# covPattern = c(rep(0,population/2), rep(1,population/2)) #only use for Mixing
-# 
-# prior_mult = 10000
-# #Network model parameters
-# Network_stats = list(c("Degree"))
-# Prob_Distr = list(c("Multinomial_Poisson"))
-# Prob_Distr_Params_prior = vector("list", 3)
-# Prob_Distr_Params_prior[[1]] = 'Dirichlet_Gamma'
-# Prob_Distr_Params_prior[[2]][1] = 1 #gamma k (shape)
-# Prob_Distr_Params_prior[[2]][2] = population #gamma theta (scale)
-# Prob_Distr_Params_prior[[3]] = rep(1/(population*prior_mult), population) #dirichlet alpha
-# 
-# Prob_Distr_Params = vector("list", 2)
-# Prob_Distr_Params[[1]] = c(population) #Number or edges in mixing matrix [1,1], [1,2], and [2,2]
-# Prob_Distr_Params[[2]] =  dnbinom(c(0:(population-1)),size=1.017340,mu=6.192894,log=FALSE)
-# 
-# #Population parameters
-# population = 100
-# covPattern = c(rep(0,population)) #only use for Mixing
-# 
-# prior_mult = 10000
-# #Network model parameters
-# Network_stats = list(c("Edge"))
-# Prob_Distr = list(c("NP"))
-# Prob_Distr_Params = vector("list", 2)
-# Prob_Distr_Params[[1]] =  dnbinom(c(0:choose(population,2)),size=1.017340,mu=6.192894,log=FALSE)
-# 
-# #dbinom(c(0:choose(population,2)), size = choose(population,2), prob = 0.5, log = FALSE) + 1/prior_mult
-# 
-# Network_stats=Network_stats
-# Prob_Distr=Prob_Distr
-# Prob_Distr_Params=Prob_Distr_Params
-# samplesize = as.integer(1000)
-# burnin=as.integer(200000)
-# interval=as.integer(100)
-# statsonly=TRUE
-# G=NULL
-# P=NULL
-# population=as.integer(population)
-# covPattern = as.integer(covPattern)
-# bayesian_inference = FALSE
-# Ia = NULL
-# Il = NULL
-# R = NULL
-# epi_params = NULL
-# print_calculations = FALSE
-# use_G = FALSE
-# outfile = "none"
-# partial_network = as.integer(0)
-# obs_nodes = NULL
-# MH_proposal_type = "random"
-# # 
-# CCMnet_Result = CCMnetpy::CCMnet_constr(Network_stats=Network_stats,
-#                                         Prob_Distr=Prob_Distr,
-#                                         Prob_Distr_Params=Prob_Distr_Params,
-#                                         samplesize = as.integer(10000),
-#                                         burnin=as.integer(100000), ##CHANGE
-#                                         interval=as.integer(1000),
-#                                         statsonly=TRUE,
-#                                         G=NULL,
-#                                         P=NULL,
-#                                         population=as.integer(population),
-#                                         covPattern = as.integer(covPattern),
-#                                         bayesian_inference = FALSE,
-#                                         Ia = NULL,
-#                                         Il = NULL,
-#                                         R = NULL,
-#                                         epi_params = NULL,
-#                                         print_calculations = FALSE,
-#                                         use_G = FALSE,
-#                                         outfile = "none",
-#                                         partial_network = as.integer(0),
-#                                         obs_nodes = NULL,
-#                                         MH_proposal_type = "random")
-# 
-# CCM_stats = CCMnet_Result[[2]]
-# apply(CCM_stats, 2, mean)[c(1:10)]
-# (Prob_Distr_Params[[1]] *population)[c(1:10)]
-# 
-# plot(CCM_stats[,2])
-# plot(CCM_stats[,1])
-# 
-# mean(rnbinom(10000,size=1.017340,mu=6.192894))
 
+######################
+######################
+######################
+# 
 # reticulate::use_condaenv("ccmnet_env", required = TRUE)
 # 
 # library(reticulate)
@@ -165,17 +64,268 @@
 #   outfile = "none",
 #   partial_network = as.integer(0),
 #   obs_nodes = NULL,
-#   MH_proposal_type = "random"
+#   MH_proposal_type = "TNT"
 # )
 # 
 # # Extract results
 # g     <- result[[1]]
 # stats <- result[[2]]
 # 
-# # Empirical mean from the MCMC chain
-# mean_sampled <- mean(stats[,1])
-# mean_sampled
+# library(ggplot2)
+# library(tidyverse)
 # 
-# # Mean from the prior distribution
-# mean_prior <- mean(rnbinom(10000, size=1.017340, mu=6.192894))
-# mean_prior
+# # MCMC sampled edge counts
+# df_sampled <- data.frame(
+#   value = stats[,population + 1],
+#   type  = "MCMC Sample"
+# )
+# 
+# # Negative binomial simulated prior
+# set.seed(123)
+# df_prior <- data.frame(
+#   value = rnbinom(10000, size = 1.017340, mu = 6.192894),
+#   type  = "Negative Binomial"
+# )
+# 
+# # Combine
+# df_all <- bind_rows(df_sampled, df_prior)
+# 
+# # Density overlay
+# ggplot(df_all, aes(x = value, color = type, fill = type)) +
+#   geom_density(alpha = 0.3, linewidth = 1.2) +
+#   labs(
+#     title = "MCMC Sample vs. Negative Binomial",
+#     x = "Number of Edges",
+#     y = "Density"
+#   ) +
+#   theme_minimal(base_size = 14) +
+#   scale_color_manual(values = c("MCMC Sample" = "red", "Negative Binomial" = "blue")) +
+#   scale_fill_manual(values = c("MCMC Sample" = "red", "Negative Binomial" = "blue"))
+# 
+# # ######################
+# # ######################
+# # ######################
+# 
+# reticulate::use_condaenv("ccmnet_env", required = TRUE)
+# 
+# library(reticulate)
+# library(CCMnetpy)
+# library(tidyverse)
+# library(igraph)
+# 
+# # Initialize CCMnet Python code
+# CCMnet_python_setup()
+# 
+# #Population parameters
+# population = 100
+# covPattern = c(rep(0,population)) #only use for Mixing
+# 
+# #Network model parameters
+# Network_stats = list(c("Degree"))
+# Prob_Distr = list(c("Multinomial_Poisson"))
+# 
+# Prob_Distr_Params = vector("list", 2)
+# Prob_Distr_Params[[1]] = c(population) #Number or edges in mixing matrix [1,1], [1,2], and [2,2]
+# Prob_Distr_Params[[2]] =  dnbinom(c(0:(population-1)),size=1.017340,mu=6.192894,log=FALSE)
+# 
+# Network_stats=Network_stats
+# Prob_Distr=Prob_Distr
+# Prob_Distr_Params=Prob_Distr_Params
+# samplesize = as.integer(1000)
+# burnin=as.integer(200000)
+# interval=as.integer(1000)
+# statsonly=TRUE
+# G=NULL
+# P=NULL
+# population=as.integer(population)
+# covPattern = as.integer(covPattern)
+# bayesian_inference = FALSE
+# Ia = NULL
+# Il = NULL
+# R = NULL
+# epi_params = NULL
+# print_calculations = FALSE
+# use_G = FALSE
+# outfile = "none"
+# partial_network = as.integer(0)
+# obs_nodes = NULL
+# MH_proposal_type = "TNT"
+# #
+# 
+# CCMnet_Result = CCMnetpy::CCMnet_constr(Network_stats=Network_stats,
+#                                         Prob_Distr=Prob_Distr,
+#                                         Prob_Distr_Params=Prob_Distr_Params,
+#                                         samplesize = samplesize,
+#                                         burnin=burnin,
+#                                         interval=interval,
+#                                         statsonly=TRUE,
+#                                         G=NULL,
+#                                         P=NULL,
+#                                         population=as.integer(population),
+#                                         covPattern = as.integer(covPattern),
+#                                         bayesian_inference = FALSE,
+#                                         Ia = NULL,
+#                                         Il = NULL,
+#                                         R = NULL,
+#                                         epi_params = NULL,
+#                                         print_calculations = FALSE,
+#                                         use_G = FALSE,
+#                                         outfile = "none",
+#                                         partial_network = as.integer(0),
+#                                         obs_nodes = NULL,
+#                                         MH_proposal_type = "TNT")
+# 
+# degrees_to_check <- 0:9
+# population <- population                   # already defined
+# theoretical_pmf <- Prob_Distr_Params[[2]]  # negative binomial PMF
+# n_sim <- 1000  # number of multinomial draws
+# 
+# ### --- EMPIRICAL (MCMC) DISTRIBUTION ---
+# df_empirical <- CCM_stats %>%
+#   as.data.frame() %>%
+#   pivot_longer(
+#     cols = everything(),      # all columns are node degrees
+#     names_to = "degree",
+#     values_to = "count"
+#   ) %>%
+#   filter(degree %in% degrees_to_check) %>%
+#   group_by(degree) %>%
+#   mutate(source = "MCMC")
+# 
+# ### --- THEORETICAL DISTRIBUTION ---
+# set.seed(123)
+# multi_pois <- t(rmultinom(1000, population, prob =  theoretical_pmf))
+# df_theory <- multi_pois %>%
+#   as.data.frame()
+# 
+# colnames(df_theory) = c(0:(population-1))
+# 
+# df_theory = df_theory %>%
+#   pivot_longer(
+#     cols = everything(),      # all columns are node degrees
+#     names_to = "degree",
+#     values_to = "count"
+#   ) %>%
+#   filter(degree %in% degrees_to_check) %>%
+#   group_by(degree) %>%
+#   mutate(source = "Theoretical")
+# 
+# ### --- COMBINE AND PLOT ---
+# df_plot <- bind_rows(df_empirical, df_theory)
+# 
+# ggplot(df_plot, aes(x = count, color = source, fill = source)) +
+#   geom_density(alpha = 0.25) +
+#   facet_wrap(~degree, scales = "free", ncol = 5) +
+#   theme_bw() +
+#   labs(
+#     title = "Degree Distribution: Empirical MCMC vs Theoretical Multinomial-Poisson (Degrees 0–9)",
+#     x = "Count per Degree",
+#     y = "Density"
+#   )
+# 
+# 
+# # ######################
+# # ######################
+# # ######################
+# 
+# reticulate::use_condaenv("ccmnet_env", required = TRUE)
+# 
+# library(reticulate)
+# library(CCMnetpy)
+# library(tidyverse)
+# library(igraph)
+# 
+# # Initialize CCMnet Python code
+# CCMnet_python_setup()
+# 
+# population <- 100
+# covPattern <- c(rep(0L, population/2),rep(1L, population/2))
+# 
+# Network_stats = list(c("Mixing"))
+# Prob_Distr = list(c("Multinomial_Poisson"))
+# 
+# Prob_Distr_Params = vector("list", 2)
+# Prob_Distr_Params[[1]] = c(20) #Number or edges in mixing matrix [1,1], [1,2], and [2,2]
+# Prob_Distr_Params[[2]] =  c(.3, .6, .1)
+# 
+# Network_stats=Network_stats
+# Prob_Distr=Prob_Distr
+# Prob_Distr_Params=Prob_Distr_Params
+# samplesize = as.integer(1000)
+# burnin=as.integer(200000)
+# interval=as.integer(1000)
+# statsonly=TRUE
+# G=NULL
+# P=NULL
+# population=as.integer(population)
+# covPattern = as.integer(covPattern)
+# bayesian_inference = FALSE
+# Ia = NULL
+# Il = NULL
+# R = NULL
+# epi_params = NULL
+# print_calculations = FALSE
+# use_G = FALSE
+# outfile = "none"
+# partial_network = as.integer(0)
+# obs_nodes = NULL
+# MH_proposal_type = "TNT"
+# #
+# 
+# CCMnet_Result = CCMnetpy::CCMnet_constr(Network_stats=Network_stats,
+#                                         Prob_Distr=Prob_Distr,
+#                                         Prob_Distr_Params=Prob_Distr_Params,
+#                                         samplesize = samplesize,
+#                                         burnin=burnin,
+#                                         interval=interval,
+#                                         statsonly=TRUE,
+#                                         G=NULL,
+#                                         P=NULL,
+#                                         population=as.integer(population),
+#                                         covPattern = as.integer(covPattern),
+#                                         bayesian_inference = FALSE,
+#                                         Ia = NULL,
+#                                         Il = NULL,
+#                                         R = NULL,
+#                                         epi_params = NULL,
+#                                         print_calculations = FALSE,
+#                                         use_G = FALSE,
+#                                         outfile = "none",
+#                                         partial_network = as.integer(0),
+#                                         obs_nodes = NULL,
+#                                         MH_proposal_type = "TNT")
+# 
+# stats = CCMnet_Result[[2]]
+# colnames(stats) <- c("M11", "M12", "M22")
+# 
+# multi_pois = c()
+# for (i in c(1:1000)) {
+#   multi_pois = bind_cols(multi_pois, rmultinom(1, rpois(1,20), prob =  c(.3, .6, .1)))
+# }
+# multi_pois = t(multi_pois)
+# colnames(multi_pois) <- c("M11", "M12", "M22")
+# 
+# # Put into long format
+# df_stats <- stats %>%
+#   as.data.frame() %>%
+#   mutate(source = "MCMC") %>%
+#   pivot_longer(cols = c(M11, M12, M22), names_to = "metric", values_to = "count")
+# 
+# df_pois <- multi_pois %>%
+#   as.data.frame() %>%
+#   mutate(source = "Poisson") %>%
+#   pivot_longer(cols = c(M11, M12, M22), names_to = "metric", values_to = "count")
+# 
+# df_all <- bind_rows(df_stats, df_pois)
+# 
+# # Plot
+# ggplot(df_all, aes(x = count, color = source, fill = source)) +
+#   geom_density(alpha = 0.3) +
+#   facet_wrap(~metric, scales = "free") +
+#   theme_bw() +
+#   labs(
+#     title = "Distribution of Edge Counts: MCMC vs Poisson Multinomial",
+#     x = "Count",
+#     y = "Density"
+#   )
+# 

@@ -17,8 +17,11 @@ def ncr(n, r):
 
 def generate_initial_g(population, covPattern):
   
-  g = nx.empty_graph(population)
-  nx.set_node_attributes(g, values = dict(zip(list(range(0, population)), covPattern)) , name = 'covPattern')
+  g = nx.empty_graph(range(1, population + 1))  # 1-based nodes
+  nx.set_node_attributes(g, values=dict(zip(range(1, population+1), covPattern)), name='covPattern')
+
+  #g = nx.empty_graph(population)
+  #nx.set_node_attributes(g, values = dict(zip(list(range(0, population)), covPattern)) , name = 'covPattern')
 
   return g
 
@@ -83,15 +86,15 @@ def calc_f_mixing(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesi
 def calc_f_degree(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g, f_g_g2_bool):
 
   if f_g_g2_bool:
-    g_degree_0 = g.degree[proposal_edge[0]]
-    g_degree_1 = g.degree[proposal_edge[1]]
+    g_degree_0 = g.degree[proposal_edge[0]] 
+    g_degree_1 = g.degree[proposal_edge[1]] 
   else:
     if g_proposal_edge:
-      g_degree_0 = g.degree[proposal_edge[0]] + 1
-      g_degree_1 = g.degree[proposal_edge[1]] + 1
+      g_degree_0 = g.degree[proposal_edge[0]] + 1 
+      g_degree_1 = g.degree[proposal_edge[1]] + 1 
     else:
-      g_degree_0 = g.degree[proposal_edge[0]] - 1
-      g_degree_1 = g.degree[proposal_edge[1]] - 1     
+      g_degree_0 = g.degree[proposal_edge[0]] - 1 
+      g_degree_1 = g.degree[proposal_edge[1]] - 1 
 
 
   g_Deg_Distr_Edges = np.multiply(g_net_stat,range(len(g_net_stat)))
@@ -203,8 +206,8 @@ def calc_network_stat_mixing_2(proposal_edge, g_net_stat, g2_net_stat, g_proposa
 
 def calc_network_stat_degree_2(proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern, g):
 
-  deg0 = g.degree[proposal_edge[0]]
-  deg1 = g.degree[proposal_edge[1]]
+  deg0 = g.degree[proposal_edge[0]] 
+  deg1 = g.degree[proposal_edge[1]] 
 
   if g_proposal_edge:
     g2_net_stat[deg0] = g2_net_stat[deg0] - 1
@@ -292,7 +295,7 @@ def calc_probs_mixing(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_D
 
 def calc_probs_degree(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_Distr, Prob_Distr_Params, g, g_proposal_edge):
 
-  deg0 = g.degree[proposal_edge[0]]
+  deg0 = g.degree[proposal_edge[0]] 
   deg1 = g.degree[proposal_edge[1]]
 
   if g_proposal_edge:
@@ -602,14 +605,12 @@ def CCMnet_constr_py(Network_stats=["Degree"],
         if nedges == 1:
           MH_prob_TNT = math.log(1.0/(ndyads + 0.5))
         else:
-          #MH_prob_TNT = math.log(nedges / (2.0*ndyads + nedges))
           MH_prob_TNT = math.log(nedges / (ndyads + nedges))
       else:
         if nedges == 0:
           MH_prob_TNT = math.log(ndyads + 0.5)
         else:
-          #MH_prob_TNT = math.log(1.0 + (2.0*ndyads)/(nedges + 1.0))
-          MH_prob_TNT = math.log(1.0 + (ndyads/nedges))
+          MH_prob_TNT = math.log(1.0 + (ndyads/(nedges+1))) ##Updated
       MH_prob = MH_prob + MH_prob_TNT
 
     if print_calculations:
@@ -623,7 +624,7 @@ def CCMnet_constr_py(Network_stats=["Degree"],
           #Reject the toggle
           MH_prob = -math.inf
       
-    if MH_prob >= 0 or math.log(np.random.uniform(0,1,1)) < MH_prob:
+    if MH_prob >= 0 or math.log(np.random.uniform(0,1)) < MH_prob:
       #Accept proposal
       g = proposal_g2(g, proposal_edge)
       g_net_stat = np.copy(g2_net_stat)
@@ -639,7 +640,7 @@ def CCMnet_constr_py(Network_stats=["Degree"],
       counter = counter + 1
 
   g_df = nx.to_pandas_edgelist(g)
-  results = pd.DataFrame(np.row_stack(results))
+  results = pd.DataFrame(np.vstack(results))
 
   if outfile == "favites":
     return g

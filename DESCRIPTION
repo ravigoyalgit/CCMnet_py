@@ -1,15 +1,16 @@
 Package: CCMnetpy
 Type: Package
 Title: CCMnet for python
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: person("Ravi", "Goyal", email = "ravi.j.goyal@gmail.com",
                   role = c("aut", "cre"))
 Description: Need to complete
 License: GPL-3
 Encoding: UTF-8
-LazyData: true
-Imports:
-  igraph,
-  dplyr
-Suggests:
-  reticulate
+Imports: igraph, dplyr
+Suggests: reticulate, knitr, rmarkdown, testthat
+NeedsCompilation: no
+Packaged: 2025-12-06 18:33:59 UTC; ravigoyal
+Author: Ravi Goyal [aut, cre]
+Maintainer: Ravi Goyal <ravi.j.goyal@gmail.com>
+VignetteBuilder: knitr

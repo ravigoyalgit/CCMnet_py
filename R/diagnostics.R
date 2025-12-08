@@ -1,7 +1,32 @@
-#' Traceplot for one or more statistic columns
-#' @param fit CCM_fit object
-#' @param stats statistic names or indices (default: first column)
+#' Plot MCMC Trace for CCM Fit
+#'
+#' \code{CCM_traceplot} produces a trace plot of the MCMC samples from
+#' \code{CCM_fit}. This is used to diagnose convergence and mixing.
+#'
+#' @param fit A \code{CCM_fit} object.
+#' @param stat_index Integer. Which statistic to plot.
+#' @param ... Additional arguments passed to \code{plot()}.
+#'
+#' @return A trace plot for the selected MCMC chain.
+#'
+#' @examples
+#' CCMnet_python_setup()
+#' population = 100L
+#' fit <- CCM_fit(
+#'   Network_stats = list("Edge"),
+#'   Prob_Distr = list("NP"),
+#'   Prob_Distr_Params = list(dnbinom(0:choose(population,2), size = 1.017340, mu = 6.192894)),
+#'   population = population,
+#'   samplesize = 1000L,
+#'   burnin = 200000L,
+#'   interval = 1000L,
+#'   covPattern = rep(0L, population)  
+#' )
+#' CCM_traceplot(fit, stats = "edges")
+#'
 #' @export
+
+
 CCM_traceplot <- function(fit, stats = 1) {
   if (!inherits(fit, "CCM_fit")) stop("fit must be a CCM_fit object.")
   

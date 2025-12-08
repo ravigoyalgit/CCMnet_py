@@ -12,7 +12,8 @@
 plot.CCM_fit <- function(fit,
                          stats = NULL,
                          type = c("density", "hist"),
-                         include_theoretical = FALSE) {
+                         include_theoretical = FALSE,
+                         ...) {
   
   type <- match.arg(type)
   

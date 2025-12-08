@@ -1,3 +1,8 @@
+#' Setup CCMnet Python environment
+#'
+#' This function configures the Python environment for CCMnet.
+#'
+#' @export
 
 CCMnet_python_setup <- function() {
   if (!requireNamespace("reticulate", quietly = TRUE) & (reticulate::py_config()$available)) {

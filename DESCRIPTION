@@ -4,13 +4,14 @@ Title: CCMnet for python
 Version: 0.1.1
 Authors@R: person("Ravi", "Goyal", email = "ravi.j.goyal@gmail.com",
                   role = c("aut", "cre"))
-Description: Need to complete
+Description: Fit and analyze Congruence Class Models (CCM) in R using Python backends.
 License: GPL-3
 Encoding: UTF-8
-Imports: igraph, dplyr
+Imports: igraph, dplyr, ggplot2, tidyr, tibble
 Suggests: reticulate, knitr, rmarkdown, testthat
 NeedsCompilation: no
 Packaged: 2025-12-06 18:33:59 UTC; ravigoyal
 Author: Ravi Goyal [aut, cre]
 Maintainer: Ravi Goyal <ravi.j.goyal@gmail.com>
 VignetteBuilder: knitr
+RoxygenNote: 7.3.2

@@ -108,7 +108,7 @@ Network_stats <- list("Mixing")
 Prob_Distr <- list("Multinomial_Poisson")
 Prob_Distr_Params <- list(
   20,           # mean number of mixing edges
-  c(.3, .6, .1) # probabilities for M11, M12, M22
+  c(.3, .6, .1) # probabilities for M11, M21, M22
 )
 
 # Run CCMnet MCMC
@@ -124,5 +124,5 @@ fit <- CCM_fit(
 fit <- CCM_theoretical_check(fit)
 
 # Plot MCMC + theoretical
-plot(fit, stats = c("M11","M12","M22"), type = "density", include_theoretical = TRUE)
+plot(fit, stats = c("M11","M21","M22"), type = "density", include_theoretical = TRUE)
 ```

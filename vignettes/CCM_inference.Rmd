@@ -1,0 +1,140 @@
+---
+title: "Assessing Degree Distribution in CCM Networks"
+author: "Ravi Goyal"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width=6, fig.height=4)
+reticulate::use_condaenv("ccmnet_env", required = TRUE)
+library(CCMnetpy)
+library(tidyverse)
+library(igraph) 
+library(dplyr) 
+library(tidyr) 
+library(ggplot2) 
+CCMnet_python_setup()
+
+set.seed(123)
+```
+
+## Introduction
+
+This vignette demonstrates how to assess whether the **degree distribution** is part of the generative process of a network using CCMnet. We simulate an observed network, fit a CCM using the observed edge count, and perform a posterior predictive check on the degree distribution.
+
+## 1. Generate Observed Network
+
+```{r observed-network}
+
+# Parameters
+population <- 100
+
+# Erdős-Rényi network
+p_edge <- 0.05
+G_obs <- erdos.renyi.game(n = population, p.or.m = p_edge, type = "gnp", directed = FALSE)
+
+# Degree distribution of observed network
+degree_obs <- degree(G_obs)
+degree_counts_obs <- table(factor(degree_obs, levels = 0:(population-1)))
+
+# Number of edges and empirical probability
+num_edges_obs <- gsize(G_obs)
+p_hat <- num_edges_obs / choose(population, 2)
+
+```
+
+## 2. Fit CCM to Observed Network
+
+```{r fit-ccm}
+# Fit CCM with Binomial edge distribution
+
+fit <- CCM(
+  null_model = G_obs ~ edges,
+  alt_model  = ~ degree,
+  population = population,
+  Prob_Distr = list("NP"),
+  Prob_Distr_Params = list(
+    dbinom(0:choose(population,2),
+           size = choose(population,2),
+           prob = p_hat)
+  ),
+  covPattern = rep(0L, population),
+  samplesize = 1000L,
+  burnin = 200000L,
+  interval = 1000L
+)
+
+fit
+```
+
+## 3. Visualization
+
+```{r plot-degrees}
+
+plot(fit, type = "test")
+plot(fit, type = "network")
+
+```
+
+## 4. Interpretation
+
+A small posterior predictive p-value indicates that the observed degree distribution is unlikely under the CCM, suggesting that **degree distribution is part of the network generative process**. Conversely, a large p-value indicates consistency with the CCM assumptions.
+
+## 1. Generate Observed Network
+
+```{r observed-network_BA}
+
+# Parameters
+population <- 100
+
+# Barabási–Albert network
+m_attach <- 3  # number of edges per new node
+G_obs <- barabasi.game(
+  n = population,
+  m = m_attach,
+  directed = FALSE
+)
+
+# Degree distribution of observed network
+degree_obs <- degree(G_obs)
+degree_counts_obs <- table(factor(degree_obs, levels = 0:(population-1)))
+
+# Number of edges and empirical probability
+num_edges_obs <- gsize(G_obs)
+p_hat <- num_edges_obs / choose(population, 2)
+
+```
+
+## 2. Fit CCM to Observed Network
+
+```{r fit-ccm_BA}
+# Fit CCM with Binomial edge distribution
+
+fit <- CCM(
+  null_model = G_obs ~ edges,
+  alt_model  = ~ degree,
+  population = population,
+  Prob_Distr = list("NP"),
+  Prob_Distr_Params = list(
+    dbinom(0:choose(population,2),
+           size = choose(population,2),
+           prob = p_hat)
+  ),
+  covPattern = rep(0L, population),
+  samplesize = 1000L,
+  burnin = 200000L,
+  interval = 1000L
+)
+
+fit
+```
+
+## 3. Visualization
+
+```{r plot-degrees_BA}
+
+plot(fit, type = "test")
+plot(fit, type = "network")
+
+```

@@ -75,11 +75,6 @@ Prob_Distr_Params <- list(
   dnbinom(0:(population-1), size = 1.017340, mu = 6.192894)
 )
 
-# MCMC parameters
-samplesize <- 1000L
-burnin <- 200000L
-interval <- 1000L
-
 # Run CCMnet MCMC
 fit <- CCM_fit(
   Network_stats = Network_stats,

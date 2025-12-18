@@ -5,10 +5,12 @@
 #' @export
 
 CCMnet_python_setup <- function() {
-  if (!requireNamespace("reticulate", quietly = TRUE) & (reticulate::py_config()$available)) {
-    stop("Package \"reticulate\" and Python are needed for this function to work. Please install it.",
-         call. = FALSE)
+  python_file <- system.file("python", "CCMnet_constr_py.py", package = "CCMnetpy")
+  
+  if (python_file == "") {
+    stop("Unable to locate CCMnet_constr_py.py inside the installed package.")
   }
-  reticulate::source_python(paste(find.package("CCMnetpy"), "/python/CCMnet_constr_py.py", sep = ""), envir = globalenv())
+  
+  reticulate::source_python(python_file, envir = globalenv())
+  message("Python CCMnet module loaded successfully.")
 }
-

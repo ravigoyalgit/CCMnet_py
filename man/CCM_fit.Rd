@@ -12,7 +12,11 @@ CCM_fit(
   samplesize = 1000L,
   burnin = 200000L,
   interval = 1000L,
-  covPattern = rep(0L, population)
+  covPattern = rep(0L, population),
+  G = NULL,
+  use_G = FALSE,
+  partial_network = as.integer(0),
+  obs_nodes = NULL
 )
 }
 \arguments{

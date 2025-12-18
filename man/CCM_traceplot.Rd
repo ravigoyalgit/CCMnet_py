@@ -4,14 +4,14 @@
 \alias{CCM_traceplot}
 \title{Plot MCMC Trace for CCM Fit}
 \usage{
-CCM_traceplot(fit, stats = 1)
+CCM_traceplot(object, stats = NULL, ...)
 }
 \arguments{
+\item{...}{Additional arguments passed to \code{plot()}.}
+
 \item{fit}{A \code{CCM_fit} object.}
 
 \item{stat_index}{Integer. Which statistic to plot.}
-
-\item{...}{Additional arguments passed to \code{plot()}.}
 }
 \value{
 A trace plot for the selected MCMC chain.

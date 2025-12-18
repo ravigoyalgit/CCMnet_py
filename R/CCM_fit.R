@@ -46,7 +46,11 @@ CCM_fit <- function(
     samplesize = 1000L,
     burnin = 200000L,
     interval = 1000L,
-    covPattern = rep(0L, population)    
+    covPattern = rep(0L, population),
+    G = NULL,
+    use_G = FALSE,
+    partial_network = as.integer(0),
+    obs_nodes = NULL
 ) {
   
   # Call Python backend
@@ -58,7 +62,7 @@ CCM_fit <- function(
     burnin = as.integer(burnin),
     interval = as.integer(interval),
     statsonly = TRUE,
-    G = NULL,
+    G = G,
     P = NULL,
     population = as.integer(population),
     covPattern = as.integer(covPattern),
@@ -68,10 +72,10 @@ CCM_fit <- function(
     R = NULL,
     epi_params = NULL,
     print_calculations = FALSE,
-    use_G = FALSE,
+    use_G = use_G,
     outfile = "none",
-    partial_network = as.integer(0),
-    obs_nodes = NULL,
+    partial_network = as.integer(partial_network),
+    obs_nodes = obs_nodes,
     MH_proposal_type = "TNT"
   )
   
@@ -114,7 +118,8 @@ CCM_fit <- function(
     Prob_Distr = Prob_Distr,
     Prob_Distr_Params = Prob_Distr_Params,
     Network_stats = Network_stats,
-    theoretical = NULL
+    theoretical = NULL,
+    g = out[[1]]
   )
   
   class(obj) <- "CCM_fit"

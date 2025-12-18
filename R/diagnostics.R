@@ -27,10 +27,21 @@
 #' @export
 
 
-CCM_traceplot <- function(fit, stats = 1) {
-  if (!inherits(fit, "CCM_fit")) stop("fit must be a CCM_fit object.")
-  
-  mcmc_stats <- fit$mcmc_stats
+CCM_traceplot <- function(object, stats = NULL, ...) {
+
+  # ---- Extract MCMC stats ----
+  if (inherits(object, "CCM_fit")) {
+    mcmc_stats <- object$mcmc_stats
+    
+  } else if (is.data.frame(object)) {
+    mcmc_stats <- object
+    
+  } else if (is.list(object) && !is.null(object$G_stats.df)) {
+    mcmc_stats <- object$G_stats.df
+    
+  } else {
+    stop("object must be a CCM_fit, CCM_MissingInference result, or data.frame")
+  }
   
   # Convert numeric indices to names
   if (is.numeric(stats)) stats <- colnames(mcmc_stats)[stats]

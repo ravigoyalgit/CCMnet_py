@@ -44,7 +44,7 @@ an \code{igraph} object.}
 An object of class \code{"ccm_inference"}.
 }
 \description{
-Fits a null Conditional Configuration Model (CCM) to an observed network
+Fits a null Congruence Class Model (CCM) to an observed network
 and conducts simulation-based hypothesis tests for additional network
 properties.
 }

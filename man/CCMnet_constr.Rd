@@ -2,7 +2,7 @@
 % Please edit documentation in R/CCMnet_constr.R
 \name{CCMnet_constr}
 \alias{CCMnet_constr}
-\title{Construct a Constrained Network Using CCMnet (R wrapper for Python)}
+\title{Construct a Congruence Class Model (CCM) Network Using CCMnet (R wrapper for Python)}
 \usage{
 CCMnet_constr(
   Network_stats,

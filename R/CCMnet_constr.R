@@ -1,4 +1,4 @@
-#' Construct a Constrained Network Using CCMnet (R wrapper for Python)
+#' Construct a Congruence Class Model (CCM) Network Using CCMnet (R wrapper for Python)
 #'
 #' @description
 #' CCMnet_constr() is an R wrapper around the underlying Python function

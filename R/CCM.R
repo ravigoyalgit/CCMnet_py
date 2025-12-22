@@ -34,16 +34,17 @@ CCM <- function(null_model,
   test_stat <- match.arg(test_stat)
   
   parsed <- parse_ccm_formulas(null_model, alt_model)
-  
+
   fit_null <- fit_ccm_null(
-    parsed$null_terms,
-    population,
-    Prob_Distr,
-    Prob_Distr_Params,
-    covPattern,
-    samplesize,
-    burnin,
-    interval
+    null_terms = parsed$null_terms,
+    population = population,
+    Prob_Distr = Prob_Distr,
+    Prob_Distr_Params = Prob_Distr_Params,
+    covPattern = covPattern,
+    samplesize = samplesize,
+    burnin = burnin,
+    interval = interval,
+    alt_terms = parsed$alt_terms
   )
   
   tests <- run_ccm_tests(

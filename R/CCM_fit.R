@@ -50,7 +50,8 @@ CCM_fit <- function(
     G = NULL,
     use_G = FALSE,
     partial_network = as.integer(0),
-    obs_nodes = NULL
+    obs_nodes = NULL,
+    Obs_stats = NULL
 ) {
   
   # Call Python backend
@@ -76,7 +77,8 @@ CCM_fit <- function(
     outfile = "none",
     partial_network = as.integer(partial_network),
     obs_nodes = obs_nodes,
-    MH_proposal_type = "TNT"
+    MH_proposal_type = "TNT",
+    Obs_stats = Obs_stats
   )
   
   # Extract MCMC statistics
@@ -86,11 +88,14 @@ CCM_fit <- function(
   colnames(stats) <- unlist(lapply(Network_stats, function(s) {
     s <- tolower(s)
     
+    if (is.null(Obs_stats)) Obs_stats <- ""
+ 
     if (s == "edge") {
-      return(c(
-        paste0("deg", 0:(population - 1)),
-        "edges"
-      ))
+      if (Obs_stats == "degree") {
+        return(c("edges",paste0("deg", 0:(population - 1)))) 
+      } else {
+        return(c("edges")) 
+      }
     }
     
     if (s == "degree") {

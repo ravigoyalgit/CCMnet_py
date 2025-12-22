@@ -8,7 +8,8 @@ fit_ccm_null <- function(null_terms,
                          covPattern,
                          samplesize,
                          burnin,
-                         interval) {
+                         interval,
+                         alt_terms) {
   
   CCM_fit(
     Network_stats = list(stats_from_terms(null_terms)),
@@ -18,7 +19,8 @@ fit_ccm_null <- function(null_terms,
     covPattern = covPattern,
     samplesize = samplesize,
     burnin = burnin,
-    interval = interval
+    interval = interval,
+    Obs_stats = list(alt_terms)
   )
 }
 

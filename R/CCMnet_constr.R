@@ -27,6 +27,7 @@
 #' @param partial_network Numeric. Fraction of nodes observed.
 #' @param obs_nodes Vector of observed node IDs.
 #' @param MH_proposal_type Character. MCMC proposal type (e.g., "random").
+#' @param Obs_stats Character vector of observed statistic names.
 #'
 #' @return A list with two elements:
 #' \itemize{
@@ -52,7 +53,8 @@
 #'   Ia = NULL, Il = NULL, R = NULL,
 #'   epi_params = NULL,
 #'   print_calculations = FALSE,
-#'   obs_nodes = NULL
+#'   obs_nodes = NULL,
+#'   Obs_stats = NULL
 #' )
 #' }
 #'
@@ -79,7 +81,8 @@ CCMnet_constr <- function(Network_stats,
                           outfile = "none",
                           partial_network=0,
                           obs_nodes,
-                          MH_proposal_type= "random") {
+                          MH_proposal_type= "random",
+                          Obs_stats) {
   
   samplesize = as.integer(samplesize)
   burnin = as.integer(burnin)
@@ -112,7 +115,8 @@ CCMnet_constr <- function(Network_stats,
                    outfile,
                    partial_network,
                    obs_nodes,
-                   MH_proposal_type)
+                   MH_proposal_type,
+                   Obs_stats)
   
   nodes_attr_df = data.frame(name = c(1:(population)), #data.frame(name = c(0:(population-1)), 
                              covPattern = covPattern)

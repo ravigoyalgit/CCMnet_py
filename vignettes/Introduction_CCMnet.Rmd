@@ -1,0 +1,273 @@
+---
+title: "CCMnet: Edge, Degree, Mixing, and Structural Assessment"
+author: "Ravi Goyal"
+output:
+  rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CCMnet Combined Examples}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+# Set global chunk options
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 6,
+  fig.height = 4
+)
+
+# Load libraries
+library(CCMnetpy)
+library(tidyverse)
+library(igraph)
+library(reticulate)
+
+# -----------------------------
+# Python setup for CCMnet
+# -----------------------------
+
+env_name <- "r-ccmnet"
+
+if (!env_name %in% reticulate::virtualenv_list() &&
+    !env_name %in% reticulate::conda_list()$name) {
+  message("CCMnet Python environment not found. Please run install_ccmnet() first. Here is an example of the command: install_ccmnet(envname = env_name, python_version = NULL, restart_session = FALSE)")
+}
+
+reticulate::use_virtualenv(env_name, required = TRUE)
+
+CCMnet_python_setup()
+```
+
+# Introduction
+
+This vignette demonstrates the use of **Congruence Class Models (CCMs)** for network modeling. CCMs allow us to define a generative process for networks in terms of chosen network properties (edges, degree distributions, mixing matrices) and generate networks consistent with these properties.
+
+We distinguish two main purposes:
+
+1. **Verification of the MCMC sampler** (Sections 1–3): We sample networks according to known distributions for edges, degrees, and mixing matrices, and verify that the CCM sampler reproduces these distributions.
+2. **Structural assessment** (Section 4): We test whether a network property (e.g., degree distribution) is part of the generative process by comparing observed networks to Null CCMs.
+
+
+# Section 1: Edge Count Sampler Verification
+
+Here we verify that the CCM sampler correctly reproduces networks with specific edge distributions.
+
+## Example 1.1: Poisson Edge Count
+
+We fit a CCM where the **number of edges** follows a Poisson distribution with \(\lambda = 6\). The probability of sampling a network with k edges is given by the Poisson mass function:
+
+\[ P(K=k) = \frac{\lambda^k e^{-\lambda}}{k!} \]
+
+```{r edge-example-poisson}
+population <- 100
+covPattern <- rep(0L, population)
+
+fit <- CCM_fit(
+  Network_stats = list("Edge"),
+  Prob_Distr = list("Poisson"),
+  Prob_Distr_Params = list(6),
+  population = population,
+  covPattern = covPattern
+)
+
+# Compare MCMC samples to theoretical Poisson distribution
+fit <- CCM_theoretical_check(fit, n_sim = nrow(fit$mcmc_stats))
+
+# Plot density with theoretical distribution
+plot(fit, stats = "edges", type = "density", include_theoretical = TRUE)
+```
+
+> **Explanation:** The density plot shows the CCM MCMC samples (blue) and the theoretical Poisson distribution (red). Close overlap verifies correct sampling.
+
+## Example 1.2: Uniform Edge Count
+
+```{r edge-example-uniform}
+population <- 10
+covPattern <- rep(0L, population)
+
+fit <- CCM_fit(
+  Network_stats = list("Edge"),
+  Prob_Distr = list("uniform"),
+  Prob_Distr_Params = NULL,
+  population = population,
+  covPattern = covPattern
+)
+
+fit <- CCM_theoretical_check(fit, n_sim = nrow(fit$mcmc_stats))
+plot(fit, stats = "edges", type = "density", include_theoretical = TRUE)
+```
+
+> **Explanation:** The density plot verifies that CCM samples uniformly reproduce all possible edge counts.
+
+## Example 1.3: Non-Parametric Edge Count
+
+```{r edge-example-np}
+population <- 100
+covPattern <- rep(0L, population)
+
+Prob_Distr_Params_P1 <- dpois(0:choose(population,2), lambda = 5)
+Prob_Distr_Params_P2 <- dpois(0:choose(population,2), lambda = 10)
+Prob_Distr_Params_C <- Prob_Distr_Params_P1 + Prob_Distr_Params_P2
+Prob_Distr_Params_C <- Prob_Distr_Params_C / sum(Prob_Distr_Params_C)
+
+fit <- CCM_fit(
+  Network_stats = list("Edge"),
+  Prob_Distr = list("NP"),
+  Prob_Distr_Params = list(Prob_Distr_Params_C),
+  population = population,
+  covPattern = covPattern,
+  samplesize = 10000L
+)
+
+fit <- CCM_theoretical_check(fit, n_sim = nrow(fit$mcmc_stats))
+plot(fit, stats = "edges", type = "density", include_theoretical = TRUE)
+```
+
+> **Explanation:** Non-parametric sampling reproduces the combined Poisson distribution, verifying the CCM sampler works for arbitrary edge distributions.
+
+
+# Section 2: Degree Distribution Sampler Verification
+
+Next, we verify that the CCM sampler reproduces specified degree distributions using multinomial or multinomial-Poisson models.
+
+## Example 2.1: Multinomial-Poisson Degree Distribution
+
+```{r degree-example}
+population <- 100
+covPattern <- rep(0L, population)
+
+Network_stats <- list("Degree")
+Prob_Distr <- list("Multinomial_Poisson")
+Prob_Distr_Params <- list(
+  population,
+  dnbinom(0:(population-1), size = 1.017340, mu = 6.192894)
+)
+
+fit <- CCM_fit(
+  Network_stats = Network_stats,
+  Prob_Distr = Prob_Distr,
+  Prob_Distr_Params = Prob_Distr_Params,
+  population = as.integer(population),
+  covPattern = as.integer(covPattern)
+)
+
+fit <- CCM_theoretical_check(fit)
+plot(fit, stats = paste0("deg", 0:9), type = "density", include_theoretical = TRUE)
+```
+
+> **Explanation:** The density plots show sampled degrees (blue) versus theoretical multinomial-Poisson probabilities (red). Close match verifies correct MCMC sampling.
+
+
+# Section 3: Mixing Matrix Sampler Verification
+
+We verify that CCM samples reproduce a specified mixing matrix.
+
+```{r mixing-example}
+population <- 100
+covPattern <- c(rep(0L, population/2), rep(1L, population/2))
+
+Network_stats <- list("Mixing")
+Prob_Distr <- list("Multinomial_Poisson")
+Prob_Distr_Params <- list(
+  20,           # mean number of mixing edges
+  c(.3, .6, .1) # probabilities for M11, M21, M22
+)
+
+fit <- CCM_fit(
+  Network_stats = Network_stats,
+  Prob_Distr = Prob_Distr,
+  Prob_Distr_Params = Prob_Distr_Params,
+  population = population,
+  covPattern = covPattern
+)
+
+fit <- CCM_theoretical_check(fit)
+plot(fit, stats = c("M11","M21","M22"), type = "density", include_theoretical = TRUE)
+```
+
+> **Explanation:** The density plots verify that the MCMC sampler reproduces the intended mixing probabilities.
+
+
+# Section 4: Structural Assessment
+
+Structural assessment tests whether a network property is part of the generative process.
+
+- **Erdős-Rényi (ER) Network:** Only the number of edges is relevant; degree distribution deviations should be minimal.
+- **Barabási–Albert (BA) Network:** Preferential attachment induces heterogeneous degrees; a Null model with edges only cannot capture this.
+
+## Example 4.1: ER Network
+
+```{r structural-er}
+population <- 100
+p_edge <- 0.05
+G_obs <- erdos.renyi.game(n = population, p.or.m = p_edge, type = "gnp", directed = FALSE)
+
+# Number of edges and empirical probability
+num_edges_obs <- gsize(G_obs)
+p_hat <- num_edges_obs / choose(population, 2)
+
+fit <- CCM(
+  null_model = G_obs ~ edges,
+  alt_model  = ~ degree,
+  population = population,
+  Prob_Distr = list("NP"),
+  Prob_Distr_Params = list(
+    dbinom(0:choose(population,2), size = choose(population,2), prob = p_hat)
+  ),
+  covPattern = rep(0L, population),
+  samplesize = 1000L,
+  burnin = 200000L,
+  interval = 1000L
+)
+
+fit
+```
+
+```{r plot-degrees}
+
+plot(fit, type = "test")
+plot(fit, type = "network")
+
+```
+
+> **Interpretation:** Minimal deviation in degrees indicates that modeling edges alone is sufficient for ER networks.
+
+## Example 4.2: BA Network
+
+```{r structural-ba}
+population <- 100
+m_attach <- 3
+G_obs <- barabasi.game(n = population, m = m_attach, directed = FALSE)
+
+num_edges_obs <- gsize(G_obs)
+p_hat <- num_edges_obs / choose(population, 2)
+
+fit <- CCM(
+  null_model = G_obs ~ edges,
+  alt_model  = ~ degree,
+  population = population,
+  Prob_Distr = list("NP"),
+  Prob_Distr_Params = list(
+    dbinom(0:choose(population,2), size = choose(population,2), prob = p_hat)
+  ),
+  covPattern = rep(0L, population),
+  samplesize = 1000L,
+  burnin = 200000L,
+  interval = 1000L
+)
+
+fit
+```
+
+
+```{r plot-degrees_BA}
+
+plot(fit, type = "test")
+plot(fit, type = "network")
+
+```
+
+> **Interpretation:** Large deviations in degree distribution reveal that edges-only Null model is insufficient, highlighting preferential attachment as a structural property.

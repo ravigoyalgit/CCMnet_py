@@ -26,7 +26,8 @@ CCMnet_constr(
   outfile = "none",
   partial_network = 0,
   obs_nodes,
-  MH_proposal_type = "random"
+  MH_proposal_type = "random",
+  Obs_stats
 )
 }
 \arguments{
@@ -69,6 +70,8 @@ CCMnet_constr(
 \item{obs_nodes}{Vector of observed node IDs.}
 
 \item{MH_proposal_type}{Character. MCMC proposal type (e.g., "random").}
+
+\item{Obs_stats}{Character vector of observed statistic names.}
 }
 \value{
 A list with two elements:
@@ -102,7 +105,8 @@ result <- CCMnet_constr(
   Ia = NULL, Il = NULL, R = NULL,
   epi_params = NULL,
   print_calculations = FALSE,
-  obs_nodes = NULL
+  obs_nodes = NULL,
+  Obs_stats = NULL
 )
 }
 

@@ -12,7 +12,8 @@ fit_ccm_null(
   covPattern,
   samplesize,
   burnin,
-  interval
+  interval,
+  alt_terms
 )
 }
 \description{

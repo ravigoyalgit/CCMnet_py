@@ -6,17 +6,38 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width=6, fig.height=4)
-reticulate::use_condaenv("ccmnet_env", required = TRUE)
+# Set global chunk options
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 6,
+  fig.height = 4
+)
+
+# Load libraries
 library(CCMnetpy)
 library(tidyverse)
-library(igraph) 
-library(dplyr) 
-library(tidyr) 
-library(ggplot2) 
-CCMnet_python_setup()
+library(igraph)
+library(reticulate)
 
-set.seed(123)
+# -----------------------------
+# Python setup for CCMnet
+# -----------------------------
+
+# Check if the environment exists
+env_name <- "r-ccmnet" #"ccmnet_env"
+
+if (!env_name %in% reticulate::virtualenv_list() &&
+    !env_name %in% reticulate::conda_list()$name) {
+  message("CCMnet Python environment not found. Please run install_ccmnet() first. Here is an example of the command: install_ccmnet(envname = env_name, python_version = NULL, restart_session = FALSE)")
+}
+
+# Use the environment
+reticulate::use_virtualenv(env_name, required = TRUE)
+
+# Initialize CCMnet Python backend
+CCMnet_python_setup()
 ```
 
 ## Introduction

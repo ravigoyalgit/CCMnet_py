@@ -21,3 +21,8 @@ if (getRversion() >= "2.15.1") {
   )
 }
 
+.onLoad <- function(libname, pkgname) {
+  # DO NOT initialize python
+  # Optionally:
+  # py_require_ccmnet()
+}

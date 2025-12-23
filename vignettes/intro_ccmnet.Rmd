@@ -12,23 +12,37 @@ vignette: >
 # CCMnet Examples: Edge, Degree, and Mixing
 
 ```{r setup, include=FALSE}
+# Set global chunk options
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 6,
+  fig.height = 4
+)
 
-#reticulate::conda_create("ccmnet_env", packages = c("python=3.11", "numpy=2.1.3"))
-#reticulate::use_condaenv("ccmnet_env", required = TRUE)
-#reticulate::py_config()
-#reticulate::py_install("networkx")
-#reticulate::py_install("pandas")
-#
-#reticulate::source_python(paste(find.package("CCMnetpy"), "/python/CCMnet_constr_py.py", sep = ""), envir = globalenv())
-#
-#reticulate::use_python("/Users/ravigoyal/anaconda3/bin/python", required = TRUE)
-#reticulate::py_config()
-
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width=6, fig.height=4)
-reticulate::use_condaenv("ccmnet_env", required = TRUE)
+# Load libraries
 library(CCMnetpy)
 library(tidyverse)
 library(igraph)
+library(reticulate)
+
+# -----------------------------
+# Python setup for CCMnet
+# -----------------------------
+
+# Check if the environment exists
+env_name <- "r-ccmnet" #"ccmnet_env"
+
+if (!env_name %in% reticulate::virtualenv_list() &&
+    !env_name %in% reticulate::conda_list()$name) {
+  message("CCMnet Python environment not found. Please run install_ccmnet() first. Here is an example of the command: install_ccmnet(envname = env_name, python_version = NULL, restart_session = FALSE)")
+}
+
+# Use the environment
+reticulate::use_virtualenv(env_name, required = TRUE)
+
+# Initialize CCMnet Python backend
 CCMnet_python_setup()
 ```
 

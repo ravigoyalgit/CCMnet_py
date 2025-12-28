@@ -56,5 +56,10 @@ CCM_theoretical_check <- function(
                                         n_sim))
   }
   
+  if (stat == "degmix") {
+    return(CCM_theoretical_check_degmix(fit,
+                                        n_sim))
+  }
+  
   stop("Theoretical distribution not implemented for this statistic.")
 }

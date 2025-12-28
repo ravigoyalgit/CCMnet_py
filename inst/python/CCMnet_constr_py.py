@@ -61,16 +61,12 @@ def CCMnet_constr_py(Network_stats=["Degree"],
   g2_net_stat = np.copy(g_net_stat)
 
   if print_calculations:
-    print("####Graph information####")
-    print("Nodes############")
-    print(list(g.nodes))
-    print("Edges############")
-    print(list(g.edges))
-    print("g info:############")
-    print( nx.info(g))
-    
-  if print_calculations:
-    print("g statistics:", g_net_stat)
+    print("####Graph information: Begin####")
+    print(g)
+    print("####Graph information: End####")
+    print("####Initial g statistics: Begin####")
+    print(g_net_stat)
+    print("####Initial g statistics: End####")
 
   if bayesian_inference == 1:
     if isinstance(P,str):
@@ -88,44 +84,51 @@ def CCMnet_constr_py(Network_stats=["Degree"],
   counter = 0
 
   for i in range(burnin+samplesize*interval):
+    
+    if print_calculations:
+      print("####Graph information: Begin####")
+      print(g)
+      print("####Graph information: End####")
+      print("####g statistics: Begin####")
+      print(g_net_stat)
+      print("####g statistics: End####")
+    
     proposal_edge = proposal_edge_func(g, MH_proposal_type)
     g_proposal_edge = g.has_edge(proposal_edge[0], proposal_edge[1])
     g2_proposal_edge = not g_proposal_edge
 
     g2_net_stat = calc_network_stat_2(Network_stats, proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern, g, print_calculations)
 
+    if print_calculations:
+      print("####Proposal information: Begin####")
+      print("Proposal Edge IDs: ", proposal_edge)
+      print("Proposal Edge degrees: ", g.degree[proposal_edge[0]], g.degree[proposal_edge[1]])
+      print("Proposal Edge in g: ", g_proposal_edge)
+      print("Proposal Edge in g2: ", g2_proposal_edge)
+      print("####Proposal information: End####")
+      print("####g2 statistics: Begin####")
+      print(g2_net_stat)
+      print("####g2 statistcs: End####")
+      
     f_g_g2_bool = True
-    f_g_g2 = calc_f(Network_stats,g_net_stat, g2_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g, f_g_g2_bool)
+    f_g_g2 = calc_f(Network_stats,g_net_stat, g2_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g, f_g_g2_bool, print_calculations)
 
     f_g_g2_bool = False
-    f_g2_g = calc_f(Network_stats,g2_net_stat, g_net_stat, proposal_edge, g2_proposal_edge, covPattern, bayesian_inference, P_net_stat, g, f_g_g2_bool)
-
+    f_g2_g = calc_f(Network_stats,g2_net_stat, g_net_stat, proposal_edge, g2_proposal_edge, covPattern, bayesian_inference, P_net_stat, g, f_g_g2_bool, print_calculations)
 
     if print_calculations:
-      print("####Before prob####")
-      print("g############")
-      print(g_net_stat)
-      print(proposal_edge)
-      print(g.degree[proposal_edge[0]])
-      print(g.degree[proposal_edge[1]])
-      print(g_proposal_edge)
-      print("g2############")
-      print(g2_net_stat)
-      print(g2_proposal_edge)
-      print("####End prob####")
-
+      print("####CCM calculations: Begin####")
+      print("g->g2: ", f_g_g2)
+      print("g2->g: ", f_g2_g)
+      print("####CCM calculations: End####")
+      
     prob_g, prob_g2 = calc_probs(g_net_stat, g2_net_stat, proposal_edge, covPattern, Network_stats, Prob_Distr, Prob_Distr_Params, g, g_proposal_edge)
 
     if print_calculations:
-      print("g############")
-      print(g_net_stat)
-      print(f_g_g2)
-      print(prob_g)
-
-      print("g2############")
-      print(g2_net_stat)
-      print(f_g2_g)
-      print(prob_g2)
+      print("####Prob calculations: Begin####")
+      print("g: ", prob_g)
+      print("g2: ", prob_g2)
+      print("####Prob calculations: End####")
 
     if math.isnan(prob_g):
       MH_prob = math.inf
@@ -163,10 +166,14 @@ def CCMnet_constr_py(Network_stats=["Degree"],
       
     if MH_prob >= 0 or math.log(np.random.uniform(0,1)) < MH_prob:
       #Accept proposal
+      if print_calculations:
+        print("###################Proposal: Accept####")
       g = proposal_g2(g, proposal_edge)
       g_net_stat = np.copy(g2_net_stat)
     else:   
       #Reject proposal
+      if print_calculations:
+        print("###################Proposal: Reject####")
       g2_net_stat = np.copy(g_net_stat)
 
     if (i+1) % interval == 0 and (i+1) > burnin:

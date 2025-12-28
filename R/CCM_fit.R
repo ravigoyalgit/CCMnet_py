@@ -113,6 +113,17 @@ CCM_fit <- function(
       return(mixing_names)
     }
     
+    if (s == "degmix") {
+      m <- population - 1
+      degmix_names <- c()
+      for (i in (seq_len(m))) {
+        for (j in i:(m)) {
+          degmix_names <- c(degmix_names, paste0("DM", j, i))
+        }
+      }
+      return(degmix_names)
+    }
+    
     stop(paste("Unknown Network_stats:", s))
   }))
   
@@ -123,6 +134,7 @@ CCM_fit <- function(
     Prob_Distr = Prob_Distr,
     Prob_Distr_Params = Prob_Distr_Params,
     Network_stats = Network_stats,
+    covPattern = covPattern,
     theoretical = NULL,
     g = out[[1]]
   )

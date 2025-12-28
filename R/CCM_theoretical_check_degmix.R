@@ -8,7 +8,7 @@
 #' @return Updated fit object with theoretical mixing distribution
 #' @keywords internal
 
-CCM_theoretical_check_mixing <- function(fit,
+CCM_theoretical_check_degmix <- function(fit,
                                          n_sim) {
   
   if (fit$Prob_Distr[[1]] == "Multinomial_Poisson") {
@@ -23,29 +23,36 @@ CCM_theoretical_check_mixing <- function(fit,
       total_edges <- rpois(1, lambda)
       simulated[i, ] <- rmultinom(1, size = total_edges, prob = probs)
     }
+  } else if (fit$Prob_Distr[[1]] == "Multivariate_normal") {
+    
+    mean_vec <- fit$Prob_Distr_Params[[1]]
+    sigma_mat  <- fit$Prob_Distr_Params[[2]]
+    
+    simulated <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
+
   } else {
     warning("Theoretical distribution not currently implemented. Returning NULL.")
     fit$theoretical <- list(
       theory_stats = NULL,
-      type = "Mixing"
+      type = "degmix"
     )
     return(fit)
   }
   
   simulated <- as.data.frame(simulated)
 
-  m <- length(unique(fit$covPattern))
-  mixing_names <- c()
-  for (i in seq_len(m)) {
-    for (j in 1:i) {
-      mixing_names <- c(mixing_names, paste0("M", i, j))
+  m <- fit$population - 1
+  degmix_names <- c()
+  for (i in (seq_len(m))) {
+    for (j in i:(m)) {
+      degmix_names <- c(degmix_names, paste0("DM", j, i))
     }
   }
-  colnames(simulated) <- mixing_names
+  colnames(simulated) <- degmix_names 
     
   fit$theoretical <- list(
     theory_stats = simulated,
-    type = "Mixing"
+    type = "degmix"
   )
   
   return(fit)

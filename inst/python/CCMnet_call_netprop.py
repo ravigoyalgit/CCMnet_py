@@ -40,7 +40,7 @@ def calc_network_stat_2(Network_stats, proposal_edge, g_net_stat, g2_net_stat, g
     g2_net_stat = calc_network_stat_degree_2(proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern, g)
 
   if Network_stats[0].strip().lower() == "degmix" and len(Network_stats) == 1:
-    g2_net_stat = calc_network_stat_degmix_2(proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern, g)
+    g2_net_stat = calc_network_stat_degmix_2(proposal_edge, g_net_stat, g2_net_stat, g_proposal_edge, covPattern, g, print_calculations)
 
   return g2_net_stat
 
@@ -48,7 +48,7 @@ def calc_network_stat_2(Network_stats, proposal_edge, g_net_stat, g2_net_stat, g
 ###Calculate Congruence Class Statistic###
 ##########################################
 
-def calc_f(Network_stats,g_net_stat, g2_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g, f_g_g2_bool):
+def calc_f(Network_stats,g_net_stat, g2_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g, f_g_g2_bool, print_calculations):
   
   if Network_stats[0].strip().lower() == "edge" and len(Network_stats) == 1:
     prob_g_g2 = calc_f_edge(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g)
@@ -60,7 +60,7 @@ def calc_f(Network_stats,g_net_stat, g2_net_stat, proposal_edge, g_proposal_edge
     prob_g_g2 = calc_f_degree(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g, f_g_g2_bool)
 
   if Network_stats[0].strip().lower() == "degmix" and len(Network_stats) == 1:
-    prob_g_g2 = calc_f_degmix(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g, f_g_g2_bool)
+    prob_g_g2 = calc_f_degmix(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g, f_g_g2_bool, print_calculations)
 
   return prob_g_g2
 

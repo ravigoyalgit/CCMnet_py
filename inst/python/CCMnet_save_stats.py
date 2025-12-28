@@ -45,6 +45,11 @@ def save_stats(g_net_stat, results, counter, Network_stats, g, Obs_stats):
   elif stat == "degree":
     row.extend(g_net_stat.tolist())
 
+  elif stat == "degmix":
+    row.extend(
+      g_net_stat[np.triu_indices(g_net_stat.shape[0])].tolist()
+    )
+    
   else:
     raise NotImplementedError(f"Network_stats={Network_stats}")
 

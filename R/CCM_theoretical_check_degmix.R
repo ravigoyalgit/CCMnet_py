@@ -26,7 +26,8 @@ CCM_theoretical_check_degmix <- function(fit,
   } else if (fit$Prob_Distr[[1]] == "Multivariate_normal") {
     
     mean_vec <- fit$Prob_Distr_Params[[1]]
-    sigma_mat  <- fit$Prob_Distr_Params[[2]]
+    invsigma_mat  <- fit$Prob_Distr_Params[[2]]
+    sigma_mat = solve(invsigma_mat)
     
     simulated <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
 

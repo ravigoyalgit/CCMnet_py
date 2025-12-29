@@ -123,6 +123,18 @@ CCM_fit <- function(
       }
       return(degmix_names)
     }
+
+    if (s == "degmix_clustering") {
+      m <- population - 1
+      degmix_clustering_names <- c()
+      for (i in (seq_len(m))) {
+        for (j in i:(m)) {
+          degmix_clustering_names <- c(degmix_clustering_names, paste0("DM", j, i))
+        }
+      }
+      degmix_clustering_names <- c(degmix_clustering_names, "triangles")
+      return(degmix_clustering_names)
+    }
     
     stop(paste("Unknown Network_stats:", s))
   }))

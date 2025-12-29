@@ -49,7 +49,16 @@ def save_stats(g_net_stat, results, counter, Network_stats, g, Obs_stats):
     row.extend(
       g_net_stat[np.triu_indices(g_net_stat.shape[0])].tolist()
     )
-    
+
+  elif stat == "degmix_clustering":
+    g_net_stat_dmm = g_net_stat['dmm']
+    g_net_stat_tri = g_net_stat['triangles']
+    row.extend(
+      g_net_stat_dmm[np.triu_indices(g_net_stat_dmm.shape[0])].tolist()
+    )
+    # 2. Append the triangle scalar at the very end
+    row.append(g_net_stat_tri)
+
   else:
     raise NotImplementedError(f"Network_stats={Network_stats}")
 

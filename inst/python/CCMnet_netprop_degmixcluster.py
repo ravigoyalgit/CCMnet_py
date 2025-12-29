@@ -126,13 +126,17 @@ def calc_probs_degmix_clustering(g_net_stat, g2_net_stat, proposal_edge, covPatt
   """
   Returns (log_p_g, log_p_g2).
   """
+  #print("DEBUG: Degmix Params Type:", type(Prob_Distr_Params[0]))
+  #print("DEBUG: Degmix Params Length:", len(Prob_Distr_Params[0]))
+  #print("DEBUG: Degmix Prob Dist: ", Prob_Distr[0])
+  
   # 1. Degree Mixing log-probabilities
   log_p_g_dmm, log_p_g2_dmm = calc_probs_degmix(
     g_net_stat['dmm'], 
     g2_net_stat['dmm'], 
     proposal_edge, 
     covPattern, 
-    Prob_Distr[0], 
+    [Prob_Distr[0]], 
     Prob_Distr_Params[0], 
     g, 
     g_proposal_edge
@@ -154,5 +158,8 @@ def calc_probs_degmix_clustering(g_net_stat, g2_net_stat, proposal_edge, covPatt
 
   # 3. Combine in log-space and set baseline to 0
   log_ratio = (log_p_g2_dmm - log_p_g_dmm) + (log_p_g2_tri - log_p_g_tri)
+  
+  #print(f"DEBUG DMM: g={log_p_g_dmm}, g2={log_p_g2_dmm}")
     
   return 0, log_ratio
+  #return log_p_g_dmm, log_p_g2_dmm

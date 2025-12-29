@@ -8,6 +8,7 @@ from functools import reduce
 from itertools import cycle, islice
 import math
 import cProfile
+import copy
 
 from CCMnet_utils import *
 from CCMnet_call_netprop import *
@@ -58,7 +59,7 @@ def CCMnet_constr_py(Network_stats=["Degree"],
     g = generate_initial_g(population, covPattern)
 
   g_net_stat = calc_network_stat(g, Network_stats)
-  g2_net_stat = np.copy(g_net_stat)
+  g2_net_stat = copy.deepcopy(g_net_stat)
 
   if print_calculations:
     print("####Graph information: Begin####")
@@ -169,12 +170,12 @@ def CCMnet_constr_py(Network_stats=["Degree"],
       if print_calculations:
         print("###################Proposal: Accept####")
       g = proposal_g2(g, proposal_edge)
-      g_net_stat = np.copy(g2_net_stat)
+      g_net_stat = copy.deepcopy(g2_net_stat)
     else:   
       #Reject proposal
       if print_calculations:
         print("###################Proposal: Reject####")
-      g2_net_stat = np.copy(g_net_stat)
+      g2_net_stat = copy.deepcopy(g_net_stat)
 
     if (i+1) % interval == 0 and (i+1) > burnin:
       if statsonly:

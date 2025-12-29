@@ -61,5 +61,10 @@ CCM_theoretical_check <- function(
                                         n_sim))
   }
   
+  if (stat == "degmix_clustering") {
+    return(CCM_theoretical_check_degmixclustering(fit,
+                                                  n_sim))
+  }
+  
   stop("Theoretical distribution not implemented for this statistic.")
 }

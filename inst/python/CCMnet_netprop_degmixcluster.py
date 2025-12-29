@@ -59,69 +59,65 @@ def calc_network_stat_degmix_clustering_2(proposal_edge, g_net_stat, g2_net_stat
 ###Calculate Congruence Class Statistic###
 ##########################################
 
-def calc_f_degmix_clustering(g_net_stat, proposal_edge, g_proposal_edge, covPattern, 
-                             bayesian_inference, P_net_stat, g, f_g_g2_bool, 
-                             print_calculations):
-    u, v = proposal_edge
-    current_dmm = g_net_stat['dmm']
-    current_triangles = g_net_stat['triangles']
+def calc_f_degmix_clustering(g_net_stat, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g, f_g_g2_bool, print_calculations):
+  u, v = proposal_edge
+  current_dmm = g_net_stat['dmm']
+  current_triangles = g_net_stat['triangles']
     
-    prob_f = calc_f_degmix(current_dmm, proposal_edge, g_proposal_edge, covPattern, 
-                           bayesian_inference, P_net_stat, g, f_g_g2_bool, print_calculations)
+  prob_f = calc_f_degmix(current_dmm, proposal_edge, g_proposal_edge, covPattern, bayesian_inference, P_net_stat, g, f_g_g2_bool, print_calculations)
 
-    if f_g_g2_bool:
-        d_u, d_v = g.degree[u], g.degree[v]
+  if f_g_g2_bool:
+    d_u, d_v = g.degree[u], g.degree[v]
+  else:
+    edge_exists_in_g = g.has_edge(u, v)
+    if g_proposal_edge != edge_exists_in_g:
+      d_u = g.degree[u] + 1 if g_proposal_edge else g.degree[u] - 1
+      d_v = g.degree[v] + 1 if g_proposal_edge else g.degree[v] - 1
     else:
-        edge_exists_in_g = g.has_edge(u, v)
-        if g_proposal_edge != edge_exists_in_g:
-            d_u = g.degree[u] + 1 if g_proposal_edge else g.degree[u] - 1
-            d_v = g.degree[v] + 1 if g_proposal_edge else g.degree[v] - 1
-        else:
-            d_u, d_v = g.degree[u], g.degree[v]
+      d_u, d_v = g.degree[u], g.degree[v]
 
-    k_val = len(list(nx.common_neighbors(g, u, v)))
-    is_adding = not g_proposal_edge 
-    num_deg_stats = current_dmm.shape[0]
+  k_val = len(list(nx.common_neighbors(g, u, v)))
+  is_adding = not g_proposal_edge 
+  num_deg_stats = current_dmm.shape[0]
 
-    deg_dist = np.zeros(num_deg_stats + 1)
-    for i in range(num_deg_stats):
-        row_sum = np.sum(current_dmm[i, :]) + current_dmm[i, i]
-        deg_dist[i+1] = int(round(row_sum / (i + 1)))
+  deg_dist = np.zeros(num_deg_stats + 1)
+  for i in range(num_deg_stats):
+    row_sum = np.sum(current_dmm[i, :]) + current_dmm[i, i]
+    deg_dist[i+1] = int(round(row_sum / (i + 1)))
 
-    if is_adding:
-        pa_num = -3.0 * current_triangles
-        for k in range(2, num_deg_stats + 1):
-            pa_num += (k * (k - 1) / 2.0) * deg_dist[k]
-        pa_dem = 0.0
-        for i in range(1, num_deg_stats + 1):
-            for j in range(i, num_deg_stats + 1):
-                slots = (deg_dist[i] * (deg_dist[j] - 1) * 0.5) if i == j else (deg_dist[i] * deg_dist[j])
-                pa_dem += i * j * (slots - current_dmm[i-1, j-1])
+  if is_adding:
+    pa_num = -3.0 * current_triangles
+    for k in range(2, num_deg_stats + 1):
+      pa_num += (k * (k - 1) / 2.0) * deg_dist[k]
+    pa_dem = 0.0
+    for i in range(1, num_deg_stats + 1):
+      for j in range(i, num_deg_stats + 1):
+        slots = (deg_dist[i] * (deg_dist[j] - 1) * 0.5) if i == j else (deg_dist[i] * deg_dist[j])
+        pa_dem += i * j * (slots - current_dmm[i-1, j-1])
         
-        pa = max(1e-15, min(1 - 1e-15, pa_num / pa_dem)) if pa_dem != 0 else 1e-15
+    pa = max(1e-15, min(1 - 1e-15, pa_num / pa_dem)) if pa_dem != 0 else 1e-15
         
-        # LOG-STABLE MATH TO PREVENT OVERFLOW
-        log_perms = sum(math.log(max(1, d_u - c)) + math.log(max(1, d_v - c)) for c in range(k_val))
-        log_p_cluster = (-math.lgamma(k_val + 1) + log_perms + (k_val * math.log(pa)) + 
-                         ((d_u - k_val) * (d_v - k_val) * math.log(1 - pa)))
-        prob_f *= math.exp(log_p_cluster)
+    # LOG-STABLE MATH TO PREVENT OVERFLOW
+    log_perms = sum(math.log(max(1, d_u - c)) + math.log(max(1, d_v - c)) for c in range(k_val))
+    log_p_cluster = (-math.lgamma(k_val + 1) + log_perms + (k_val * math.log(pa)) + ((d_u - k_val) * (d_v - k_val) * math.log(1 - pa)))
+    prob_f *= math.exp(log_p_cluster)
 
-    else:
-        pb_num = 3.0 * current_triangles
-        pb_dem = 0.0
-        for i in range(1, num_deg_stats + 1):
-            for j in range(i, num_deg_stats + 1):
-                pb_dem += (i - 1) * (j - 1) * current_dmm[i-1, j-1]
+  else:
+    pb_num = 3.0 * current_triangles
+    pb_dem = 0.0
+    for i in range(1, num_deg_stats + 1):
+      for j in range(i, num_deg_stats + 1):
+        pb_dem += (i - 1) * (j - 1) * current_dmm[i-1, j-1]
         
-        pb = max(1e-15, min(1 - 1e-15, pb_num / pb_dem)) if pb_dem != 0 else 1e-15
+    pb = max(1e-15, min(1 - 1e-15, pb_num / pb_dem)) if pb_dem != 0 else 1e-15
         
-        # LOG-STABLE MATH TO PREVENT OVERFLOW
-        log_perms = sum(math.log(max(1, d_u - 1 - c)) + math.log(max(1, d_v - 1 - c)) for c in range(k_val))
-        log_p_cluster = (math.lgamma(k_val + 1) + log_perms + (k_val * math.log(pb)) + 
-                         ((d_u - 1 - k_val) * (d_v - 1 - k_val) * math.log(1 - pb)))
-        prob_f *= math.exp(log_p_cluster)
+    # LOG-STABLE MATH TO PREVENT OVERFLOW
+    log_perms = sum(math.log(max(1, d_u - 1 - c)) + math.log(max(1, d_v - 1 - c)) for c in range(k_val))
+    log_p_cluster = (math.lgamma(k_val + 1) + log_perms + (k_val * math.log(pb)) + ((d_u - 1 - k_val) * (d_v - 1 - k_val) * math.log(1 - pb)))
+    prob_f *= math.exp(log_p_cluster)
 
-    return prob_f
+  return prob_f
+
 #####################################
 ###Calculate statistic probability###
 #####################################

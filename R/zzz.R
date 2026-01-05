@@ -1,4 +1,5 @@
 # Imports for functions used in your package
+#' @useDynLib CCMnet, .registration = TRUE
 #' @importFrom stats rpois rmultinom sd dnbinom
 #' @importFrom utils head
 #' @importFrom dplyr %>% mutate filter everything all_of bind_rows

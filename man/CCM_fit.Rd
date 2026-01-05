@@ -17,7 +17,8 @@ CCM_fit(
   use_G = FALSE,
   partial_network = as.integer(0),
   obs_nodes = NULL,
-  Obs_stats = NULL
+  Obs_stats = NULL,
+  remove_var_last_entry = FALSE
 )
 }
 \arguments{

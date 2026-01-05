@@ -30,20 +30,28 @@ CCM_theoretical_check <- function(
     fit,
     n_sim = nrow(fit$mcmc_stats)
 ) {
-  stat <- fit$Network_stats[[1]]
+  stat <- fit$Network_stats
   
   #---------------------------
   # Network Property: Edge
   #---------------------------
-  if (stat == "Edge") {
+  if (length(stat) == 1 && stat == "Edge") {
     return(CCM_theoretical_check_edges(fit,
+                                       n_sim))
+  }
+  
+  #---------------------------
+  # Network Property: Edge
+  #---------------------------
+  if (length(stat) == 1 && stat == "Density") {
+    return(CCM_theoretical_check_density(fit,
                                        n_sim))
   }
   
   #---------------------------
   # Network Property: Mixing
   #---------------------------
-  if (stat == "Mixing") {
+  if (length(stat) == 1 && stat == "Mixing") {
     return(CCM_theoretical_check_mixing(fit,
                                        n_sim))
   }
@@ -51,17 +59,17 @@ CCM_theoretical_check <- function(
   #---------------------------
   # Network Property: Degree
   #---------------------------
-  if (stat == "Degree") {
+  if (length(stat) == 1 && (stat == "Degree" || stat == "DegreeDist")) {
     return(CCM_theoretical_check_degree(fit,
                                         n_sim))
   }
   
-  if (stat == "degmix") {
+  if (length(stat) == 1 && stat == "degmix") {
     return(CCM_theoretical_check_degmix(fit,
                                         n_sim))
   }
   
-  if (stat == "degmix_clustering") {
+  if ((length(stat) == 1 && stat == "degmix_clustering") || (length(stat) == 2 && stat[1] == "DegMixing" && stat[2] == "Triangles")) {
     return(CCM_theoretical_check_degmixclustering(fit,
                                                   n_sim))
   }

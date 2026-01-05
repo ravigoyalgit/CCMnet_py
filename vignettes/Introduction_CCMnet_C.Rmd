@@ -1,0 +1,212 @@
+---
+title: "CCMnet: Edge, Degree, Mixing, and Structural Assessment"
+author: "Ravi Goyal"
+output:
+  rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CCMnet Combined Examples}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+# Set global chunk options
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 6,
+  fig.height = 4
+)
+
+# Load libraries
+library(CCMnet)
+library(tidyverse)
+library(igraph)
+library(gtools)
+library(mvtnorm)
+```
+
+# Introduction
+
+This vignette demonstrates the use of **Congruence Class Models (CCMs)** for network modeling. CCMs allow us to define a generative process for networks in terms of chosen network properties (edges, degree distributions, mixing matrices) and generate networks consistent with these properties.
+
+We distinguish two main purposes:
+
+1. **Verification of the MCMC sampler** (Sections 1–3): We sample networks according to known distributions for edges, degrees, and mixing matrices, and verify that the CCM sampler reproduces these distributions.
+2. **Structural assessment** (Section 4): We test whether a network property (e.g., degree distribution) is part of the generative process by comparing observed networks to Null CCMs.
+
+
+# Section 1: Edge Count Sampler Verification
+
+Here we verify that the CCM sampler correctly reproduces networks with specific edge distributions.
+
+## Example 1.1: Poisson Edge Count
+
+We fit a CCM where the **number of edges** follows a Poisson distribution with \(\lambda = 6\). The probability of sampling a network with k edges is given by the Poisson mass function:
+
+\[ P(K=k) = \frac{\lambda^k e^{-\lambda}}{k!} \]
+
+```{r edge-example-poisson}
+population <- 100
+covPattern <- rep(0L, population)
+
+fit <- CCM_fit(
+  Network_stats = list("Density"),
+  Prob_Distr = list("Normal"),
+  Prob_Distr_Params = list(list(.04, .0001)),
+  population = population,
+  covPattern = covPattern,
+  remove_var_last_entry = FALSE
+)
+
+# Compare MCMC samples to theoretical Poisson distribution
+fit <- CCM_theoretical_check(fit, n_sim = nrow(fit$mcmc_stats))
+
+# Plot density with theoretical distribution
+plot(fit, stats = "density", type = "density", include_theoretical = TRUE)
+```
+
+> **Explanation:** The density plot shows the CCM MCMC samples (blue) and the theoretical Poisson distribution (red). Close overlap verifies correct sampling.
+
+## Example 1.2: Uniform Edge Count
+
+```{r edge-example-uniform}
+population <- 500
+covPattern <- rep(0L, population)
+
+fit <- CCM_fit(Network_stats='DegreeDist',
+               Prob_Distr='DirMult',
+               Prob_Distr_Params=list(list(c(2,21,15,12))), 
+               population=population, 
+               covPattern = covPattern,
+               samplesize = 10000,
+               burnin=100000, 
+               interval=1000,
+               remove_var_last_entry = FALSE) 
+
+fit$mcmc_stats %>% apply(2, mean)
+
+fit <- CCM_theoretical_check(fit, n_sim = 100)
+plot(fit, stats = paste0("deg", 0:3), type = "density", include_theoretical = TRUE)
+```
+
+> **Explanation:** The density plot verifies that CCM samples uniformly reproduce all possible edge counts.
+
+## Example 1.3: Non-Parametric Edge Count
+
+```{r edge-example-uniform}
+population <- 500
+covPattern <- rep(0L, population)
+
+mean_vec = c(23.05, 66.05, 44.05, 91.05, 118.05, 80.05)
+
+var_mat = matrix(data = c(22.865223, -3.602583, -2.402631, -4.966165, -6.438834, -4.366189,
+                          -3.602583, 58.463833, -6.884763, -14.230595, -18.450541, -12.511358,
+                          -2.402631, -6.884763, 41.398484, -9.490654, -12.305016, -8.344062,
+                          -4.966165, -14.230595, -9.490654, 74.936848, -25.434092, -17.246921,
+                          -6.438834, -18.450541, -12.305016, -25.434092, 89.239302, -22.361329,
+                          -4.366189, -12.511358, -8.344062, -17.246921, -22.361329, 68.071353), ncol = 6)
+Prob_Distr_Params = list(list(mean_vec, var_mat))
+
+Network_stats='DegMixing'
+Prob_Distr='Normal'
+Prob_Distr_Params=Prob_Distr_Params
+population=population
+covPattern = covPattern
+samplesize = 10000
+burnin=100000
+interval=1000
+G = NULL
+P = NULL
+use_G = FALSE
+bayesian_inference = FALSE
+Ia = NULL
+Il = NULL
+R = NULL
+epi_params = NULL
+print_calculations = FALSE
+partial_network = as.integer(0)
+outfile = "none"
+MH_proposal_type = "TNT"
+obs_nodes = NULL
+Obs_stats = NULL
+remove_var_last_entry = FALSE
+statsonly = TRUE
+
+fit = CCM_fit(Network_stats='DegMixing',
+                              Prob_Distr='Normal',
+                              Prob_Distr_Params=Prob_Distr_Params, 
+                              samplesize = 5,
+                              burnin=1, 
+                              interval=1,
+                              population=500, 
+                              covPattern = covPattern,
+                              remove_var_last_entry = FALSE) 
+
+fit$mcmc_stats %>% apply(2, mean)
+
+#fit <- CCM_theoretical_check(fit, n_sim = 100)
+#plot(fit, stats = paste0("deg", 0:3), type = "density", include_theoretical = TRUE)
+```
+
+```{r edge-example-uniform}
+population <- 500
+covPattern <- rep(0L, population)
+
+mean_vec = c(23.05, 66.05, 44.05, 91.05, 118.05, 80.05)
+
+var_mat = matrix(data = c(22.865223, -3.602583, -2.402631, -4.966165, -6.438834, -4.366189,
+                          -3.602583, 58.463833, -6.884763, -14.230595, -18.450541, -12.511358,
+                          -2.402631, -6.884763, 41.398484, -9.490654, -12.305016, -8.344062,
+                          -4.966165, -14.230595, -9.490654, 74.936848, -25.434092, -17.246921,
+                          -6.438834, -18.450541, -12.305016, -25.434092, 89.239302, -22.361329,
+                          -4.366189, -12.511358, -8.344062, -17.246921, -22.361329, 68.071353), ncol = 6)
+Prob_Distr_Params = list(list(mean_vec, var_mat),
+                         list(6,2))
+
+fit = CCM_fit(Network_stats=c('DegMixing', 'Triangles'),
+                              Prob_Distr=c('Normal', 'Normal'),
+                              Prob_Distr_Params=Prob_Distr_Params, 
+                              samplesize = 5, #0000,
+                              burnin=1, #00000, 
+                              interval=1, #000,
+                              population=500, 
+                              covPattern = covPattern,
+                              remove_var_last_entry = FALSE) 
+
+fit$mcmc_stats %>% apply(2, mean)
+
+fit <- CCM_theoretical_check(fit, n_sim = 100)
+plot(fit, stats = c("DM11", "DM22", "triangles"), type = "density", include_theoretical = TRUE)
+```
+
+> **Explanation:** Non-parametric sampling reproduces the combined Poisson distribution, verifying the CCM sampler works for arbitrary edge distributions.
+
+
+# Section 2: Degree Distribution Sampler Verification
+
+Next, we verify that the CCM sampler reproduces specified degree distributions using multinomial or multinomial-Poisson models.
+
+## Example 2.1: Multinomial-Poisson Degree Distribution
+
+
+> **Explanation:** The density plots show sampled degrees (blue) versus theoretical multinomial-Poisson probabilities (red). Close match verifies correct MCMC sampling.
+
+
+# Section 3: Mixing Matrix Sampler Verification
+
+We verify that CCM samples reproduce a specified mixing matrix.
+
+
+> **Explanation:** The density plots verify that the MCMC sampler reproduces the intended mixing probabilities.
+
+
+# Section 4: Structural Assessment
+
+Structural assessment tests whether a network property is part of the generative process.
+
+- **Erdős-Rényi (ER) Network:** Only the number of edges is relevant; degree distribution deviations should be minimal.
+- **Barabási–Albert (BA) Network:** Preferential attachment induces heterogeneous degrees; a Null model with edges only cannot capture this.
+
+## Example 4.1: ER Network

@@ -41,7 +41,7 @@ reticulate::use_virtualenv(env_name, required = TRUE)
 CCMnet_python_setup()
 ```
 
-```{r degmix_clustering-example-normal}
+```{r degmix_clustering-example-normal_debug1}
 Prob_Distr_Params_1 = rep(0, 4950)
 Prob_Distr_Params_1[1] = 5
 Prob_Distr_Params_1[2] = 25
@@ -89,6 +89,61 @@ out <- CCMnetpy::CCMnet_constr(
   )
 ```
 
+```{r degmix_clustering-example-normal_debug2}
+Prob_Distr_Params_1 = rep(0, 4950)
+Prob_Distr_Params_1[1] = 5
+Prob_Distr_Params_1[2] = 25
+Prob_Distr_Params_1[100] = 50
+ 
+Prob_Distr_Params_2 = matrix(0, nrow = 4950, ncol = 4950)
+diag(Prob_Distr_Params_2) = rep(2000, 4950)
+Prob_Distr_Params_2[1,1] = .3
+Prob_Distr_Params_2[2,2] = .3  
+Prob_Distr_Params_2[100,100] = .3
+ 
+Prob_Distr_Params_degmix <- list(
+  Prob_Distr_Params_1,
+  Prob_Distr_Params_2
+)
+
+Prob_Distr_Params_clustering <- list(
+  6,
+  2
+)
+
+Prob_Distr_Params = list(Prob_Distr_Params_degmix,
+                         Prob_Distr_Params_clustering)
+
+population <- 100
+covPattern <- rep(0L, population)
+
+
+out <- CCMnetpy::CCMnet_constr(
+    Network_stats = list("degmix_clustering"),
+    Prob_Distr = list("Multivariate_normal", "Normal"),
+    Prob_Distr_Params = Prob_Distr_Params,
+    samplesize = as.integer(100),
+    burnin = as.integer(1),
+    interval = as.integer(1),
+    statsonly = TRUE,
+    G = NULL,
+    P = NULL,
+    population = as.integer(population),
+    covPattern = as.integer(covPattern),
+    bayesian_inference = FALSE,
+    Ia = NULL,
+    Il = NULL,
+    R = NULL,
+    epi_params = NULL,
+    print_calculations = TRUE,
+    use_G = FALSE,
+    outfile = "none",
+    partial_network = as.integer(FALSE),
+    obs_nodes = NULL,
+    MH_proposal_type = "TNT",
+    Obs_stats = NULL
+  )
+```
 
 ```{r degmix_clustering-example-normal}
 

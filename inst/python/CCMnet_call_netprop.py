@@ -78,7 +78,7 @@ def calc_f(Network_stats,g_net_stat, g2_net_stat, proposal_edge, g_proposal_edge
 ###Calculate statistic probability###
 #####################################
 
-def calc_probs(g_net_stat, g2_net_stat, proposal_edge, covPattern, Network_stats, Prob_Distr, Prob_Distr_Params, g, g_proposal_edge):
+def calc_probs(g_net_stat, g2_net_stat, proposal_edge, covPattern, Network_stats, Prob_Distr, Prob_Distr_Params, g, g_proposal_edge, print_calculations):
 
   if Network_stats[0].strip().lower() == "edge" and len(Network_stats) == 1:
     prob_g, prob_g2 = calc_probs_edge(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_Distr, Prob_Distr_Params, g_proposal_edge)
@@ -93,6 +93,6 @@ def calc_probs(g_net_stat, g2_net_stat, proposal_edge, covPattern, Network_stats
     prob_g, prob_g2 = calc_probs_degmix(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_Distr, Prob_Distr_Params, g, g_proposal_edge)
 
   if Network_stats[0].strip().lower() == "degmix_clustering" and len(Network_stats) == 1:
-    prob_g, prob_g2 = calc_probs_degmix_clustering(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_Distr, Prob_Distr_Params, g, g_proposal_edge)
+    prob_g, prob_g2 = calc_probs_degmix_clustering(g_net_stat, g2_net_stat, proposal_edge, covPattern, Prob_Distr, Prob_Distr_Params, g, g_proposal_edge, print_calculations)
 
   return prob_g, prob_g2

@@ -51,11 +51,12 @@ CCM_fit <- function(
     use_G = FALSE,
     partial_network = as.integer(0),
     obs_nodes = NULL,
-    Obs_stats = NULL
+    Obs_stats = NULL,
+    remove_var_last_entry = FALSE
 ) {
   
   # Call Python backend
-  out <- CCMnetpy::CCMnet_constr(
+  out <- CCMnet::CCMnet_constr(
     Network_stats = Network_stats,
     Prob_Distr = Prob_Distr,
     Prob_Distr_Params = Prob_Distr_Params,
@@ -78,7 +79,8 @@ CCM_fit <- function(
     partial_network = as.integer(partial_network),
     obs_nodes = obs_nodes,
     MH_proposal_type = "TNT",
-    Obs_stats = Obs_stats
+    Obs_stats = Obs_stats,
+    remove_var_last_entry = remove_var_last_entry
   )
   
   # Extract MCMC statistics
@@ -98,8 +100,16 @@ CCM_fit <- function(
       }
     }
     
+    if (s == "density") {
+        return(c("density")) 
+    }
+    
     if (s == "degree") {
       return(paste0("deg", 0:(population - 1)))
+    }
+    
+    if (s == "degreedist") {
+      return(paste0("deg", 0:(ncol(stats) - 1)))
     }
     
     if (s == "mixing") {
@@ -113,8 +123,8 @@ CCM_fit <- function(
       return(mixing_names)
     }
     
-    if (s == "degmix") {
-      m <- population - 1
+    if (s == "degmix" ) {
+      m <- (-1 + sqrt(1 + 8*ncol(stats)))/2
       degmix_names <- c()
       for (i in (seq_len(m))) {
         for (j in i:(m)) {
@@ -124,6 +134,21 @@ CCM_fit <- function(
       return(degmix_names)
     }
 
+    if (s == "degmixing") {
+      m <- (-1 + sqrt(1 + 8*ncol(stats)))/2
+      degmix_names <- c()
+      for (i in (seq_len(m))) {
+        for (j in 1:(i)) {
+          degmix_names <- c(degmix_names, paste0("DM", j, i))
+        }
+      }
+      return(degmix_names)
+    }
+    
+    if (s == "triangles") {
+      return(c("triangles")) 
+    }
+    
     if (s == "degmix_clustering") {
       m <- population - 1
       degmix_clustering_names <- c()

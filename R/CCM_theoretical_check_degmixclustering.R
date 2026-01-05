@@ -11,7 +11,7 @@
 CCM_theoretical_check_degmixclustering <- function(fit,
                                          n_sim) {
   
-  if (fit$Prob_Distr[[1]] == "Multinomial_Poisson") {
+  if (fit$Prob_Distr[[1]] == "Multinomial_Poisson" && fit$Prob_Distr[[2]] == "Normal") {
     
     lambda <- fit$Prob_Distr_Params[[1]][[1]][1]
     probs  <- fit$Prob_Distr_Params[[1]][[2]]
@@ -23,7 +23,7 @@ CCM_theoretical_check_degmixclustering <- function(fit,
       total_edges <- rpois(1, lambda)
       simulated_1[i, ] <- rmultinom(1, size = total_edges, prob = probs)
     }
-  } else if (fit$Prob_Distr[[1]] == "Multivariate_normal") {
+  } else if (fit$Prob_Distr[[1]] == "Multivariate_normal" && fit$Prob_Distr[[2]] == "Normal") {
     
     mean_vec <- fit$Prob_Distr_Params[[1]][[1]]
     invsigma_mat  <- fit$Prob_Distr_Params[[1]][[2]]
@@ -31,6 +31,18 @@ CCM_theoretical_check_degmixclustering <- function(fit,
     
     simulated_1 <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
 
+  } else if (fit$Prob_Distr[[2]] == "Normal" && fit$Prob_Distr[[2]] == "Normal") {
+    
+    mean_vec <- fit$Prob_Distr_Params[[1]][[1]]
+    sigma_mat  <- fit$Prob_Distr_Params[[1]][[2]]
+
+    simulated_1 <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
+    
+    mean_scalar <- fit$Prob_Distr_Params[[2]][[1]]
+    sigma_scalar  <- fit$Prob_Distr_Params[[2]][[2]]
+    
+    simulated_2 <- rnorm(n_sim, mean = mean_scalar, sd = sigma_scalar)
+    
   } else {
     warning("Theoretical distribution not currently implemented. Returning NULL.")
     fit$theoretical <- list(
@@ -40,24 +52,15 @@ CCM_theoretical_check_degmixclustering <- function(fit,
     return(fit)
   }
   
-  if (fit$Prob_Distr[[2]] == "Normal") {
-    
-    mean_scalar <- fit$Prob_Distr_Params[[2]][[1]]
-    sigma_scalar  <- fit$Prob_Distr_Params[[2]][[2]]
-
-    simulated_2 <- rnorm(n_sim, mean = mean_scalar, sd = sigma_scalar)
-    
-  }
-  
   simulated_1 <- as.data.frame(simulated_1)
   simulated_2 <- as.data.frame(simulated_2)
   
   simulated = bind_cols(simulated_1, simulated_2)
   
-  m <- fit$population - 1
+  m <- (-1 + sqrt(1 + 8*ncol(simulated_1)))/2
   degmix_clustering_names <- c()
   for (i in (seq_len(m))) {
-    for (j in i:(m)) {
+    for (j in 1:(i)) {
       degmix_clustering_names <- c(degmix_clustering_names, paste0("DM", j, i))
     }
   }

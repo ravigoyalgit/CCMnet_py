@@ -123,7 +123,7 @@ def CCMnet_constr_py(Network_stats=["Degree"],
       print("g2->g: ", f_g2_g)
       print("####CCM calculations: End####")
       
-    prob_g, prob_g2 = calc_probs(g_net_stat, g2_net_stat, proposal_edge, covPattern, Network_stats, Prob_Distr, Prob_Distr_Params, g, g_proposal_edge)
+    prob_g, prob_g2 = calc_probs(g_net_stat, g2_net_stat, proposal_edge, covPattern, Network_stats, Prob_Distr, Prob_Distr_Params, g, g_proposal_edge, print_calculations)
 
     if print_calculations:
       print("####Prob calculations: Begin####")

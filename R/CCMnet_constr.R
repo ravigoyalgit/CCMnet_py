@@ -1,128 +1,80 @@
-#' Construct a Congruence Class Model (CCM) Network Using CCMnet (R wrapper for Python)
+#' This function serves as a wrapper to perform MCMC-based network simulation 
+#' under specific constraints, supporting both uni-modal and bi-modal populations.
 #'
-#' @description
-#' CCMnet_constr() is an R wrapper around the underlying Python function
-#' CCMnet_constr_py, which generates constrained networks or sufficient
-#' statistics used by CCM_fit(). This function handles argument
-#' conversion, calls the Python engine, and returns an igraph object and
-#' associated constraint information.
+#' @param Network_stats A character vector specifying the network statistics to be used.
+#' @param Prob_Distr A character string specifying the probability distribution.
+#' @param Prob_Distr_Params A list or vector of parameters for the chosen \code{Prob_Distr}.
+#' @param samplesize Integer. The number of network samples to draw from the MCMC. Default is 5000.
+#' @param burnin Integer. The number of initial MCMC steps to discard. Default is 1000.
+#' @param interval Integer. The number of steps between successive samples (thinning). Default is 1000.
+#' @param statsonly Logical. If \code{TRUE}, returns only the network statistics; 
+#' if \code{FALSE}, returns the network objects. Default is \code{TRUE}.
+#' @param G An optional initial graph object.
+#' @param P An optional graph object or matrix representing the population or constraints.
+#' @param population Integer or vector of length 2. The size of the population. 
+#' A single value triggers \code{uni_modal_constr}, while two values trigger \code{bi_modal_constr}.
+#' @param covPattern A vector or data frame containing nodal attributes/covariates.
+#' @param bayesian_inference Logical. Whether to perform Bayesian inference. Default is \code{FALSE}.
+#' @param Ia,Il,R Optional parameters for epidemiological model states (Infectious asymptomatic, 
+#' Infectious latent, Recovered).
+#' @param epi_params A list of parameters for epidemiological simulations.
+#' @param print_calculations Logical. If \code{TRUE}, prints progress and intermediate steps to the console.
+#' @param use_G Logical. Whether to use the provided graph \code{G} as the starting state.
+#' @param outfile Character string. Path to a file where results should be saved.
+#' @param partial_network Logical. Whether the input network is partially observed.
+#' @param obs_nodes A vector of indices for observed nodes.
+#' @param MH_proposal_type Character. The Metropolis-Hastings proposal mechanism (e.g., "TNT" for Tie-No-Tie).
+#' @param Obs_stats The observed statistics to match or use as constraints.
+#' @param remove_var_last_entry Logical. Internal flag for variance calculation adjustments.
 #'
-#' @param Network_stats Character vector of statistic names.
-#' @param Prob_Distr Character vector of probability distribution names.
-#' @param Prob_Distr_Params List of parameter sets for each distribution.
-#' @param samplesize Integer. Number of MCMC samples.
-#' @param burnin Integer. Burn-in period for MCMC.
-#' @param interval Integer. Thinning interval.
-#' @param statsonly Logical. If TRUE, only return sufficient statistics.
-#' @param G Initial network or starting graph object.
-#' @param P Additional parameters used in the Python backend.
-#' @param population Integer. Number of nodes.
-#' @param covPattern Integer vector. Covariate pattern or group labels.
-#' @param bayesian_inference Logical. Whether to use Bayesian inference mode.
-#' @param Ia,Il,R Numeric vectors for epidemic parameters.
-#' @param epi_params Additional epidemic model parameters.
-#' @param print_calculations Logical. Print internal progress from Python engine.
-#' @param use_G Logical. Whether to use the supplied initial graph G.
-#' @param outfile Character. Path for logging output.
-#' @param partial_network Numeric. Fraction of nodes observed.
-#' @param obs_nodes Vector of observed node IDs.
-#' @param MH_proposal_type Character. MCMC proposal type (e.g., "random").
-#' @param Obs_stats Character vector of observed statistic names.
-#'
-#' @return A list with two elements:
-#' \itemize{
-#'   \item g: An igraph network object.
-#'   \item stats: Constraint or statistic output from Python.
-#' }
-#'
-#' @examples
-#' \dontrun{
-#' result <- CCMnet_constr(
-#'   Network_stats = list("Edge"),
-#'   Prob_Distr = list("NP"),
-#'   Prob_Distr_Params = list(dnbinom(0:choose(50,2), size = 1.017340, mu = 6.192894)),
-#'   samplesize = 1000,
-#'   burnin = 100,
-#'   interval = 10,
-#'   statsonly = FALSE,
-#'   G = NULL,
-#'   P = NULL,
-#'   population = 50,
-#'   covPattern = rep(1, 50),
-#'   bayesian_inference = FALSE,
-#'   Ia = NULL, Il = NULL, R = NULL,
-#'   epi_params = NULL,
-#'   print_calculations = FALSE,
-#'   obs_nodes = NULL,
-#'   Obs_stats = NULL
-#' )
-#' }
+#' @return Depending on \code{statsonly}, returns either a matrix of network statistics 
+#' or a list of network objects produced by the underlying \code{uni_modal_constr} 
+#' or \code{bi_modal_constr} functions.
 #'
 #' @export
+#' @seealso \code{\link{uni_modal_constr}}, \code{\link{bi_modal_constr}}
+#'
+#' @examples
+#' # Example usage (assuming appropriate data)
+#' # results <- CCMnet_constr(Network_stats = "edges", population = 100, Prob_Distr = "Normal")
 
-CCMnet_constr <- function(Network_stats,
-                          Prob_Distr,
-                          Prob_Distr_Params, 
-                          samplesize,
-                          burnin, 
-                          interval,
-                          statsonly,
-                          G,
-                          P,
+CCMnet_constr <- function(Network_stats, 
+                          Prob_Distr, 
+                          Prob_Distr_Params,
+                          samplesize = 5000, 
+                          burnin=1000, 
+                          interval=1000,
+                          statsonly=TRUE,
+                          G=NULL,
+                          P=NULL,
                           population, 
-                          covPattern,
-                          bayesian_inference,
-                          Ia, 
-                          Il, 
-                          R, 
-                          epi_params,
-                          print_calculations,
+                          covPattern = NULL,
+                          bayesian_inference = FALSE,
+                          Ia = NULL, 
+                          Il = NULL, 
+                          R = NULL, 
+                          epi_params = NULL,
+                          print_calculations = FALSE,
                           use_G = FALSE,
-                          outfile = "none",
-                          partial_network=0,
-                          obs_nodes,
-                          MH_proposal_type= "random",
-                          Obs_stats) {
-  
-  samplesize = as.integer(samplesize)
-  burnin = as.integer(burnin)
-  interval = as.integer(interval)
-  population = as.integer(population)
-  covPattern = as.integer(covPattern)
-  
-  if (!exists("CCMnet_constr_py")) {
-    CCMnet_python_setup()
-  }
-  
-  results = CCMnet_constr_py(Network_stats,
-                   Prob_Distr,
-                   Prob_Distr_Params, 
-                   samplesize,
-                   burnin, 
-                   interval,
-                   statsonly,
-                   G,
-                   P,
-                   population, 
-                   covPattern,
-                   bayesian_inference,
-                   Ia, 
-                   Il, 
-                   R, 
-                   epi_params,
-                   print_calculations,
-                   use_G,
-                   outfile,
-                   partial_network,
-                   obs_nodes,
-                   MH_proposal_type,
-                   Obs_stats)
-  
-  nodes_attr_df = data.frame(name = c(1:(population)), #data.frame(name = c(0:(population-1)), 
-                             covPattern = covPattern)
-  g = graph_from_data_frame(results[[1]], directed=FALSE, vertices = nodes_attr_df)
+                          outfile = NULL,
+                          partial_network = FALSE,
+                          obs_nodes = NULL,
+                          MH_proposal_type = "TNT",
+                          Obs_stats = Obs_stats,
+                          remove_var_last_entry = FALSE) {
 
-  return(list(g, results[[2]]))
+  if (length(population) == 1) {
+    return(uni_modal_constr(Network_stats, Prob_Distr, Prob_Distr_Params,
+                            samplesize, burnin, interval,
+                            statsonly, P,
+                            population, covPattern, remove_var_last_entry)
+           )
+  } else if (length(population) == 2) {
+    return(bi_modal_constr(Network_stats, Prob_Distr, Prob_Distr_Params,
+                           samplesize, burnin, interval,
+                           statsonly, P,
+                           population, covPattern, remove_var_last_entry)
+           )
+  }
 }
-  
-  
+

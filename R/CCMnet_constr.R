@@ -66,13 +66,13 @@ CCMnet_constr <- function(Network_stats,
   if (length(population) == 1) {
     return(uni_modal_constr(Network_stats, Prob_Distr, Prob_Distr_Params,
                             samplesize, burnin, interval,
-                            statsonly, P,
+                            statsonly, G,
                             population, covPattern, remove_var_last_entry)
            )
   } else if (length(population) == 2) {
     return(bi_modal_constr(Network_stats, Prob_Distr, Prob_Distr_Params,
                            samplesize, burnin, interval,
-                           statsonly, P,
+                           statsonly, G,
                            population, covPattern, remove_var_last_entry)
            )
   }

@@ -31,6 +31,13 @@ CCM_theoretical_check_degmix <- function(fit,
     
     simulated <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
 
+  } else if (fit$Prob_Distr[[1]] == "Normal") {
+    
+    mean_vec <- fit$Prob_Distr_Params[[1]][[1]]
+    sigma_mat  <- fit$Prob_Distr_Params[[1]][[2]]
+
+    simulated <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
+    
   } else {
     warning("Theoretical distribution not currently implemented. Returning NULL.")
     fit$theoretical <- list(
@@ -42,10 +49,10 @@ CCM_theoretical_check_degmix <- function(fit,
   
   simulated <- as.data.frame(simulated)
 
-  m <- fit$population - 1
+  m <- (-1 + sqrt(1 + 8*ncol(simulated)))/2
   degmix_names <- c()
   for (i in (seq_len(m))) {
-    for (j in i:(m)) {
+    for (j in 1:(i)) {
       degmix_names <- c(degmix_names, paste0("DM", j, i))
     }
   }

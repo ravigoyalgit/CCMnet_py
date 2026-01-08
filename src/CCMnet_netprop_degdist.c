@@ -1,4 +1,60 @@
+#include <R.h>
+#include <math.h>
 #include "CCMnet_netprop_degdist.h"
+
+void calc_stat_degdist(Model *m, 
+                       int *NetworkForecast, 
+                       int *num_deg_stats,
+                       int *Deg_Add, 
+                       int *Deg_Delete, 
+                       int *Proposal_prob_zero) {
+  
+  int counter;
+  int Deg_Add_counter = 0;
+  int Deg_Delete_counter = 0;
+  double changestat_sum = 0;
+  
+  /* Calculate the number of degree statistics */
+  *num_deg_stats = m->n_stats - 1 - (*NetworkForecast);
+  *Proposal_prob_zero = 0;
+  
+  /* Get Degree changes of tail and head from workspace */
+  for (counter = 1; counter < (*num_deg_stats + 1); counter++) {
+    changestat_sum += m->workspace[counter];
+    
+    // Edge toggle results in degree decrease for a node
+    if (round(m->workspace[counter]) == -1) {
+      Deg_Delete[Deg_Delete_counter] = counter - 1;
+      Deg_Delete_counter++;
+    }
+    // Edge toggle results in degree increase for a node
+    if (round(m->workspace[counter]) == 1) {
+      Deg_Add[Deg_Add_counter] = counter - 1;
+      Deg_Add_counter++;
+    }
+    // Special case: Both toggle nodes had same degree, both decreased
+    if (round(m->workspace[counter]) == -2) {
+      Deg_Delete[0] = counter - 1;
+      Deg_Delete[1] = counter - 1;
+    }
+    // Special case: Both toggle nodes had same degree, both increased
+    if (round(m->workspace[counter]) == 2) {
+      Deg_Add[0] = counter - 1;
+      Deg_Add[1] = counter - 1;
+    }
+  }
+  
+  /* Handling cases with single node changes */
+  if (Deg_Add_counter == 1) {
+    Deg_Delete[1] = (int)(((Deg_Delete[0] + Deg_Add[0]) * .5) + .5);
+    Deg_Add[1] = Deg_Delete[1];
+  }
+  
+  /* Check for proposal validity based on observed degrees */
+  if (changestat_sum < -.1) { 
+    *Proposal_prob_zero = 1;
+  }
+}
 
 void calc_f_degdist(int num_deg_stats, Model *m, double *networkstatistics,
                     int nwp_nedges, int MHp_nedges, int *Deg_Delete, int *Deg_Add,

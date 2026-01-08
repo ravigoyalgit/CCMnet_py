@@ -64,7 +64,7 @@ CCM_theoretical_check <- function(
                                         n_sim))
   }
   
-  if (length(stat) == 1 && stat == "degmix") {
+  if ((length(stat) == 1 && stat == "degmix") || (length(stat) == 1 && stat == "DegMixing"))  {
     return(CCM_theoretical_check_degmix(fit,
                                         n_sim))
   }

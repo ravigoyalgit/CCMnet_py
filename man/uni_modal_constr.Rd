@@ -14,7 +14,7 @@ uni_modal_constr(
   burnin,
   interval,
   statsonly,
-  P,
+  G,
   population,
   covPattern,
   remove_var_last_entry
@@ -36,13 +36,13 @@ uni_modal_constr(
 
 \item{statsonly}{Logical. If \code{TRUE}, returns statistics; if \code{FALSE}, returns graph objects.}
 
-\item{P}{An initial \code{igraph} object. If \code{NULL}, a random graph is generated.}
-
 \item{population}{Integer. The number of nodes in the network.}
 
 \item{covPattern}{Vector. Categorical nodal attributes for mixing statistics.}
 
 \item{remove_var_last_entry}{Logical. If \code{TRUE}, the last entry of the variance matrix is dropped for inversion.}
+
+\item{P}{An initial \code{igraph} object. If \code{NULL}, a random graph is generated.}
 }
 \value{
 A list containing:

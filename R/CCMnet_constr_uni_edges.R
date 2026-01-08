@@ -15,6 +15,15 @@ CCMnet_constr_uni_edges <- function(Network_stats, Prob_Distr, Prob_Distr_Params
       print("Error: variance for network density is one positive value")
       error = 1
     }
+  } else if (Prob_Distr == "LogNormal") {
+    prob_type = c(0,0,0,0,2)
+    mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
+  } else if (Prob_Distr == "Poisson") {
+    prob_type = c(0,0,0,0,3)
+    mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
+  } else if (Prob_Distr == "Uniform") {
+    prob_type = c(0,0,0,0,4)
+    mean_vector = c(1, 1)
   } else if (Prob_Distr == "NP") {
     prob_type = c(0,0,0,0,99)
     mean_vector = Prob_Distr_Params[[1]][[1]]

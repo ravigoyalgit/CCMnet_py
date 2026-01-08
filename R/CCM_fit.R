@@ -92,7 +92,7 @@ CCM_fit <- function(
     
     if (is.null(Obs_stats)) Obs_stats <- ""
  
-    if (s == "edge") {
+    if (s == "edges") {
       if (Obs_stats == "degree") {
         return(c("edges",paste0("deg", 0:(population - 1)))) 
       } else {

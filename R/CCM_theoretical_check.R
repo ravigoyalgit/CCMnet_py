@@ -35,16 +35,8 @@ CCM_theoretical_check <- function(
   #---------------------------
   # Network Property: Edge
   #---------------------------
-  if (length(stat) == 1 && stat == "Edge") {
+  if (length(stat) == 1 && stat == "Edges") {
     return(CCM_theoretical_check_edges(fit,
-                                       n_sim))
-  }
-  
-  #---------------------------
-  # Network Property: Edge
-  #---------------------------
-  if (length(stat) == 1 && stat == "Density") {
-    return(CCM_theoretical_check_density(fit,
                                        n_sim))
   }
   

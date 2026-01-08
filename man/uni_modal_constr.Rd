@@ -22,7 +22,7 @@ uni_modal_constr(
 }
 \arguments{
 \item{Network_stats}{Character vector. Supported values include "DegreeDist", 
-"Density", "Mixing", "DegMixing", and "Triangles".}
+"Edges", "Mixing", "DegMixing", and "Triangles".}
 
 \item{Prob_Distr}{Character string. The distribution type (e.g., "Normal", "NegBin", "DirMult", "NP", "Tdist").}
 

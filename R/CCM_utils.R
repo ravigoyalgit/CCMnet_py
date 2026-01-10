@@ -12,7 +12,7 @@ fit_ccm_null <- function(null_terms,
                          alt_terms) {
   
   CCM_fit(
-    Network_stats = list(stats_from_terms(null_terms)),
+    Network_stats = list(null_terms),
     Prob_Distr = Prob_Distr,
     Prob_Distr_Params = Prob_Distr_Params,
     population = population,

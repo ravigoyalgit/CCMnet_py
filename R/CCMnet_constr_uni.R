@@ -28,7 +28,8 @@
 uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                              samplesize, burnin, interval,
                              statsonly, G,
-                             population, covPattern, remove_var_last_entry) {
+                             population, covPattern, remove_var_last_entry,
+                             Obs_stats) {
   
   error = 0
   
@@ -66,7 +67,7 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   
   max_degree = max_degree_f
   
-  generate_graphs = generate_initial_graph_CCMnet(G, max_degree, ER_prob)
+  generate_graphs = generate_initial_graph_CCMnet(G, max_degree, ER_prob, covPattern)
   P = generate_graphs[[1]]
   g = generate_graphs[[2]]
   
@@ -146,6 +147,14 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       MHproposal_name = NULL,
       MHproposal_package = NULL
     )
+  }
+  
+  if (!(is.null(Obs_stats))) {
+    CCM_constr_info = CCMnet_constr_uni_obs_stats(CCM_constr_info, Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                  samplesize, burnin, interval,
+                                                  statsonly, nedges, g, max_degree,
+                                                  population, covPattern, remove_var_last_entry,
+                                                  Obs_stats)
   }
   
   error = CCM_constr_info[["error"]]
@@ -272,23 +281,28 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       dim(statsmatrix) = c(1,len_statsmatrix)
     }
     
-    if ((length(Network_stats) == 1) && (Network_stats == "DegreeDist")){
-      statsmatrix = statsmatrix[,-1]
-    } else if  ((length(Network_stats) == 1) && (Network_stats == "Edges")) {
-      statsmatrix = statsmatrix[,1]
-    } else if ((length(Network_stats) == 2) && (Network_stats[1] == "DegreeDist") && (Network_stats[2] == "Mixing")) {
-      statsmatrix = statsmatrix[,-1]
-    } else if ((length(Network_stats) == 2) && (Network_stats[1] == "Mixing") && (Network_stats[2] == "DegreeDist")) {
-      statsmatrix = statsmatrix[,-1]
-    } else if ((length(Network_stats) == 1) && (Network_stats == "DegMixing")) {
-      statsmatrix = statsmatrix[,-1]
-    } else if  ((length(Network_stats) == 2) && (Network_stats[1] == c("DegMixing")) && (Network_stats[2] == c("Triangles"))) {
-      statsmatrix = statsmatrix[,-1]
-    } else if  ((length(Network_stats) == 2) && (Network_stats[1] == c("Triangles")) && (Network_stats[2] == c("DegMixing"))) {
-      statsmatrix = statsmatrix[,-1]
-      statsmatrix = cbind(statsmatrix[,dim(statsmatrix)[2]], statsmatrix[,-dim(statsmatrix)[2]])
+    ###NEED TO UPDATE######
+    if (!(is.null(Obs_stats))) {
+        statsmatrix = statsmatrix
     } else {
-      statsmatrix = statsmatrix[,-1]
+      if ((length(Network_stats) == 1) && (Network_stats == "DegreeDist")){
+        statsmatrix = statsmatrix[,-1]
+      } else if  ((length(Network_stats) == 1) && (Network_stats == "Edges")) {
+        statsmatrix = statsmatrix[,1]
+      } else if ((length(Network_stats) == 2) && (Network_stats[1] == "DegreeDist") && (Network_stats[2] == "Mixing")) {
+        statsmatrix = statsmatrix[,-1]
+      } else if ((length(Network_stats) == 2) && (Network_stats[1] == "Mixing") && (Network_stats[2] == "DegreeDist")) {
+        statsmatrix = statsmatrix[,-1]
+      } else if ((length(Network_stats) == 1) && (Network_stats == "DegMixing")) {
+        statsmatrix = statsmatrix[,-1]
+      } else if  ((length(Network_stats) == 2) && (Network_stats[1] == c("DegMixing")) && (Network_stats[2] == c("Triangles"))) {
+        statsmatrix = statsmatrix[,-1]
+      } else if  ((length(Network_stats) == 2) && (Network_stats[1] == c("Triangles")) && (Network_stats[2] == c("DegMixing"))) {
+        statsmatrix = statsmatrix[,-1]
+        statsmatrix = cbind(statsmatrix[,dim(statsmatrix)[2]], statsmatrix[,-dim(statsmatrix)[2]])
+      } else {
+        statsmatrix = statsmatrix[,-1]
+      } 
     }
     
     return(list(new_g, as.data.frame(statsmatrix)))

@@ -3,7 +3,7 @@
 #' @keywords internal
 plot_ccm_network <- function(x, term) {
   
-  if (term == "degree") {
+  if (term == "DegreeDist") {
     return(plot_ccm_degree(x))
   }
   

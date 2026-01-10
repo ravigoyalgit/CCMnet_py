@@ -28,7 +28,8 @@
 bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                             samplesize, burnin, interval,
                             statsonly, P,
-                            population, covPattern, remove_var_last_entry) {
+                            population, covPattern, remove_var_last_entry,
+                            Obs_stats) {
   
   error = 0
   

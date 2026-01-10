@@ -1,3 +1,40 @@
+#' Configure CCMnet Constraint Information for Degree Distribution Models
+#'
+#' This function initializes the constraint information required for a CCMnet simulation 
+#' when controlling for the network's degree distribution. It handles the 
+#' transformation of distribution parameters (e.g., scaling by population) and 
+#' calculates the precision matrix for Normal distribution constraints.
+#'
+#' @param Network_stats A list or vector containing current network statistics.
+#' @param Prob_Distr A character string specifying the distribution for the degree 
+#'   distribution. Options include "Normal", "NegBin" (Negative Binomial), and 
+#'   "DirMult" (Dirichlet-Multinomial).
+#' @param Prob_Distr_Params A nested list containing distribution parameters. 
+#'   For "Normal", \code{[[1]][[1]]} is the mean vector and \code{[[1]][[2]]} is the 
+#'   covariance matrix.
+#' @param nedges A numeric vector where the first element is the current edge count.
+#' @param g An \code{igraph} object representing the current network.
+#' @param max_degree Integer. The maximum degree allowed in the network.
+#' @param population Integer. The number of nodes in the network (used for scaling 
+#'   means and variances).
+#' @param covPattern A vector representing the nodal covariate pattern.
+#' @param remove_var_last_entryy Logical. If \code{TRUE}, the last entry of the 
+#'   mean vector is excluded from the variance inversion to handle linear 
+#'   dependencies in degree distributions.
+#'
+#' @details 
+#' For "Normal" constraints, the function scales the mean vector by \code{1/population} 
+#' and the covariance matrix by \code{1/population^2}. It then calculates the 
+#' precision matrix using \code{solve()}. If \code{remove_var_last_entryy} is 
+#' enabled, it performs a partial inversion and pads the result with zeros.
+#'
+#' @return A list of class \code{CCM_constr_info} containing configuration for the 
+#'   MCMC sampler, including \code{prob_type}, \code{mean_vector}, and the 
+#'   flattened precision matrix in \code{var_vector}.
+#' 
+#' @importFrom igraph degree
+#' @export
+
 CCMnet_constr_uni_degdist <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                             nedges, g, max_degree,
                                             population, covPattern, remove_var_last_entryy) {

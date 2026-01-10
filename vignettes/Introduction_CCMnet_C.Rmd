@@ -201,7 +201,7 @@ var_mat = matrix(data = c(22.865223, -3.602583, -2.402631, -4.966165, -6.438834,
                           -6.438834, -18.450541, -12.305016, -25.434092, 89.239302, -22.361329,
                           -4.366189, -12.511358, -8.344062, -17.246921, -22.361329, 68.071353), ncol = 6)
 Prob_Distr_Params = list(list(mean_vec, var_mat),
-                         list(20,3))
+                         list(6,3))
 
 fit = CCM_fit(Network_stats=c('DegMixing', 'Triangles'),
                               Prob_Distr=c('Normal', 'Normal'),
@@ -232,3 +232,75 @@ Structural assessment tests whether a network property is part of the generative
 - **Barabási–Albert (BA) Network:** Preferential attachment induces heterogeneous degrees; a Null model with edges only cannot capture this.
 
 ## Example 5.1: ER Network
+
+```{r structural-er}
+population <- 100
+p_edge <- 0.05
+G_obs <- erdos.renyi.game(n = population, p.or.m = p_edge, type = "gnp", directed = FALSE)
+
+# Number of edges and empirical probability
+num_edges_obs <- gsize(G_obs)
+p_hat <- num_edges_obs / choose(population, 2)
+
+fit <- CCM(
+  null_model = G_obs ~ Edges,
+  alt_model  = ~ DegreeDist,
+  population = population,
+  Prob_Distr = list("NP"),
+  Prob_Distr_Params = list(list(
+    dbinom(0:choose(population,2), size = choose(population,2), prob = p_hat)
+  )),
+  covPattern = rep(0L, population),
+  samplesize = 1000L,
+  burnin = 200000L,
+  interval = 1000L
+)
+
+fit
+```
+
+```{r plot-degrees}
+
+plot(fit, type = "test")
+plot(fit, type = "network")
+
+```
+
+> **Interpretation:** Minimal deviation in degrees indicates that modeling edges alone is sufficient for ER networks.
+
+## Example 4.2: BA Network
+
+```{r structural-ba}
+population <- 100
+m_attach <- 3
+G_obs <- barabasi.game(n = population, m = m_attach, directed = FALSE)
+
+num_edges_obs <- gsize(G_obs)
+p_hat <- num_edges_obs / choose(population, 2)
+
+fit <- CCM(
+  null_model = G_obs ~ Edges,
+  alt_model  = ~ DegreeDist,
+  population = population,
+  Prob_Distr = list("NP"),
+  Prob_Distr_Params = list(list(
+    dbinom(0:choose(population,2), size = choose(population,2), prob = p_hat)
+  )),
+  covPattern = rep(0L, population),
+  samplesize = 1000L,
+  burnin = 200000L,
+  interval = 1000L
+)
+
+fit
+```
+
+
+```{r plot-degrees_BA}
+
+plot(fit, type = "test")
+plot(fit, type = "network")
+
+```
+
+> **Interpretation:** Large deviations in degree distribution reveal that edges-only Null model is insufficient, highlighting preferential attachment as a structural property.

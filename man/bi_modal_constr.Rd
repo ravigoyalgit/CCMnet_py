@@ -17,7 +17,8 @@ bi_modal_constr(
   P,
   population,
   covPattern,
-  remove_var_last_entry
+  remove_var_last_entry,
+  Obs_stats
 )
 }
 \arguments{

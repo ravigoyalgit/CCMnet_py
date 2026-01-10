@@ -1,3 +1,48 @@
+#' Configure CCMnet Constraint Information for Degree Mixing and Clustering
+#'
+#' This function initializes the constraint information required for a CCMnet simulation 
+#' that simultaneously controls for degree mixing (the patterns of edges between nodes 
+#' of different degrees) and clustering (triangle counts). It prepares the joint 
+#' precision matrix and the flattened mixing matrix statistics.
+#'
+#' @param Network_stats A character vector where the first element indicates the 
+#'   primary statistic (e.g., "Triangles"). Used to ensure \code{Prob_Distr_Params} 
+#'   are in the correct order.
+#' @param Prob_Distr A character vector specifying distributions for mixing and 
+#'   clustering (e.g., \code{c("Normal", "Normal")}).
+#' @param Prob_Distr_Params A nested list. \code{[[1]]} contains degree mixing 
+#'   parameters (mean vector and covariance matrix). \code{[[2]]} contains 
+#'   clustering parameters (mean and variance).
+#' @param nedges Numeric vector. The first element is the current edge count.
+#' @param g An \code{igraph} object representing the current network.
+#' @param max_degree Integer. The maximum degree class considered in the mixing matrix.
+#' @param population Integer. The total number of nodes in the network.
+#' @param covPattern A vector representing nodal covariates.
+#' @param remove_var_last_entry Logical. If \code{TRUE}, removes the last entry of 
+#'   the mixing matrix from the variance inversion to handle linear dependency.
+#'
+#' @details 
+#' The function constructs a degree mixing matrix (DMM) from the current graph \code{g} 
+#' and extracts the upper triangle (including the diagonal). It combines the 
+#' DMM statistics with triangle counts calculated via \code{igraph::motifs}.
+#' 
+#' The precision matrix (\code{var_vector}) is constructed by inverting the 
+#' degree mixing covariance and appending the triangle reciprocal variance as 
+#' an additional block-diagonal element.
+#'
+#' @return A list of class \code{CCM_constr_info} containing:
+#' \itemize{
+#'   \item \code{error}: Integer (0 or 1) indicating if validation failed.
+#'   \item \code{prob_type}: Numeric vector \code{c(0,0,1,1,1)} for this model type.
+#'   \item \code{mean_vector}: Combined target means for mixing and triangles.
+#'   \item \code{var_vector}: Flattened joint precision matrix.
+#'   \item \code{stats}: Current observed counts (edges, mixing matrix, triangles).
+#'   \item \code{inputs}: Flattened metadata for C-level memory mapping.
+#' }
+#' 
+#' @importFrom igraph as_edgelist degree motifs
+#' @export
+
 CCMnet_constr_uni_degmixing_clustering <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                          nedges, g, max_degree,
                                                          population, covPattern, remove_var_last_entry) {

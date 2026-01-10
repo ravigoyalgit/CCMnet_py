@@ -118,6 +118,8 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
       Rprintf(" %f ",m->workspace[counter_print]);
     }
     Rprintf("\n");
+    Rprintf("Node ID 1 %d Node ID 2 %d\n",*(MHp->toggletail), *(MHp->togglehead));
+    Rprintf("\n");
   }
   
   /* MOD ADDED */

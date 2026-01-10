@@ -87,7 +87,7 @@ CCM_fit <- function(
   stats <- as.data.frame(out[[2]])
   
   # Assign column names dynamically
-  colnames(stats) <- unlist(lapply(Network_stats, function(s) {
+  colnames(stats) <- unlist(lapply(c(Network_stats,Obs_stats), function(s) {
     s <- tolower(s)
     
     if (is.null(Obs_stats)) Obs_stats <- ""
@@ -108,8 +108,12 @@ CCM_fit <- function(
       return(paste0("deg", 0:(population - 1)))
     }
     
-    if (s == "degreedist") {
+    if (s == "degreedist" && Obs_stats == "") {
       return(paste0("deg", 0:(ncol(stats) - 1)))
+    }
+    
+    if (s == "degreedist" && Obs_stats != "") {
+      return(paste0("deg", 0:(ncol(stats) - 2)))
     }
     
     if (s == "mixing") {

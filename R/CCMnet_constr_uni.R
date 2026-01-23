@@ -40,7 +40,7 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   
   if ((length(Network_stats) == 1) && (Network_stats == "DegreeDist")){
     max_degree_f = max_degree = length(Prob_Distr_Params[[1]][[1]])-1
-  } else if  ((length(Network_stats) == 1) && (Network_stats == "Edges")) {
+  } else if  ((length(Network_stats) == 1) && (Network_stats == "Edges" || Network_stats == "Density")) {
     max_degree_f = max_degree = population - 1
     if (Prob_Distr == "NP") {
       ER_prob = (max(which(Prob_Distr_Params[[1]][[1]] > 0))-1)/choose(population,2) * .8
@@ -92,7 +92,7 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   # network.size(g) (number of vertices) becomes vcount(g)
   Clist_n <- vcount(g)
   
-  if ((length(Network_stats) == 1) && (Network_stats == "Edges")) {
+  if ((length(Network_stats) == 1) && (Network_stats == "Edges" || Network_stats == "Density")) {
     
     CCM_constr_info = CCMnet_constr_uni_edges(Network_stats, Prob_Distr, Prob_Distr_Params,
                                               nedges, g, max_degree,
@@ -131,8 +131,7 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                              population, covPattern, remove_var_last_entry)
     
   } else {
-    print("Error: No such distribution for mixing currently implemented.")
-    print("Email ravi.goyal@mail.harvard.edu to add feature.")
+    print("Error: No such NETWORK PROPERTY currently implemented.")
     CCM_constr_info <- list(
       error = 1,
       prob_type = NULL,
@@ -289,6 +288,8 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
         statsmatrix = statsmatrix[,-1]
       } else if  ((length(Network_stats) == 1) && (Network_stats == "Edges")) {
         statsmatrix = statsmatrix[,1]
+      } else if ((length(Network_stats) == 1)  && (Network_stats == "Density")) {
+        statsmatrix = statsmatrix[,1] / choose(population, 2)
       } else if ((length(Network_stats) == 2) && (Network_stats[1] == "DegreeDist") && (Network_stats[2] == "Mixing")) {
         statsmatrix = statsmatrix[,-1]
       } else if ((length(Network_stats) == 2) && (Network_stats[1] == "Mixing") && (Network_stats[2] == "DegreeDist")) {

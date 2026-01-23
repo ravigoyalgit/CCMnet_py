@@ -31,10 +31,9 @@ library(mvtnorm)
 
 This vignette demonstrates the use of **Congruence Class Models (CCMs)** for network modeling. CCMs allow us to define a generative process for networks in terms of chosen network properties (edges, degree distributions, mixing matrices) and generate networks consistent with these properties.
 
-We distinguish two main purposes:
+The main purpose is to:
 
-1. **Verification of the MCMC sampler** (Sections 1–4): We sample networks according to known distributions for edges, degrees, and mixing matrices, and verify that the CCM sampler reproduces these distributions.
-2. **Structural assessment** (Section 5): We test whether a network property (e.g., degree distribution) is part of the generative process by comparing observed networks to Null CCMs.
+**Verification of the MCMC sampler**: We sample networks according to known distributions for edges, degrees, and mixing matrices, and verify that the CCM sampler reproduces these distributions.
 
 
 # Section 1: Edge Count Sampler Verification
@@ -223,84 +222,3 @@ plot(fit, stats = c("DM11", "DM12", "DM13", "DM22", "DM23", "DM33", "triangles")
 ```
 
 > **Explanation:** The density plots show sampled degrees (blue) versus theoretical probabilities (red). Close match verifies correct MCMC sampling.
-
-# Section 5: Structural Assessment
-
-Structural assessment tests whether a network property is part of the generative process.
-
-- **Erdős-Rényi (ER) Network:** Only the number of edges is relevant; degree distribution deviations should be minimal.
-- **Barabási–Albert (BA) Network:** Preferential attachment induces heterogeneous degrees; a Null model with edges only cannot capture this.
-
-## Example 5.1: ER Network
-
-```{r structural-er}
-population <- 100
-p_edge <- 0.05
-G_obs <- erdos.renyi.game(n = population, p.or.m = p_edge, type = "gnp", directed = FALSE)
-
-# Number of edges and empirical probability
-num_edges_obs <- gsize(G_obs)
-p_hat <- num_edges_obs / choose(population, 2)
-
-fit <- CCM(
-  null_model = G_obs ~ Edges,
-  alt_model  = ~ DegreeDist,
-  population = population,
-  Prob_Distr = list("NP"),
-  Prob_Distr_Params = list(list(
-    dbinom(0:choose(population,2), size = choose(population,2), prob = p_hat)
-  )),
-  covPattern = rep(0L, population),
-  samplesize = 1000L,
-  burnin = 200000L,
-  interval = 1000L
-)
-
-fit
-```
-
-```{r plot-degrees}
-
-plot(fit, type = "test")
-plot(fit, type = "network")
-
-```
-
-> **Interpretation:** Minimal deviation in degrees indicates that modeling edges alone is sufficient for ER networks.
-
-## Example 4.2: BA Network
-
-```{r structural-ba}
-population <- 100
-m_attach <- 3
-G_obs <- barabasi.game(n = population, m = m_attach, directed = FALSE)
-
-num_edges_obs <- gsize(G_obs)
-p_hat <- num_edges_obs / choose(population, 2)
-
-fit <- CCM(
-  null_model = G_obs ~ Edges,
-  alt_model  = ~ DegreeDist,
-  population = population,
-  Prob_Distr = list("NP"),
-  Prob_Distr_Params = list(list(
-    dbinom(0:choose(population,2), size = choose(population,2), prob = p_hat)
-  )),
-  covPattern = rep(0L, population),
-  samplesize = 1000L,
-  burnin = 200000L,
-  interval = 1000L
-)
-
-fit
-```
-
-
-```{r plot-degrees_BA}
-
-plot(fit, type = "test")
-plot(fit, type = "network")
-
-```
-
-> **Interpretation:** Large deviations in degree distribution reveal that edges-only Null model is insufficient, highlighting preferential attachment as a structural property.

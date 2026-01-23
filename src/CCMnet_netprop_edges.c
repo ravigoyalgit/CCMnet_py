@@ -48,5 +48,21 @@ void calc_probs_edges(int MHp_nedges, int total_max_edges, int *prob_type,
       *pdf_gaussian_nwp = log(meanvalues[(int)networkstatistics[0]]);
       *pdf_gaussian_MHp = log(meanvalues[(int)MHp_nedges]);
     }
+    else if (prob_type[4] == 11) { // Density - Normal
+      
+      nwp_density = nwp_density / (double)total_max_edges;
+      MHp_density = MHp_density / (double)total_max_edges;
+      
+      *pdf_gaussian_nwp = -0.5 * pow((nwp_density - meanvalues[0]), 2.0) / varvalues[0];
+      *pdf_gaussian_MHp = -0.5 * pow((MHp_density - meanvalues[0]), 2.0) / varvalues[0];
+    }
+    else if (prob_type[4] == 12) { // Density - Beta
+      
+      nwp_density = nwp_density / (double)total_max_edges;
+      MHp_density = MHp_density / (double)total_max_edges;
+      
+      *pdf_gaussian_nwp = (meanvalues[0]-1)*log(nwp_density) + (meanvalues[1]-1)*log(1-nwp_density);
+      *pdf_gaussian_MHp = (meanvalues[0]-1)*log(MHp_density) + (meanvalues[1]-1)*log(1-MHp_density);
+    }
   }
 }

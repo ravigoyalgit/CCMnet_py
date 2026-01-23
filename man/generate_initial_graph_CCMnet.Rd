@@ -4,7 +4,7 @@
 \alias{generate_initial_graph_CCMnet}
 \title{Generate Initial Graph for CCMnet Simulation}
 \usage{
-generate_initial_graph_CCMnet(G, max_degree, ER_prob)
+generate_initial_graph_CCMnet(G, max_degree, ER_prob, covPattern)
 }
 \arguments{
 \item{G}{An optional \code{igraph} object. If \code{NULL}, a random graph is generated.}

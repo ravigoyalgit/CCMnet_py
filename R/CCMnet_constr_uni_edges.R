@@ -35,44 +35,66 @@
 #' @export
 
 CCMnet_constr_uni_edges <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                          nedges, g, max_degree,
-                                          population, covPattern, remove_var_last_entry) {
+                                    nedges, g, max_degree,
+                                    population, covPattern, remove_var_last_entry) {
   
   error = 0
-  if (Prob_Distr == "Normal") {
-    prob_type = c(0,0,0,0,1)
-    mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
-    var_vector = c(Prob_Distr_Params[[1]][[2]], Prob_Distr_Params[[1]][[2]])
-    if (length(Prob_Distr_Params[[1]][[1]]) != 1) {
-      print("Error: mean value for network density is one positive value")
+  if (Network_stats == "Edges") {
+    if (Prob_Distr == "Normal") {
+      prob_type = c(0,0,0,0,1)
+      mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
+      var_vector = c(Prob_Distr_Params[[1]][[2]], Prob_Distr_Params[[1]][[2]])
+      if (length(Prob_Distr_Params[[1]][[1]]) != 1) {
+        print("Error: mean value for network density is one positive value")
+        error = 1
+      }
+      if (length(Prob_Distr_Params[[1]][[2]]) != 1) {
+        print("Error: variance for network density is one positive value")
+        error = 1
+      }
+    } else if (Prob_Distr == "LogNormal") {
+      prob_type = c(0,0,0,0,2)
+      mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
+      var_vector = c(0,0)
+    } else if (Prob_Distr == "Poisson") {
+      prob_type = c(0,0,0,0,3)
+      mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
+      var_vector = c(0,0)
+    } else if (Prob_Distr == "Uniform") {
+      prob_type = c(0,0,0,0,4)
+      mean_vector = c(1, 1)
+      var_vector = c(0,0)
+    } else if (Prob_Distr == "NP") {
+      prob_type = c(0,0,0,0,99)
+      mean_vector = Prob_Distr_Params[[1]][[1]]
+      var_vector = c(0,0)
+    } else {
+      print("Error: No such distribution for EDGES currently implemented.")
       error = 1
-    }
-    if (length(Prob_Distr_Params[[1]][[2]]) != 1) {
-      print("Error: variance for network density is one positive value")
-      error = 1
-    }
-  } else if (Prob_Distr == "LogNormal") {
-    prob_type = c(0,0,0,0,2)
-    mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
-    var_vector = c(0,0)
-  } else if (Prob_Distr == "Poisson") {
-    prob_type = c(0,0,0,0,3)
-    mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
-    var_vector = c(0,0)
-  } else if (Prob_Distr == "Uniform") {
-    prob_type = c(0,0,0,0,4)
-    mean_vector = c(1, 1)
-    var_vector = c(0,0)
-  } else if (Prob_Distr == "NP") {
-    prob_type = c(0,0,0,0,99)
-    mean_vector = Prob_Distr_Params[[1]][[1]]
-    var_vector = c(0,0)
-  } else {
-    print("Error: No such distribution for edges currently implemented.")
-    print("Email ravi.goyal@mail.harvard.edu to add feature.")
-    error = 1
+    } 
   }
-
+  if (Network_stats == "Density") {
+    if (Prob_Distr == "Normal") {
+      prob_type = c(0,0,0,0,11)
+      mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
+      var_vector = c(Prob_Distr_Params[[1]][[2]], Prob_Distr_Params[[1]][[2]])
+      if (length(Prob_Distr_Params[[1]][[1]]) != 1) {
+        print("Error: mean value for network density is one positive value")
+        error = 1
+      }
+      if (length(Prob_Distr_Params[[1]][[2]]) != 1) {
+        print("Error: variance for network density is one positive value")
+        error = 1
+      }
+    } else if (Prob_Distr == "Beta") {
+      prob_type = c(0,0,0,0,12)
+      mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[2]])
+      var_vector = c(0,0)
+    } else {
+      print("Error: No such distribution for DENSITY currently implemented.")
+      error = 1
+    } 
+  }
   if (error == 1) {
     CCM_constr_info <- list(
       error = 1,

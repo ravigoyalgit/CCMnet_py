@@ -13,7 +13,9 @@ CCMnet_constr_uni_obs_stats(
   burnin,
   interval,
   statsonly,
-  G,
+  nedges,
+  g,
+  max_degree,
   population,
   covPattern,
   remove_var_last_entry,
@@ -37,8 +39,6 @@ CCMnet_constr_uni_obs_stats(
 
 \item{statsonly}{Logical. If \code{TRUE}, only statistics are returned.}
 
-\item{G}{An \code{igraph} or network object.}
-
 \item{population}{Integer. The number of nodes in the network.}
 
 \item{covPattern}{A vector representing nodal attributes.}
@@ -49,6 +49,8 @@ dependencies in degree distributions during variance inversion.}
 \item{Obs_stats}{A character vector specifying the types of statistics to 
 constrain. Supported values: "Edges", "Mixing", "DegreeDist", 
 "DegMixing", "Triangles". Can be a combination (e.g., \code{c("DegMixing", "Triangles")}).}
+
+\item{G}{An \code{igraph} or network object.}
 }
 \value{
 An updated \code{CCM_constr_info} list with the following updated fields:

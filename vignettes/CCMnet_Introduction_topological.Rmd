@@ -1,5 +1,5 @@
 ---
-title: "CCMnet: Edge, Degree, Mixing, and Structural Assessment"
+title: "CCMnet: Edge, Degree, Degree Mixing, and Triangles"
 author: "Ravi Goyal"
 output:
   rmarkdown::html_vignette

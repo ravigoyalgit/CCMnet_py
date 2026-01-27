@@ -184,7 +184,7 @@ void calc_probs_degdist(int num_deg_stats, Network *nwp, int *prob_type,
       }
     }
 
-    // Poisson-like / Gamma Lfact (Type 3)
+    // Poisson-like? Dirichlet-Multinomial
     else if (prob_type[0] == 3) {
       *pdf_gaussian_nwp = 0; *pdf_gaussian_MHp = 0;
       for (counter = 0; counter < num_deg_stats; counter++) {

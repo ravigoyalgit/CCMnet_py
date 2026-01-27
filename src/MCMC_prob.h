@@ -53,7 +53,7 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
                               double *evolutionrate,
                               double *evolutionvar) {
   
-  int print_info_MH =0;
+  int print_info_MH = 0;
   
   if (print_info_MH == 1) {
     Rprintf("Entered: MH Code \n");
@@ -95,16 +95,16 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
   }
   //END of CODE FROM ERGM Library
   
-  if (print_info_MH == 1) {
-    Rprintf("MH: Before ChangeStats Code \n");
-    Rprintf("nwp info: %d \n", nwp->nnodes);
-    Rprintf("WorkSpace: ");
-    for (int counter_print=0; counter_print < ((m->n_stats)-1); counter_print++){
-      Rprintf(" %f ",m->workspace[counter_print]);
-    }
-    Rprintf("\n");
-    Rprintf("Toggle Info: %d %d %d \n",MHp->ntoggles, *(MHp->toggletail), *(MHp->togglehead));
-  }
+  // if (print_info_MH == 1) {
+  //   Rprintf("MH: Before ChangeStats Code \n");
+  //   Rprintf("nwp info: %d \n", nwp->nnodes);
+  //   Rprintf("WorkSpace: ");
+  //   for (int counter_print=0; counter_print < ((m->n_stats)-1); counter_print++){
+  //     Rprintf(" %f ",m->workspace[counter_print]);
+  //   }
+  //   Rprintf("\n");
+  //   Rprintf("Toggle Info: %d %d %d \n",MHp->ntoggles, *(MHp->toggletail), *(MHp->togglehead));
+  // }
   
   /* Calculate change statistics,
    remembering that tail -> head */
@@ -112,13 +112,18 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
   
   if (print_info_MH == 1) {
     Rprintf("MH: After ChangeStats Code \n");
-    
+    Rprintf("\n");
+    Rprintf("Node ID 1 %d Node ID 2 %d\n",*(MHp->toggletail), *(MHp->togglehead));
+    Rprintf("\n");
     Rprintf("WorkSpace: ");
-    for (int counter_print=0; counter_print < ((m->n_stats)-1); counter_print++){
+    for (int counter_print=0; counter_print < ((m->n_stats)); counter_print++){
       Rprintf(" %f ",m->workspace[counter_print]);
     }
     Rprintf("\n");
-    Rprintf("Node ID 1 %d Node ID 2 %d\n",*(MHp->toggletail), *(MHp->togglehead));
+    Rprintf("Begin - Network Statistic: ");
+    for (unsigned int i = 0; i < m->n_stats; i++){
+      Rprintf(" %f ",networkstatistics[i]);
+    }
     Rprintf("\n");
   }
   
@@ -162,10 +167,10 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
       
       // 2. Get Probabilities
       int MHp_nedges = nwp->nedges + (int)m->workspace[0];
-      calc_f_mixing(nwp, Cov_types, Num_Cov_type, nwp_mix, MHp_mix, &prob_g_g2, &prob_g2_g, MHp_nedges);
+      calc_f_mixing(nwp, Cov_types, Num_Cov_type, nwp_mix, MHp_mix, &prob_g_g2, &prob_g2_g, MHp_nedges, m, MHp, networkstatistics);
       
       // 3. Get Gaussian Math
-      calc_probs_mixing(3, Num_Cov_type, nwp_mix, MHp_mix, meanvalues, varvalues, &pdf_gaussian_nwp, &pdf_gaussian_MHp);
+      calc_probs_mixing(nwp, 3, Cov_types, Num_Cov_type, nwp_mix, MHp_mix, meanvalues, varvalues, &pdf_gaussian_nwp, &pdf_gaussian_MHp, m, MHp, networkstatistics, prob_type);
     }
     ///MIXING MATRIX: END///
     
@@ -959,8 +964,10 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
         }
     }
     /* record network statistics for posterity */
+    //Rprintf("END - Network Statistic: ");
     for (unsigned int i = 0; i < m->n_stats; i++){
       networkstatistics[i] += m->workspace[i];
+      //Rprintf(" %f ",networkstatistics[i]);
     }
     taken++;
   }

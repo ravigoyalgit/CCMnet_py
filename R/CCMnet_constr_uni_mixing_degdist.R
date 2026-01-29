@@ -63,56 +63,124 @@ CCMnet_constr_uni_mixing_degdist <- function(Network_stats, Prob_Distr, Prob_Dis
     print("Error: Current limitation requires mean degree distributions to be of equal length.")
     error = 1
   }
-  if (dim(Prob_Distr_Params[[1]][[2]][[1]])[1] != dim(Prob_Distr_Params[[1]][[2]][[2]])[1]) {
-    print("Error: Current limitation requires covariance matrices to be of equal dimensions.")
-    error = 1
-  }
-  if (dim(Prob_Distr_Params[[1]][[2]][[1]])[1] != dim(Prob_Distr_Params[[1]][[2]][[1]])[2]) {
-    print("Error: Covariance matrix is not square.")
-    error = 1
-  }
-  if (dim(Prob_Distr_Params[[1]][[2]][[2]])[1] != dim(Prob_Distr_Params[[1]][[2]][[2]])[2]) {
-    print("Error: Covariance matrix is not square.")
-    error = 1
-  }
-  if ((Prob_Distr[1] == "Normal") && ((Prob_Distr[2] == "Normal"))) {
+  # if (dim(Prob_Distr_Params[[1]][[2]][[1]])[1] != dim(Prob_Distr_Params[[1]][[2]][[2]])[1]) {
+  #   print("Error: Current limitation requires covariance matrices to be of equal dimensions.")
+  #   error = 1
+  # }
+  # if (dim(Prob_Distr_Params[[1]][[2]][[1]])[1] != dim(Prob_Distr_Params[[1]][[2]][[1]])[2]) {
+  #   print("Error: Covariance matrix is not square.")
+  #   error = 1
+  # }
+  # if (dim(Prob_Distr_Params[[1]][[2]][[2]])[1] != dim(Prob_Distr_Params[[1]][[2]][[2]])[2]) {
+  #   print("Error: Covariance matrix is not square.")
+  #   error = 1
+  # }
+  
+  if ((Prob_Distr[1] == "Poisson") && ((Prob_Distr[2] == "Poisson"))) {
     covariate_list = covPattern
     
     inputs1 = c(rbind(c(0:(length(Prob_Distr_Params[[1]][[1]][[1]])-1)), rep(1,length(Prob_Distr_Params[[1]][[1]][[1]]))))
     inputs2 = c(rbind(c(0:(length(Prob_Distr_Params[[1]][[1]][[2]])-1)), rep(2,length(Prob_Distr_Params[[1]][[1]][[2]]))))
     
     inputs = c(c(0,1,0,0), length(Prob_Distr_Params[[1]][[1]][[1]]) + length(Prob_Distr_Params[[1]][[1]][[2]]),
-               2*(length(Prob_Distr_Params[[1]][[1]][[1]])+length(Prob_Distr_Params[[1]][[1]][[2]])) + g$gal$n, inputs1, inputs2, covariate_list, c(4,2,4 + g$gal$n), c(1,2,2,2), covariate_list)
+               2*(length(Prob_Distr_Params[[1]][[1]][[1]])+length(Prob_Distr_Params[[1]][[1]][[2]])) + population, inputs1, inputs2, covariate_list, c(6,3,6 + population), c(1,2,2,2), covariate_list)
     eta0 = rep(-999.5,length(c(nedges[1], Prob_Distr_Params[[1]][[1]][[1]],Prob_Distr_Params[[1]][[1]][[2]],1,1)))
     
     mixing = c(0,0,0)
-    edge_list = unlist(g$mel)
-    dim(edge_list) = c(3,nedges[1])
+    edge_list <- ends(g, E(g), names = FALSE)
     for (num_edge in c(1:nedges[1])) {
-      if ((covariate_list[edge_list[1,num_edge]] == 1) && (covariate_list[edge_list[2,num_edge]] == 1)) {
+      if ((covariate_list[edge_list[num_edge,1]] == 1) && (covariate_list[edge_list[num_edge,2]] == 1)) {
         mixing[1] = mixing[1] + 1
       }
-      if ((covariate_list[edge_list[1,num_edge]] == 1) && (covariate_list[edge_list[2,num_edge]] == 2)) {
+      if ((covariate_list[edge_list[num_edge,1]] == 1) && (covariate_list[edge_list[num_edge,2]] == 2)) {
         mixing[2] = mixing[2] + 1
       }
-      if ((covariate_list[edge_list[1,num_edge]] == 2) && (covariate_list[edge_list[2,num_edge]] == 1)) {
+      if ((covariate_list[edge_list[num_edge,1]] == 2) && (covariate_list[edge_list[num_edge,2]] == 1)) {
         mixing[2] = mixing[2] + 1
       }
-      if ((covariate_list[edge_list[1,num_edge]] == 2) && (covariate_list[edge_list[2,num_edge]] == 2)) {
+      if ((covariate_list[edge_list[num_edge,1]] == 2) && (covariate_list[edge_list[num_edge,2]] == 2)) {
         mixing[3] = mixing[3] + 1
       }
     }
-    deg_dist_1 = tabulate(degree(g, gmode="graph")[which(covariate_list == 1)]+1)
-    deg_dist_2 = tabulate(degree(g, gmode="graph")[which(covariate_list == 2)]+1)
     
-    deg_dist_1 = c(tabulate(degree(g, gmode="graph")[which(covariate_list == 1)]+1), rep(0,max(0,length(Prob_Distr_Params[[1]][[1]][[1]])-length(deg_dist_1))))
-    deg_dist_2 = c(tabulate(degree(g, gmode="graph")[which(covariate_list == 2)]+1), rep(0,max(0,length(Prob_Distr_Params[[1]][[1]][[2]])-length(deg_dist_2))))
+    deg_dist_1 = tabulate(degree(g)[which(covariate_list == 1)]+1)
+    deg_dist_2 = tabulate(degree(g)[which(covariate_list == 2)]+1)
+    
+    deg_dist_1 = c(tabulate(degree(g)[which(covariate_list == 1)]+1), rep(0,max(0,length(Prob_Distr_Params[[1]][[1]][[1]])-length(deg_dist_1))))
+    deg_dist_2 = c(tabulate(degree(g)[which(covariate_list == 2)]+1), rep(0,max(0,length(Prob_Distr_Params[[1]][[1]][[2]])-length(deg_dist_2))))
     
     #Assume max degree of both node types is the same
     deg_dist_1 = c(deg_dist_1, rep(0,max(0,length(deg_dist_2)-length(deg_dist_1))))
     deg_dist_2 = c(deg_dist_2, rep(0,max(0,length(deg_dist_1)-length(deg_dist_2))))
     
     stats = c(nedges[1], deg_dist_1, deg_dist_2, mixing[c(2,3)])
+    
+    mean_vector = c(Prob_Distr_Params[[1]][[1]][[1]], Prob_Distr_Params[[1]][[1]][[2]],  Prob_Distr_Params[[2]][[1]])
+    
+    var_vector = c(c(0,0),c(0,0), 0,0)
+    
+    prob_type = c(1,1,0,0,1)
+    
+  } else if ((Prob_Distr[1] == "Normal") && ((Prob_Distr[2] == "Normal"))) {
+    covariate_list = covPattern
+    
+    # 1. Degree Metadata (16 values)
+    inputs_degree_meta = c(rbind(0:3, rep(1, 4)), rbind(0:3, rep(2, 4)))
+    
+    # 2. Mixing Metadata (6 values)
+    inputs_mixing_meta = c(1, 1, 2, 1, 2, 2)
+    
+    # 3. Build the vector
+    inputs = c(
+      # Model Header
+      c(0, 1, 0, 0), 
+      
+      # Term 1: Degree (8 stats, 116 total params)
+      c(8, 116), 
+      inputs_degree_meta, 
+      covariate_list, # 100 attributes
+      
+      # Term 2: Nodemix (3 stats, 106 total params)
+      c(6, 3, 106), 
+      inputs_mixing_meta, 
+      covariate_list # 100 attributes
+    )
+    
+    inputs1 = c(rbind(c(0:(length(Prob_Distr_Params[[1]][[1]][[1]])-1)), rep(1,length(Prob_Distr_Params[[1]][[1]][[1]]))))
+    inputs2 = c(rbind(c(0:(length(Prob_Distr_Params[[1]][[1]][[2]])-1)), rep(2,length(Prob_Distr_Params[[1]][[1]][[2]]))))
+    
+    inputs = c(c(0,1,0,0), length(Prob_Distr_Params[[1]][[1]][[1]]) + length(Prob_Distr_Params[[1]][[1]][[2]]),
+               2*(length(Prob_Distr_Params[[1]][[1]][[1]])+length(Prob_Distr_Params[[1]][[1]][[2]])) + population, inputs1, inputs2, covariate_list, c(6,3,6 + population), c(1, 1, 2, 1, 2, 2), covariate_list)
+    eta0 = rep(-999.5,length(c(nedges[1], Prob_Distr_Params[[1]][[1]][[1]],Prob_Distr_Params[[1]][[1]][[2]],1,1,1)))
+    
+    mixing = c(0,0,0)
+    edge_list <- ends(g, E(g), names = FALSE)
+    for (num_edge in c(1:nedges[1])) {
+      if ((covariate_list[edge_list[num_edge,1]] == 1) && (covariate_list[edge_list[num_edge,2]] == 1)) {
+        mixing[1] = mixing[1] + 1
+      }
+      if ((covariate_list[edge_list[num_edge,1]] == 1) && (covariate_list[edge_list[num_edge,2]] == 2)) {
+        mixing[2] = mixing[2] + 1
+      }
+      if ((covariate_list[edge_list[num_edge,1]] == 2) && (covariate_list[edge_list[num_edge,2]] == 1)) {
+        mixing[2] = mixing[2] + 1
+      }
+      if ((covariate_list[edge_list[num_edge,1]] == 2) && (covariate_list[edge_list[num_edge,2]] == 2)) {
+        mixing[3] = mixing[3] + 1
+      }
+    }
+    
+    deg_dist_1 = tabulate(degree(g)[which(covariate_list == 1)]+1)
+    deg_dist_2 = tabulate(degree(g)[which(covariate_list == 2)]+1)
+    
+    deg_dist_1 = c(tabulate(degree(g)[which(covariate_list == 1)]+1), rep(0,max(0,length(Prob_Distr_Params[[1]][[1]][[1]])-length(deg_dist_1))))
+    deg_dist_2 = c(tabulate(degree(g)[which(covariate_list == 2)]+1), rep(0,max(0,length(Prob_Distr_Params[[1]][[1]][[2]])-length(deg_dist_2))))
+    
+    #Assume max degree of both node types is the same
+    deg_dist_1 = c(deg_dist_1, rep(0,max(0,length(deg_dist_2)-length(deg_dist_1))))
+    deg_dist_2 = c(deg_dist_2, rep(0,max(0,length(deg_dist_1)-length(deg_dist_2))))
+    
+    stats = c(nedges[1], deg_dist_1, deg_dist_2, mixing[c(1,2,3)])
     
     mean_vector = c(Prob_Distr_Params[[1]][[1]][[1]], Prob_Distr_Params[[1]][[1]][[2]],  Prob_Distr_Params[[2]][[1]])
     
@@ -151,7 +219,7 @@ CCMnet_constr_uni_mixing_degdist <- function(Network_stats, Prob_Distr, Prob_Dis
     inputs2 = c(rbind(c(0:(length(Prob_Distr_Params[[1]][[1]][[2]])-1)), rep(2,length(Prob_Distr_Params[[1]][[1]][[2]]))))
     
     inputs = c(c(0,1,0,0), length(Prob_Distr_Params[[1]][[1]][[1]]) + length(Prob_Distr_Params[[1]][[1]][[2]]),
-               2*(length(Prob_Distr_Params[[1]][[1]][[1]])+length(Prob_Distr_Params[[1]][[1]][[2]])) + g$gal$n, inputs1, inputs2, covariate_list, c(4,2,4 + g$gal$n), c(1,2,2,2), covariate_list)
+               2*(length(Prob_Distr_Params[[1]][[1]][[1]])+length(Prob_Distr_Params[[1]][[1]][[2]])) + population, inputs1, inputs2, covariate_list, c(4,2,4 + population), c(1,2,2,2), covariate_list)
     eta0 = rep(-999.5,length(c(nedges[1], Prob_Distr_Params[[1]][[1]][[1]],Prob_Distr_Params[[1]][[1]][[2]],1,1)))
     
     mixing = c(0,0,0)

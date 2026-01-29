@@ -1543,7 +1543,15 @@ D_CHANGESTAT_FN(d_degree_by_attr) {
     taildeg = od[tail] + id[tail];
     headdeg = od[head] + id[head];
     tailattr = INPUT_PARAM[2*N_CHANGE_STATS + tail - 1]; 
-    headattr = INPUT_PARAM[2*N_CHANGE_STATS + head - 1]; 
+    headattr = INPUT_PARAM[2*N_CHANGE_STATS + head - 1];
+    
+    // Debug
+    //printf("DEBUG: Nodes %d,%d | Degs: %d,%d | Attrs: %d,%d | Indices: %d,%d | echange: %d\n", 
+    //       (int)tail, (int)head, (int)taildeg, (int)headdeg, 
+    //       (int)tailattr, (int)headattr, 
+    //       2*N_CHANGE_STATS + (int)tail - 1, 2*N_CHANGE_STATS + (int)head - 1,
+    //       echange);
+    
     for(j = 0; j < N_CHANGE_STATS; j++) {
       d = (Vertex)INPUT_PARAM[2*j];
       testattr = INPUT_PARAM[2*j + 1]; 

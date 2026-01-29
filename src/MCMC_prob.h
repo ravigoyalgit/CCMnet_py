@@ -211,7 +211,8 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
     /// Two Degree Distributions and Mixing: BEGIN ///
     if ((prob_type[0] >= 1) && (prob_type[1] >= 1) && (prob_type[2] == 0) && (prob_type[3] == 0) && (prob_type[4] >= 1)){
       
-      int num_deg_stats = m->n_stats-1-(*NetworkForecast) - 2; //The four is for number of mixing - only coded for two node types
+      //int num_deg_stats = m->n_stats-1-(*NetworkForecast) - 3; //The four is for number of mixing - only coded for two node types
+      int num_deg_stats = m->n_stats-1 - 3; //The four is for number of mixing - only coded for two node types
       int length_deg_dist = num_deg_stats / 2; //Currently both degree distributions have to be the same size
       int Deg_nwp[2];
       int Deg_MHp[2];
@@ -268,13 +269,24 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
         Cov_types[0] = (int)round(mtp2->inputparams[mtp2->ninputparams - nwp->nnodes + *(MHp->toggletail) - 1]); //Minus 1 since node ids are from 1 to nnodes
         Cov_types[1] = (int)round(mtp2->inputparams[mtp2->ninputparams - nwp->nnodes + *(MHp->togglehead) - 1]);
         
-        nwp_mixing_matrix[0] = nwp->nedges - networkstatistics[2*length_deg_dist + 1] - networkstatistics[2*length_deg_dist + 2];
-        nwp_mixing_matrix[1] = networkstatistics[2*length_deg_dist + 1];
-        nwp_mixing_matrix[2] = networkstatistics[2*length_deg_dist + 2];
+        //nwp_mixing_matrix[0] = nwp->nedges - networkstatistics[2*length_deg_dist + 1] - networkstatistics[2*length_deg_dist + 2];
+        //nwp_mixing_matrix[1] = networkstatistics[2*length_deg_dist + 1];
+        //nwp_mixing_matrix[2] = networkstatistics[2*length_deg_dist + 2];
         
-        MHp_mixing_matrix[0] = MHp_nedges - networkstatistics[2*length_deg_dist + 1] - networkstatistics[2*length_deg_dist + 2] - m->workspace[2*length_deg_dist + 1] - m->workspace[2*length_deg_dist + 2];
-        MHp_mixing_matrix[1] = networkstatistics[2*length_deg_dist + 1] + m->workspace[2*length_deg_dist + 1];
-        MHp_mixing_matrix[2] = networkstatistics[2*length_deg_dist + 2] + m->workspace[2*length_deg_dist + 2];
+        nwp_mixing_matrix[0] = networkstatistics[2*length_deg_dist + 1];
+        nwp_mixing_matrix[1] = networkstatistics[2*length_deg_dist + 2];
+        nwp_mixing_matrix[2] = networkstatistics[2*length_deg_dist + 3];
+        
+        //MHp_mixing_matrix[0] = MHp_nedges - networkstatistics[2*length_deg_dist + 1] - networkstatistics[2*length_deg_dist + 2] - m->workspace[2*length_deg_dist + 1] - m->workspace[2*length_deg_dist + 2];
+        //MHp_mixing_matrix[1] = networkstatistics[2*length_deg_dist + 1] + m->workspace[2*length_deg_dist + 1];
+        //MHp_mixing_matrix[2] = networkstatistics[2*length_deg_dist + 2] + m->workspace[2*length_deg_dist + 2];
+        
+        MHp_mixing_matrix[0] = networkstatistics[2*length_deg_dist + 1] + m->workspace[2*length_deg_dist + 1];
+        MHp_mixing_matrix[1] = networkstatistics[2*length_deg_dist + 2] + m->workspace[2*length_deg_dist + 2];
+        MHp_mixing_matrix[2] = networkstatistics[2*length_deg_dist + 3] + m->workspace[2*length_deg_dist + 3];
+        
+        //Rprintf("nwp_mixing_matrix %f %f %f\n", nwp_mixing_matrix[0], nwp_mixing_matrix[1], nwp_mixing_matrix[2]);
+        //Rprintf("MHp_mixing_matrix %f %f %f\n", MHp_mixing_matrix[0], MHp_mixing_matrix[1], MHp_mixing_matrix[2]);
         
         if ((Cov_types[0] == 1) && (Cov_types[1] == 1)) {
           nwp_prob_mixing[0] = (float)(2*nwp_mixing_matrix[0]) / (float)(2*nwp_mixing_matrix[0] + nwp_mixing_matrix[1]);
@@ -325,6 +337,10 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
           }
         }
         
+        //Rprintf("nwp_Deg_Distr_1 %d %d %d %d\n", nwp_Deg_Distr_1[0], nwp_Deg_Distr_1[1], nwp_Deg_Distr_1[2], nwp_Deg_Distr_1[3]);
+        //Rprintf("nwp_Deg_Distr_2 %d %d %d %d\n", nwp_Deg_Distr_2[0], nwp_Deg_Distr_2[1], nwp_Deg_Distr_2[2], nwp_Deg_Distr_2[3]);
+        //Rprintf("MHp_Deg_Distr_1 %d %d %d %d\n", MHp_Deg_Distr_1[0], MHp_Deg_Distr_1[1], MHp_Deg_Distr_1[2], MHp_Deg_Distr_1[3]);
+        //Rprintf("MHp_Deg_Distr_2 %d %d %d %d\n", MHp_Deg_Distr_2[0], MHp_Deg_Distr_2[1], MHp_Deg_Distr_2[2], MHp_Deg_Distr_2[3]);        
         
         /* Now we have the margins for the the expected degree mixing matix*/
         
@@ -969,6 +985,7 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
       networkstatistics[i] += m->workspace[i];
       //Rprintf(" %f ",networkstatistics[i]);
     }
+    //Rprintf("\n");
     taken++;
   }
   }

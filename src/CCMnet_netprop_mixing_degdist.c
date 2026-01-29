@@ -36,13 +36,20 @@ void calc_probs_mixing_degdist(int length_deg_dist, Model *m, Network *nwp,
     double nwp_int_1[length_deg_dist], MHp_int_1[length_deg_dist];
     double nwp_int_2[length_deg_dist], MHp_int_2[length_deg_dist];
 
-    for (counter = 0; counter < length_deg_dist; counter++) {
-      nwp_mu_diff_1[counter] = (double)nwp_Deg_Distr_1[counter] / nnodes_type1 - meanvalues[counter];
-      MHp_mu_diff_1[counter] = (double)MHp_Deg_Distr_1[counter] / nnodes_type1 - meanvalues[counter];
-      nwp_mu_diff_2[counter] = (double)nwp_Deg_Distr_2[counter] / nnodes_type2 - meanvalues[counter + length_deg_dist];
-      MHp_mu_diff_2[counter] = (double)MHp_Deg_Distr_2[counter] / nnodes_type2 - meanvalues[counter + length_deg_dist];
-    }
+    // for (counter = 0; counter < length_deg_dist; counter++) {
+    //   nwp_mu_diff_1[counter] = (double)nwp_Deg_Distr_1[counter] / nnodes_type1 - meanvalues[counter];
+    //   MHp_mu_diff_1[counter] = (double)MHp_Deg_Distr_1[counter] / nnodes_type1 - meanvalues[counter];
+    //   nwp_mu_diff_2[counter] = (double)nwp_Deg_Distr_2[counter] / nnodes_type2 - meanvalues[counter + length_deg_dist];
+    //   MHp_mu_diff_2[counter] = (double)MHp_Deg_Distr_2[counter] / nnodes_type2 - meanvalues[counter + length_deg_dist];
+    // }
 
+    for (counter = 0; counter < length_deg_dist; counter++) {
+      nwp_mu_diff_1[counter] = (double)nwp_Deg_Distr_1[counter]  - meanvalues[counter];
+      MHp_mu_diff_1[counter] = (double)MHp_Deg_Distr_1[counter]  - meanvalues[counter];
+      nwp_mu_diff_2[counter] = (double)nwp_Deg_Distr_2[counter]  - meanvalues[counter + length_deg_dist];
+      MHp_mu_diff_2[counter] = (double)MHp_Deg_Distr_2[counter]  - meanvalues[counter + length_deg_dist];
+    }
+    
     counter2 = -1;
     int size_sq = length_deg_dist * length_deg_dist;
     for (counter = 0; counter < size_sq; counter++) {
@@ -66,9 +73,14 @@ void calc_probs_mixing_degdist(int length_deg_dist, Model *m, Network *nwp,
       MHp_q2 += MHp_int_2[counter] * MHp_mu_diff_2[counter];
     }
 
-    double nwp_q3 = pow(((nwp_mixing_matrix[1] / nwp->nedges) - meanvalues[2 * length_deg_dist]), 2.0) / varvalues[2 * size_sq];
-    double MHp_q3 = pow(((MHp_mixing_matrix[1] / MHp_nedges) - meanvalues[2 * length_deg_dist]), 2.0) / varvalues[2 * size_sq];
+    // double nwp_q3 = pow(((nwp_mixing_matrix[1] / nwp->nedges) - meanvalues[2 * length_deg_dist]), 2.0) / varvalues[2 * size_sq];
+    // double MHp_q3 = pow(((MHp_mixing_matrix[1] / MHp_nedges) - meanvalues[2 * length_deg_dist]), 2.0) / varvalues[2 * size_sq];
 
+    double nwp_q3 = pow(((nwp_mixing_matrix[1] ) - meanvalues[2 * length_deg_dist]), 2.0) / varvalues[2 * size_sq];
+    double MHp_q3 = pow(((MHp_mixing_matrix[1] ) - meanvalues[2 * length_deg_dist]), 2.0) / varvalues[2 * size_sq];
+    
+    //Rprintf("Mixing value, mean, and variance: %f %f %f\n",MHp_mixing_matrix[1], meanvalues[2 * length_deg_dist], varvalues[2 * size_sq]);
+    
     if (prob_type[0] == 1) { // Gaussian
       *pdf_gaussian_nwp = (-0.5 * nwp_q1) + (-0.5 * nwp_q2) + (-0.5 * nwp_q3);
       *pdf_gaussian_MHp = (-0.5 * MHp_q1) + (-0.5 * MHp_q2) + (-0.5 * MHp_q3);

@@ -86,8 +86,10 @@ CCM_fit <- function(
   # Extract MCMC statistics
   stats <- as.data.frame(out[[2]])
   
+  Network_stats_comb = paste(Network_stats, collapse = "_")
+  
   # Assign column names dynamically
-  colnames(stats) <- unlist(lapply(c(Network_stats,Obs_stats), function(s) {
+  colnames(stats) <- unlist(lapply(c(Network_stats_comb,Obs_stats), function(s) {
     s <- tolower(s)
     
     if (is.null(Obs_stats)) Obs_stats <- ""
@@ -151,6 +153,25 @@ CCM_fit <- function(
     
     if (s == "triangles") {
       return(c("triangles")) 
+    }
+    
+    if (s == "degmixing_triangles") {
+      m <- (-1 + sqrt(1 + 8*ncol(stats)))/2
+      degmix_names <- c()
+      for (i in (seq_len(m))) {
+        for (j in 1:(i)) {
+          degmix_names <- c(degmix_names, paste0("DM", j, i))
+        }
+      }
+      return(c(degmix_names, "triangles"))
+    }
+    
+    if (s == "degreedist_mixing") {
+      len_deg = (ncol(stats) - 3) / 2
+      cov0_names = paste(paste0("deg", 0:(len_deg-1)), "_1", sep = "")
+      cov1_names = paste(paste0("deg", 0:(len_deg-1)), "_2", sep = "")
+      mix_names = c("M11", "M21", "M22")
+      return(c(cov0_names, cov1_names, mix_names))
     }
     
     if (s == "degmix_clustering") {

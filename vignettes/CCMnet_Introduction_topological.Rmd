@@ -146,6 +146,12 @@ fit <- CCM_fit(Network_stats='DegreeDist',
 fit$mcmc_stats %>% apply(2, mean)
 
 fit <- CCM_theoretical_check(fit, n_sim = 100)
+
+    len_deg = length(fit$Prob_Distr_Params[[1]][[1]][[1]])
+    cov0_names = paste(paste0("deg", 0:(len_deg-1)), "_1", sep = "")
+    cov1_names = paste(paste0("deg", 0:(len_deg-1)), "_2", sep = "")
+    mix_names = c("M21")
+    
 plot(fit, stats = paste0("deg", 0:3), type = "density", include_theoretical = TRUE)
 ```
 

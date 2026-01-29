@@ -31,7 +31,7 @@ CCM_theoretical_check <- function(
     n_sim = nrow(fit$mcmc_stats)
 ) {
   stat <- fit$Network_stats
-  
+
   #---------------------------
   # Network Property: Edge
   #---------------------------
@@ -71,6 +71,11 @@ CCM_theoretical_check <- function(
   
   if ((length(stat) == 1 && stat == "degmix_clustering") || (length(stat) == 2 && stat[1] == "DegMixing" && stat[2] == "Triangles")) {
     return(CCM_theoretical_check_degmixclustering(fit,
+                                                  n_sim))
+  }
+  
+  if ((length(stat) == 2 && stat[1] == "DegreeDist" && stat[2] == "Mixing")) {
+    return(CCM_theoretical_check_degree_mixing(fit,
                                                   n_sim))
   }
   

@@ -64,6 +64,10 @@ fit <- CCM_theoretical_check(fit, n_sim = nrow(fit$mcmc_stats))
 
 # Plot density with theoretical distribution
 plot(fit, stats = "edges", type = "density", include_theoretical = TRUE)
+
+#TEMP
+p <- plot(fit, stats = "edges", type = "density", include_theoretical = TRUE)
+ggsave("/Users/ravigoyal/Dropbox/Academic/Research/Projects/CCMnet_package_manuscript/Figures/edges_pois.pdf", plot = p, width = 7, height = 7, units = "cm")
 ```
 
 > **Explanation:** The density plot shows the CCM MCMC samples (blue) and the theoretical Poisson distribution (red). Close overlap verifies correct sampling.
@@ -86,14 +90,15 @@ fit <- CCM_fit(
   interval = 1000L,
 )
 
-#Diagnostics
-CCM_traceplot(fit, stats = "edges")
-
 # Compare MCMC samples to theoretical Poisson distribution
 fit <- CCM_theoretical_check(fit, n_sim = nrow(fit$mcmc_stats))
 
 # Plot density with theoretical distribution
 plot(fit, stats = "edges", type = "density", include_theoretical = TRUE)
+
+#TEMP
+p <- plot(fit, stats = "edges", type = "density", include_theoretical = TRUE)
+ggsave("/Users/ravigoyal/Dropbox/Academic/Research/Projects/CCMnet_package_manuscript/Figures/edges_unif.pdf", plot = p, width = 7, height = 7, units = "cm")
 ```
 
 > **Explanation:** The density plot verifies that CCM samples uniformly reproduce all possible edge counts.
@@ -115,6 +120,8 @@ fit <- CCM_fit(
   Prob_Distr_Params = list(list(Prob_Distr_Params)),
   population = population,
   covPattern = covPattern,
+  samplesize = 50000L,
+  burnin = 200000L,
   remove_var_last_entry = FALSE
 )
 
@@ -123,6 +130,10 @@ fit <- CCM_theoretical_check(fit, n_sim = nrow(fit$mcmc_stats))
 
 # Plot density with theoretical distribution
 plot(fit, stats = "edges", type = "density", include_theoretical = TRUE)
+
+#TEMP
+p <- plot(fit, stats = "edges", type = "density", include_theoretical = TRUE)
+ggsave("/Users/ravigoyal/Dropbox/Academic/Research/Projects/CCMnet_package_manuscript/Figures/edges_np.pdf", plot = p, width = 7, height = 7, units = "cm")
 ```
 
 # Section 2: Degree Distribution Sampler Verification
@@ -143,8 +154,6 @@ fit <- CCM_fit(Network_stats='DegreeDist',
                interval=1000,
                remove_var_last_entry = FALSE) 
 
-fit$mcmc_stats %>% apply(2, mean)
-
 fit <- CCM_theoretical_check(fit, n_sim = 100)
 
     len_deg = length(fit$Prob_Distr_Params[[1]][[1]][[1]])
@@ -153,6 +162,9 @@ fit <- CCM_theoretical_check(fit, n_sim = 100)
     mix_names = c("M21")
     
 plot(fit, stats = paste0("deg", 0:3), type = "density", include_theoretical = TRUE)
+#TEMP
+p <- plot(fit, stats = paste0("deg", 0:3), type = "density", include_theoretical = TRUE)
+ggsave("/Users/ravigoyal/Dropbox/Academic/Research/Projects/CCMnet_package_manuscript/Figures/degreedist_dirmult.pdf", plot = p)
 ```
 
 > **Explanation:** The density plot verifies that CCM samples reproduce the correct degre distribution.
@@ -218,13 +230,17 @@ fit = CCM_fit(Network_stats=c('DegMixing', 'Triangles'),
                               covPattern = covPattern,
                               remove_var_last_entry = FALSE) 
 
-fit$mcmc_stats %>% apply(2, mean)
-fit$mcmc_stats %>% apply(2, var)
-
 CCM_traceplot(fit, stats = "triangles")
 
 fit <- CCM_theoretical_check(fit, n_sim = 100)
 plot(fit, stats = c("DM11", "DM12", "DM13", "DM22", "DM23", "DM33", "triangles"), type = "density", include_theoretical = TRUE)
+
+#TEMP
+p <- plot(fit, stats = c("DM11", "DM12", "DM13", "DM22", "DM23", "DM33", "triangles"), type = "density", include_theoretical = TRUE)
+ggsave("/Users/ravigoyal/Dropbox/Academic/Research/Projects/CCMnet_package_manuscript/Figures/degmix_triangles_normal.pdf", plot = p)
+
+p <- CCM_traceplot(fit, stats = "triangles")
+ggsave("/Users/ravigoyal/Dropbox/Academic/Research/Projects/CCMnet_package_manuscript/Figures/degmix_triangles_normal_traceplot.pdf", plot = p)
 ```
 
 > **Explanation:** The density plots show sampled degrees (blue) versus theoretical probabilities (red). Close match verifies correct MCMC sampling.

@@ -85,6 +85,23 @@ var_mat = diag(rep(2,4))
 Prob_Distr_Params=list(list(list(c(5,10,25,10), c(10,5,20,15)), list(var_mat, var_mat)), 
                        list(c(30), c(2)))
 
+population <- 100
+covPattern <- c(rep(1L, population/2), rep(2L, population/2))
+
+Network_stats = c("DegreeDist", "Mixing")
+Prob_Distr = c("Normal", "Normal")
+Prob_Distr_Params=Prob_Distr_Params
+population = population
+covPattern = covPattern
+remove_var_last_entry = FALSE
+
+samplesize = 1000L
+burnin = 1000L
+interval = 1000L
+statsonly = TRUE
+G = NULL
+Obs_stats = NULL
+
 ccm_sample<- sample_ccm(
   network_stats = c("DegreeDist", "Mixing"),
   prob_distr =  c("Normal", "Normal"), 

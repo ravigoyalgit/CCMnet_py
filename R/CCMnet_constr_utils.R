@@ -25,11 +25,11 @@
 #' @importFrom igraph sample_gnp V degree
 #' @export
 
-generate_initial_graph_CCMnet <- function(G, max_degree, ER_prob, covPattern) {
+generate_initial_graph_CCMnet <- function(G, max_degree, ER_prob, covPattern, population) {
   Gen_Net_counter = 1
   G_max_degree_bool = FALSE
   if (is.null(G)) {
-    print("Generating Random Initial Network...")
+    cat("Generating random initial network...")
     while (!G_max_degree_bool) {
       g <- sample_gnp(n = population, p = ER_prob, directed = FALSE)
       V(g)$CovAttribute <- covPattern
@@ -37,7 +37,7 @@ generate_initial_graph_CCMnet <- function(G, max_degree, ER_prob, covPattern) {
       G_max_degree_bool = max(degree(g)) <= max_degree
       Gen_Net_counter =   Gen_Net_counter + 1
     }
-    print("COMPLETED: Generated Random Initial Network")
+    cat("Check\n")
     P = g
   } else {
     g = G

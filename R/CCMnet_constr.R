@@ -64,11 +64,18 @@ CCMnet_constr <- function(Network_stats,
                           remove_var_last_entry = FALSE) {
 
   if (length(population) == 1) {
-    return(uni_modal_constr(Network_stats, Prob_Distr, Prob_Distr_Params,
-                            samplesize, burnin, interval,
-                            statsonly, G,
-                            population, covPattern, remove_var_last_entry,
-                            Obs_stats)
+    return(uni_modal_constr(Network_stats = Network_stats, 
+                            Prob_Distr = Prob_Distr, 
+                            Prob_Distr_Params = Prob_Distr_Params,
+                            samplesize = samplesize, 
+                            burnin = burnin, 
+                            interval = interval,
+                            statsonly = statsonly, 
+                            G = G,
+                            population = population, 
+                            covPattern = covPattern, 
+                            remove_var_last_entry = remove_var_last_entry,
+                            Obs_stats = Obs_stats)
            )
   } else if (length(population) == 2) {
     return(bi_modal_constr(Network_stats, Prob_Distr, Prob_Distr_Params,

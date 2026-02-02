@@ -3,7 +3,7 @@
 #' function interfaces with the C-level \code{MCMC_wrapper}.
 #'
 #' @param Network_stats Character vector. Supported values include "DegreeDist", 
-#'   "Edges", "Mixing", "DegMixing", and "Triangles".
+#'   "edges", "Mixing", "DegMixing", and "Triangles".
 #' @param Prob_Distr Character string. The distribution type (e.g., "Normal", "NegBin", "DirMult", "NP", "Tdist").
 #' @param Prob_Distr_Params List. Distribution parameters (means, covariances, etc.).
 #' @param samplesize Integer. Number of network samples to collect.
@@ -31,18 +31,26 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                              population, covPattern, remove_var_last_entry,
                              Obs_stats) {
   
-  error = 0
+  #Verify the inputs for Network_stats, Prob_Distr, and Prob_Distr_Params
+  CCM_constr_info = CCMnet_constr_uni_verifyinput(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                  population, covPattern, remove_var_last_entry)
   
-  if(is.null(covPattern)) {
-    covPattern = rep(1,population)
+  error = CCM_constr_info[["error"]]
+  
+  if (error == 1) {
+    return(list(NULL, NULL))
+  }
+  
+  if(is_empty(covPattern)) {
+    covPattern = rep(0L,population)
   }
   ER_prob = .05
   
   if ((length(Network_stats) == 1) && (Network_stats == "DegreeDist")){
     max_degree_f = max_degree = length(Prob_Distr_Params[[1]][[1]])-1
-  } else if  ((length(Network_stats) == 1) && (Network_stats == "Edges" || Network_stats == "Density")) {
+  } else if  ((length(Network_stats) == 1) && (Network_stats == "edges" || Network_stats == "Density")) {
     max_degree_f = max_degree = population - 1
-    if (Prob_Distr == "NP") {
+    if (Prob_Distr == "np") {
       ER_prob = (max(which(Prob_Distr_Params[[1]][[1]] > 0))-1)/choose(population,2) * .8
     }
   } else if ((length(Network_stats) == 2) && (Network_stats[1] == "DegreeDist") && (Network_stats[2] == "Mixing")) {
@@ -67,7 +75,7 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   
   max_degree = max_degree_f
   
-  generate_graphs = generate_initial_graph_CCMnet(G, max_degree, ER_prob, covPattern)
+  generate_graphs = generate_initial_graph_CCMnet(G, max_degree, ER_prob, covPattern, population)
   P = generate_graphs[[1]]
   g = generate_graphs[[2]]
   
@@ -92,61 +100,11 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   # network.size(g) (number of vertices) becomes vcount(g)
   Clist_n <- vcount(g)
   
-  if ((length(Network_stats) == 1) && (Network_stats == "Edges" || Network_stats == "Density")) {
-    
-    CCM_constr_info = CCMnet_constr_uni_edges(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                              nedges, g, max_degree,
-                                              population, covPattern, remove_var_last_entry)
-    
-  } else if ((length(Network_stats) == 1) && (Network_stats == "Mixing")) {
-    
-    CCM_constr_info = CCMnet_constr_uni_mixing(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                               nedges, g, max_degree,
-                                               population, covPattern, remove_var_last_entry)
-    
-  } else if ((length(Network_stats) == 1) && (Network_stats == "DegreeDist")) {
-    
-    CCM_constr_info = CCMnet_constr_uni_degdist(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                                nedges, g, max_degree,
-                                                population, covPattern, remove_var_last_entry)
-    
-  } else if (((length(Network_stats) == 2) && (Network_stats[1] == "Mixing") && (Network_stats[2] == "DegreeDist")) ||
-             ((length(Network_stats) == 2) && (Network_stats[1] == "DegreeDist") && (Network_stats[2] == "Mixing"))) {
-    
-    CCM_constr_info = CCMnet_constr_uni_mixing_degdist(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                                       nedges, g, max_degree,
-                                                       population, covPattern, remove_var_last_entry)
-    
-  } else if ((length(Network_stats) == 1) && (Network_stats == "DegMixing"))  {
-    
-    CCM_constr_info = CCMnet_constr_uni_degmixing(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                                  nedges, g, max_degree,
-                                                  population, covPattern, remove_var_last_entry)
-    
-  } else if  (((length(Network_stats) == 2) && (Network_stats[1] == c("DegMixing")) && (Network_stats[2] == c("Triangles"))) ||
-              ((length(Network_stats) == 2) && (Network_stats[1] == "Triangles") && (Network_stats[2] == "DegMixingg"))) {
-    
-    CCM_constr_info = CCMnet_constr_uni_degmixing_clustering(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                                             nedges, g, max_degree,
-                                                             population, covPattern, remove_var_last_entry)
-    
-  } else {
-    print("Error: No such NETWORK PROPERTY currently implemented.")
-    CCM_constr_info <- list(
-      error = 1,
-      prob_type = NULL,
-      mean_vector = NULL,
-      var_vector = NULL,
-      Clist_nterms = NULL,
-      Clist_fnamestring = NULL,
-      Clist_snamestring = NULL,
-      inputs =  NULL,
-      eta0 = NULL,
-      stats = NULL,
-      MHproposal_name = NULL,
-      MHproposal_package = NULL
-    )
-  }
+  #Calculate the initial network statistics for g
+  CCM_constr_info = CCMnet_constr_uni_initalstat(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                 nedges, g, max_degree,
+                                                 population, covPattern, remove_var_last_entry,
+                                                 CCM_constr_info)
   
   if (!(is.null(Obs_stats))) {
     CCM_constr_info = CCMnet_constr_uni_obs_stats(CCM_constr_info, Network_stats, Prob_Distr, Prob_Distr_Params,
@@ -286,7 +244,7 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
     } else {
       if ((length(Network_stats) == 1) && (Network_stats == "DegreeDist")){
         statsmatrix = statsmatrix[,-1]
-      } else if  ((length(Network_stats) == 1) && (Network_stats == "Edges")) {
+      } else if  ((length(Network_stats) == 1) && (Network_stats == "edges")) {
         statsmatrix = statsmatrix[,1]
       } else if ((length(Network_stats) == 1)  && (Network_stats == "Density")) {
         statsmatrix = statsmatrix[,1] / choose(population, 2)

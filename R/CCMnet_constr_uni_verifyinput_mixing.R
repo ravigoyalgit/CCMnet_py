@@ -1,6 +1,6 @@
 #' Verify input
 #'
-#' @keywords internal
+#' @noRd
 
 CCMnet_constr_uni_verifyinput_mixing <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                            population, covPattern, remove_var_last_entry) {

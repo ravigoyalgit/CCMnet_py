@@ -649,7 +649,7 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
           //Step 4b: begin - ADD identical degrees
           numerator = 1;
           
-          if ((Deg_nwp[0] == Deg_nwp[1])) {
+          if (Deg_nwp[0] == Deg_nwp[1]) {
             denominator = calcCNR( (deg_dist_nwp[Deg_nwp[0]] * Deg_nwp[0] -1 ), (Deg_nwp[0] + Deg_nwp[1] - 2));
             for (counter=0; counter < (num_deg_stats-1); counter++) {
               if (counter == (Deg_nwp[0]-1)) {
@@ -782,7 +782,7 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
           
           numerator = 1;
           
-          if ((Deg_MHp[0] == Deg_MHp[1])) {
+          if (Deg_MHp[0] == Deg_MHp[1]) {
             denominator = calcCNR( (deg_dist_MHp[Deg_MHp[0]] * Deg_MHp[0] -1 ), (Deg_MHp[0] + Deg_MHp[1] - 2));
             for (counter=0; counter < (num_deg_stats-1); counter++) {
               if (counter == (Deg_MHp[0]-1)) {
@@ -879,7 +879,7 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
           
           
           double num_Tri = networkstatistics[m->n_stats-1]; //should be last statistic
-          double num_Tri_change = abs(m->workspace[m->n_stats-1]); //should be last statistic
+          double num_Tri_change = fabs(m->workspace[m->n_stats-1]); //should be last statistic
           
           int n_dim = num_deg_stats - 1;
           

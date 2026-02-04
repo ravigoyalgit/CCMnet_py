@@ -1,6 +1,6 @@
 #' Plot CCM Network Statistic
 #'
-#' @keywords internal
+#' @noRd
 plot_ccm_network <- function(x, term) {
   
   if (term == "DegreeDist") {
@@ -12,7 +12,7 @@ plot_ccm_network <- function(x, term) {
 
 #' Degree Distribution Plot for CCM
 #'
-#' @keywords internal
+#' @noRd
 plot_ccm_degree <- function(x) {
   
   population <- x$fit_null$population
@@ -31,8 +31,8 @@ plot_ccm_degree <- function(x) {
   )
   
   ggplot2::ggplot(df, ggplot2::aes(x = degree)) +
-    ggplot2::geom_line(ggplot2::aes(y = observed, color = "Observed")) +
-    ggplot2::geom_line(ggplot2::aes(y = posterior_mean,
+    ggplot2::geom_line(ggplot2::aes(y = .data$observed, color = "Observed")) +
+    ggplot2::geom_line(ggplot2::aes(y = .data$posterior_mean,
                                     color = "CCM Posterior Mean")) +
     ggplot2::labs(
       y = "Number of nodes",

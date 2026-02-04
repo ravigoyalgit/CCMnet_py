@@ -1,39 +1,50 @@
 #' Fit a Congruence Class Model (CCM)
 #'
-#' \code{sample_ccm} fits a Congruence Class Model using MCMC to match
-#' observed network statistics. It takes a list of network statistics and a list
-#' of probability distributions, and returns an object containing MCMC samples,
-#' diagnostics, and theoretical expectations if available.
+#' \code{sample_ccm} fits a Congruence Class Model using an MCMC framework to sample 
+#' networks that match specific topological property distributions. It facilitates 
+#' sampling based on specified network statistics (e.g., edges, degree distribution, 
+#' mixing patterns) and their associated probability distributions.
 #'
-#' @param network_stats Character vector of statistic names.
-#' @param prob_distr Character vector of probability distribution names.
-#' @param prob_distr_params List of parameter sets for each distribution.
-#' @param sample_size Integer. Number of MCMC samples.
-#' @param burnin Integer. Burn-in period for MCMC.
-#' @param interval Integer. Thinning interval.
-#' @param stats_only Logical. If TRUE, only return sufficient statistics.
-#' @param population Integer. Number of nodes.
-#' @param cov_pattern Integer vector. Covariate pattern or group labels.
+#' @param network_stats Character vector of statistic names to be constrained (e.g., "edges", "degree", "density").
+#' @param prob_distr Character vector of probability distribution names corresponding to each statistic.
+#' @param prob_distr_params List of parameter sets for each specified distribution.
+#' @param population Integer. The number of nodes in the network.
+#' @param sample_size Integer. Number of MCMC samples to return. Default is 1000.
+#' @param burnin Integer. Number of MCMC iterations to discard before sampling begins. Default is 200,000.
+#' @param interval Integer. Thinning interval (number of iterations between samples). Default is 1000.
+#' @param cov_pattern Integer vector. Optional group labels or covariate patterns for nodes.
+#' @param initial_g An \code{igraph} object. The starting graph for the MCMC chain.
+#' @param use_initial_g Logical. If TRUE, the MCMC chain starts from \code{initial_g}.
+#' @param partial_network Integer. Reserved for future use in partial network observation.
+#' @param obs_nodes Integer vector. Reserved for future use in specifying observed nodes.
+#' @param Obs_stats Character vector of additional network statistics to monitor during sampling.
+#' @param remove_var_last_entry Logical. If TRUE, removes the variance constraint from the last entry of the distribution.
+#' @param stats_only Logical. If TRUE, only sufficient statistics are returned; otherwise, network objects are included.
 #'
-#' @return An object of class \code{CCM_fit} containing:
+#' @return An object of class \code{ccm_sample} containing:
 #' \itemize{
-#'   \item \code{samples}: MCMC samples of network statistics
-#'   \item \code{theoretical}: theoretical distribution if available
-#'   \item \code{call}: the original function call
+#'   \item \code{mcmc_stats}: A data frame of sampled network statistics.
+#'   \item \code{population}: The number of nodes in the network.
+#'   \item \code{prob_distr}: The distributions used for constraints.
+#'   \item \code{prob_distr_params}: Parameters used for the constraints.
+#'   \item \code{network_stats}: The names of the statistics constrained.
+#'   \item \code{cov_pattern}: The covariate pattern used.
+#'   \item \code{theoretical}: Theoretical distribution values, if calculated.
+#'   \item \code{g}: A list of sampled graphs.
 #' }
 #'
 #' @examples
-#' population = 100L
-#' fit <- CCM_fit(
-#'   network_stats = list("Edge"),
-#'   Prob_Distr = list("NP"),
-#'   Prob_Distr_Params = list(dnbinom(0:choose(population,2), size = 1.017340, mu = 6.192894)),
-#'   population = population,
-#'   sample_size = 1000L,
-#'   burnin = 200000L,
-#'   interval = 1000L,
-#'   cov_pattern = rep(0L, population)  
+#' \dontrun{
+#' # Basic sampling of a random graph with an edge constraint
+#' ccm_sample <- sample_ccm(
+#'   network_stats = list("edges"),
+#'   prob_distr = list("poisson"),
+#'   prob_distr_params = list(list(350)),
+#'   population = 100 
 #' )
+#' summary(ccm_sample)
+#' plot(ccm_sample, stats = "edges", type = "hist")
+#' }
 #'
 #' @export
 
@@ -51,18 +62,19 @@ sample_ccm <- function(
     partial_network = as.integer(0),
     obs_nodes = NULL,
     Obs_stats = NULL,
-    remove_var_last_entry = FALSE
+    remove_var_last_entry = FALSE,
+    stats_only = TRUE
 ) {
   
   # Call C backend
-  out <- CCMnet::CCMnet_constr(
+  out <- CCMnet_constr(
     Network_stats = network_stats,
     Prob_Distr = prob_distr,
     Prob_Distr_Params = prob_distr_params,
     samplesize = as.integer(sample_size),
     burnin = as.integer(burnin),
     interval = as.integer(interval),
-    statsonly = TRUE,
+    statsonly = stats_only,
     G = initial_g,
     P = NULL,
     population = as.integer(population),
@@ -118,7 +130,7 @@ sample_ccm <- function(
     }
     
     if (s == "mixing") {
-      m <- length(unique(covPattern))
+      m <- length(unique(cov_pattern))
       mixing_names <- c()
       for (i in seq_len(m)) {
         for (j in 1:i) {

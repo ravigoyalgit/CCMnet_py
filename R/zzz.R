@@ -1,14 +1,22 @@
 # Imports for functions used in your package
 #' @useDynLib CCMnet, .registration = TRUE
-#' @importFrom stats rpois rmultinom sd dnbinom
+#' @importFrom stats rnorm rbeta dpois rpois rmultinom rgamma sd dnbinom terms
 #' @importFrom utils head
-#' @importFrom dplyr %>% mutate filter everything all_of bind_rows
+#' @importFrom dplyr %>% mutate filter everything all_of bind_rows bind_cols
 #' @importFrom tidyr pivot_longer
-#' @importFrom ggplot2 ggplot aes geom_density geom_histogram facet_wrap labs theme theme_bw
-#' @importFrom igraph graph_from_data_frame
+#' @import ggplot2
 #' @importFrom tibble tibble as_tibble
+#' @importFrom intergraph asIgraph
+#' @importFrom kableExtra kable
+#' @importFrom RBesT postmix mixbeta mixnorm
+#' @importFrom gtools rdirichlet
+#' @importFrom mvtnorm rmvnorm
+#' @importFrom ergm ergm
+#' @importFrom network network network.initialize %v%<- network.size
+#' @importFrom rlang is_empty .data
+#' @import igraph
 
-# Declare global variables to avoid R CMD check NOTES
+# # Declare global variables to avoid R CMD check NOTES
 if (getRversion() >= "2.15.1") {
   utils::globalVariables(
     c(

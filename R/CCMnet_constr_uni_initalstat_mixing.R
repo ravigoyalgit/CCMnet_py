@@ -1,6 +1,6 @@
 #' Calculate initial statistics
 #'
-#' @keywords internal
+#' @noRd
 
 CCMnet_constr_uni_initalstat_mixing <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                            nedges, g, max_degree,

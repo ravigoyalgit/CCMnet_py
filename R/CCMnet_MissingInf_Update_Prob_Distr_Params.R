@@ -14,34 +14,11 @@
 #' @param population Integer, total number of nodes in the network.
 #'
 #' @return An updated list of probability distribution parameters.
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' g <- igraph::make_ring(10)
-#' Network_stats <- "Degree"
-#' Prob_Distr <- list("Multinomial_Poisson")
-#' Prob_Distr_Params <- list(1, rep(0.1, 10))
-#' Prob_Distr_Params_hyperprior <- list(
-#'   "Dirichlet_Gamma",
-#'   c(1, 10),
-#'   rep(0.01, 10)
-#' )
-#' G_stats <- tabulate(igraph::degree(g) + 1, nbins = 10)
-#' updated_params <- Update_Prob_Distr_Params(
-#'   g = g,
-#'   Prob_Distr_Params_hyperprior = Prob_Distr_Params_hyperprior,
-#'   Network_stats = Network_stats,
-#'   Prob_Distr = Prob_Distr,
-#'   Prob_Distr_Params = Prob_Distr_Params,
-#'   G_stats = G_stats,
-#'   MCMC_wgt = 1,
-#'   population = 10
-#' )
-#' }
 #'
 #' @importFrom igraph degree gsize
 #' @importFrom gtools rdirichlet
+#' @noRd
+
 Update_Prob_Distr_Params <- function(g,
                                      Prob_Distr_Params_hyperprior,
                                      Network_stats,

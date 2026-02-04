@@ -1,6 +1,6 @@
 #' Fit Null CCM
 #'
-#' @keywords internal
+#' @noRd
 fit_ccm_null <- function(null_terms,
                          population,
                          Prob_Distr,
@@ -11,13 +11,13 @@ fit_ccm_null <- function(null_terms,
                          interval,
                          alt_terms) {
   
-  CCM_fit(
-    Network_stats = list(null_terms),
-    Prob_Distr = Prob_Distr,
-    Prob_Distr_Params = Prob_Distr_Params,
+  sample_ccm(
+    network_stats = list(null_terms),
+    prob_distr = Prob_Distr,
+    prob_distr_params = Prob_Distr_Params,
     population = population,
-    covPattern = covPattern,
-    samplesize = samplesize,
+    cov_pattern = covPattern,
+    sample_size = samplesize,
     burnin = burnin,
     interval = interval,
     Obs_stats = list(alt_terms)
@@ -26,7 +26,7 @@ fit_ccm_null <- function(null_terms,
 
 #' Map Formula Terms to CCM Statistics
 #'
-#' @keywords internal
+#' @noRd
 stats_from_terms <- function(terms) {
   if ("edges" %in% terms) "Edge" else character(0)
 }
@@ -37,7 +37,7 @@ stats_from_terms <- function(terms) {
 #'
 #' @return Hellinger distance between \code{p} and \code{q}.
 #'
-#' @keywords internal
+#' @noRd
 hellinger_distance <- function(p, q) {
   sqrt(sum((sqrt(p) - sqrt(q))^2)) / sqrt(2)
 }

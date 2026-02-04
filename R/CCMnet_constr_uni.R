@@ -10,7 +10,7 @@
 #' @param burnin Integer. Number of initial MCMC iterations to discard.
 #' @param interval Integer. Thinning interval between samples.
 #' @param statsonly Logical. If \code{TRUE}, returns statistics; if \code{FALSE}, returns graph objects.
-#' @param P An initial \code{igraph} object. If \code{NULL}, a random graph is generated.
+#' @param G An initial \code{igraph} object. If \code{NULL}, a random graph is generated.
 #' @param population Integer. The number of nodes in the network.
 #' @param covPattern Vector. Categorical nodal attributes for mixing statistics.
 #' @param remove_var_last_entry Logical. If \code{TRUE}, the last entry of the variance matrix is dropped for inversion.
@@ -23,7 +23,7 @@
 #' 
 #' @import igraph
 #' @keywords internal
-#' @export
+#' @noRd
 
 uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                              samplesize, burnin, interval,
@@ -199,8 +199,6 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
               as.integer(NetworkForecast),
               as.double(evolution_rate_mean),
               as.double(evolution_rate_var),
-              as.character(MHproposal_package),
-              as.character(MHproposal_package),
               PACKAGE = "CCMnet")
       
       # 1. Extract the number of edges (m) from the first element
@@ -223,6 +221,7 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
         directed = FALSE, 
         vertices = nodes_attr_df
       )
+      newnetwork[[sample_net]] = new_g
       
       statsmatrix <- rbind(statsmatrix, matrix(z$s, nrow = samplesize, ncol = length(stats), byrow = TRUE))
       stats <- statsmatrix[samplesize, ]
@@ -264,7 +263,7 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       } 
     }
     
-    return(list(new_g, as.data.frame(statsmatrix)))
+    return(list(newnetwork, as.data.frame(statsmatrix)))
   } else {
     return(list(NULL, NULL))
   }

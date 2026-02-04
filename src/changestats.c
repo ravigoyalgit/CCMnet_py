@@ -1297,7 +1297,7 @@ void edgewise_path_recurse(Network *nwp, Vertex dest, Vertex curnode,
   if((availcount>0)&&(curlen<maxlen-2)){
     if(availcount>1){    /*Remove the current node from the available list*/
       if((newavail=(Vertex *)malloc(sizeof(Vertex)*(availcount-1)))==NULL){
-        Rprintf("Unable to allocate %d bytes for available node list in edgewise_path_recurse.  Trying to terminate recursion gracefully, but your path count is probably wrong.\n",sizeof(Vertex)*(availcount-1));
+        Rprintf("Unable to allocate %zu bytes for available node list in edgewise_path_recurse.  Trying to terminate recursion gracefully, but your path count is probably wrong.\n",sizeof(Vertex)*(availcount-1));
         return;
       }
       j=0;
@@ -1349,7 +1349,7 @@ void edgewise_cycle_census(Network *nwp, Vertex tail, Vertex head,
   
   /*Perform the recursive path count*/
   if((availnodes=(Vertex *)malloc(sizeof(Vertex)*(n-2)))==NULL){
-    Rprintf("Unable to allocate %d bytes for available node list in edgewise_cycle_census.  Exiting.\n",sizeof(Vertex)*(n-2));
+    Rprintf("Unable to allocate %zu bytes for available node list in edgewise_cycle_census.  Exiting.\n",sizeof(Vertex)*(n-2));
     return;
   }
   j=0;                             /*Initialize the list of available nodes*/

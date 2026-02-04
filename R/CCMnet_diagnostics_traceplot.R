@@ -1,28 +1,22 @@
-#' Plot MCMC Trace for CCM Fit
+#' Plot MCMC Trace for sample_ccm
 #'
 #' \code{CCM_traceplot} produces a trace plot of the MCMC samples from
-#' \code{CCM_fit}. This is used to diagnose convergence and mixing.
+#' \code{sample_ccm}. This is used to diagnose convergence and mixing.
 #'
-#' @param fit A \code{CCM_fit} object.
-#' @param stat_index Integer. Which statistic to plot.
+#' @param object A \code{ccm_sample} object.
+#' @param stats string. Which statistic to plot.
 #' @param ... Additional arguments passed to \code{plot()}.
 #'
 #' @return A trace plot for the selected MCMC chain.
 #'
 #' @examples
-#' CCMnet_python_setup()
-#' population = 100L
-#' fit <- CCM_fit(
-#'   Network_stats = list("Edge"),
-#'   Prob_Distr = list("NP"),
-#'   Prob_Distr_Params = list(dnbinom(0:choose(population,2), size = 1.017340, mu = 6.192894)),
-#'   population = population,
-#'   samplesize = 1000L,
-#'   burnin = 200000L,
-#'   interval = 1000L,
-#'   covPattern = rep(0L, population)  
+#' ccm_sample <- sample_ccm(
+#'   network_stats = list("edges"),
+#'   prob_distr = list("poisson"),
+#'   prob_distr_params = list(list(350)),
+#'   population = 100 
 #' )
-#' CCM_traceplot(fit, stats = "edges")
+#' CCM_traceplot(ccm_sample, stats = "edges")
 #'
 #' @export
 

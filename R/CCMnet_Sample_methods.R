@@ -12,12 +12,13 @@ print.ccm_sample <- function(x, ...) {
     cat("Population:       ", x$population, "\n")
   }
   if (!is.null(x$mcmc_stats)) {
-    cat("MCMC samples:     ", nrow(x$mcmc_stats), "rows x", ncol(x$stats), "cols\n")
+    cat("MCMC samples:     ", nrow(x$mcmc_stats), "rows x", ncol(x$mcmc_stats), "cols\n")
   }
   invisible(x)
 }
 
 #' @export
+
 summary.ccm_sample <- function(object, ...) {
   cat("Summary of ccm_sample object\n")
   cat("-------------------------\n")
@@ -35,13 +36,15 @@ summary.ccm_sample <- function(object, ...) {
 }
 
 #' @export
-plot.ccm_sample <- function(fit,
+plot.ccm_sample <- function(x,
                          stats = NULL,
                          type = c("density", "hist"),
                          include_theoretical = FALSE,
                          ...) {
   
   type <- match.arg(type)
+  
+  fit <- x
   
   # Default: plot all columns if stats is NULL
   if (is.null(stats)) {
@@ -81,7 +84,7 @@ plot.ccm_sample <- function(fit,
     theme(legend.position = "top")
   
   if (type == "hist") {
-    p <- p + geom_histogram(aes(y = after_stat(density)), alpha = 0.5, position = "identity", bins = 30)
+    p <- p + geom_histogram(aes(y = after_stat(.data$density)), alpha = 0.5, position = "identity", bins = 30)
   } else if (type == "density") {
     p <- p + geom_density(alpha = 0.25)
   }

@@ -1,6 +1,6 @@
 #' Verify input
 #'
-#' @keywords internal
+#' @noRd
 
 CCMnet_constr_uni_verifyinput_degmixing_clustering <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                          population, covPattern, remove_var_last_entry) {
@@ -11,12 +11,8 @@ CCMnet_constr_uni_verifyinput_degmixing_clustering <- function(Network_stats, Pr
     Prob_Distr_Params[[1]] = Prob_Distr_Params[[2]]
     Prob_Distr_Params[[2]] = Prob_Distr_Params_temp
   }
-  if (class(Prob_Distr_Params[[1]][[1]]) != "numeric") {
+  if (!inherits(Prob_Distr_Params[[1]][[1]], "numeric")) {
     print("Error: Mean degree mixing should be a vector representing upper triangle of degree mixing matrix.")
-    error = 1
-  }
-  if (class(Prob_Distr_Params[[1]][[2]])[1] != "matrix") {
-    print("Error: Covariance of degree mixing matrix should be a matrix.")
     error = 1
   }
   if (dim(Prob_Distr_Params[[1]][[2]])[1] != dim(Prob_Distr_Params[[1]][[2]])[2]) {

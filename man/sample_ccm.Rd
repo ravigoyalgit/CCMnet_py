@@ -18,53 +18,71 @@ sample_ccm(
   partial_network = as.integer(0),
   obs_nodes = NULL,
   Obs_stats = NULL,
-  remove_var_last_entry = FALSE
+  remove_var_last_entry = FALSE,
+  stats_only = TRUE
 )
 }
 \arguments{
-\item{network_stats}{Character vector of statistic names.}
+\item{network_stats}{Character vector of statistic names to be constrained (e.g., "edges", "degree", "density").}
 
-\item{prob_distr}{Character vector of probability distribution names.}
+\item{prob_distr}{Character vector of probability distribution names corresponding to each statistic.}
 
-\item{prob_distr_params}{List of parameter sets for each distribution.}
+\item{prob_distr_params}{List of parameter sets for each specified distribution.}
 
-\item{population}{Integer. Number of nodes.}
+\item{population}{Integer. The number of nodes in the network.}
 
-\item{sample_size}{Integer. Number of MCMC samples.}
+\item{sample_size}{Integer. Number of MCMC samples to return. Default is 1000.}
 
-\item{burnin}{Integer. Burn-in period for MCMC.}
+\item{burnin}{Integer. Number of MCMC iterations to discard before sampling begins. Default is 200,000.}
 
-\item{interval}{Integer. Thinning interval.}
+\item{interval}{Integer. Thinning interval (number of iterations between samples). Default is 1000.}
 
-\item{cov_pattern}{Integer vector. Covariate pattern or group labels.}
+\item{cov_pattern}{Integer vector. Optional group labels or covariate patterns for nodes.}
 
-\item{stats_only}{Logical. If TRUE, only return sufficient statistics.}
+\item{initial_g}{An \code{igraph} object. The starting graph for the MCMC chain.}
+
+\item{use_initial_g}{Logical. If TRUE, the MCMC chain starts from \code{initial_g}.}
+
+\item{partial_network}{Integer. Reserved for future use in partial network observation.}
+
+\item{obs_nodes}{Integer vector. Reserved for future use in specifying observed nodes.}
+
+\item{Obs_stats}{Character vector of additional network statistics to monitor during sampling.}
+
+\item{remove_var_last_entry}{Logical. If TRUE, removes the variance constraint from the last entry of the distribution.}
+
+\item{stats_only}{Logical. If TRUE, only sufficient statistics are returned; otherwise, network objects are included.}
 }
 \value{
-An object of class \code{CCM_fit} containing:
+An object of class \code{ccm_sample} containing:
 \itemize{
-  \item \code{samples}: MCMC samples of network statistics
-  \item \code{theoretical}: theoretical distribution if available
-  \item \code{call}: the original function call
+  \item \code{mcmc_stats}: A data frame of sampled network statistics.
+  \item \code{population}: The number of nodes in the network.
+  \item \code{prob_distr}: The distributions used for constraints.
+  \item \code{prob_distr_params}: Parameters used for the constraints.
+  \item \code{network_stats}: The names of the statistics constrained.
+  \item \code{cov_pattern}: The covariate pattern used.
+  \item \code{theoretical}: Theoretical distribution values, if calculated.
+  \item \code{g}: A list of sampled graphs.
 }
 }
 \description{
-\code{sample_ccm} fits a Congruence Class Model using MCMC to match
-observed network statistics. It takes a list of network statistics and a list
-of probability distributions, and returns an object containing MCMC samples,
-diagnostics, and theoretical expectations if available.
+\code{sample_ccm} fits a Congruence Class Model using an MCMC framework to sample 
+networks that match specific topological property distributions. It facilitates 
+sampling based on specified network statistics (e.g., edges, degree distribution, 
+mixing patterns) and their associated probability distributions.
 }
 \examples{
-population = 100L
-fit <- CCM_fit(
-  network_stats = list("Edge"),
-  Prob_Distr = list("NP"),
-  Prob_Distr_Params = list(dnbinom(0:choose(population,2), size = 1.017340, mu = 6.192894)),
-  population = population,
-  sample_size = 1000L,
-  burnin = 200000L,
-  interval = 1000L,
-  cov_pattern = rep(0L, population)  
+\dontrun{
+# Basic sampling of a random graph with an edge constraint
+ccm_sample <- sample_ccm(
+  network_stats = list("edges"),
+  prob_distr = list("poisson"),
+  prob_distr_params = list(list(350)),
+  population = 100 
 )
+summary(ccm_sample)
+plot(ccm_sample, stats = "edges", type = "hist")
+}
 
 }

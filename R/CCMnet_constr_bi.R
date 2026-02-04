@@ -1,29 +1,5 @@
-#' An internal worker function that performs MCMC sampling for bimodal networks 
-#' based on specified network statistics and probability distributions. This 
-#' function interfaces with the C-level \code{MCMC_wrapper}.
-#'
-#' @param Network_stats Character vector. Supported values include "DegreeDist", 
-#'   "Density", "Mixing", "DegMixing", and "Triangles".
-#' @param Prob_Distr Character string. The distribution type (e.g., "Normal", "NegBin", "DirMult", "NP", "Tdist").
-#' @param Prob_Distr_Params List. Distribution parameters (means, covariances, etc.).
-#' @param samplesize Integer. Number of network samples to collect.
-#' @param burnin Integer. Number of initial MCMC iterations to discard.
-#' @param interval Integer. Thinning interval between samples.
-#' @param statsonly Logical. If \code{TRUE}, returns statistics; if \code{FALSE}, returns graph objects.
-#' @param P An initial \code{igraph} object. If \code{NULL}, a random graph is generated.
-#' @param population Integer. The number of nodes in the network.
-#' @param covPattern Vector. Categorical nodal attributes for mixing statistics.
-#' @param remove_var_last_entry Logical. If \code{TRUE}, the last entry of the variance matrix is dropped for inversion.
-#'
-#' @return A list containing:
-#' \itemize{
-#'   \item \code{new_g}: The last sampled \code{igraph} object.
-#'   \item \code{statsmatrix}: A matrix of network statistics for each sample.
-#' }
-#' 
-#' @import igraph
-#' @keywords internal
-#' @export
+#' @importFrom network network.edgecount
+#' @noRd
 
 bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                             samplesize, burnin, interval,
@@ -99,7 +75,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
           for (k in c(1:num_nodes_deg_i)) { # by number of nodes
             if (i > 1)  {
               if (network.edgecount(g) > 0) {
-                valid_population_2 = which(degree(g, gmode = 'graph')[c((population[1]+1):(population[1]+population[2]))] < max_degree)
+                valid_population_2 = which(degree(g)[c((population[1]+1):(population[1]+population[2]))] < max_degree)
               } else {
                 valid_population_2 = c(1:population[2])
               }
@@ -121,7 +97,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
     P = g
   }
   
-  #max(degree(g, gmode='graph'))
+  #max(degree(g))
   
   max_degree = max_degree_f
   
@@ -403,6 +379,8 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
               as.double(beta_a),
               as.double(beta_l),
               as.integer(NetworkForecast),
+              as.double(evolution_rate_mean),
+              as.double(evolution_rate_var),
               PACKAGE = "CCMnet")
       
       # 1. Extract the number of edges (m) from the first element
@@ -415,14 +393,14 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       
       # 3. Create the edge matrix for igraph
       # cbind creates an m x 2 matrix
-      edges_matrix <- cbnd(raw_tails, raw_heads)
+      edges_matrix <- cbind(raw_tails, raw_heads)
       
       # 4. Create the new igraph object
       # vertices = nodes_attr_df ensures all original attributes are preserved
       new_g <- graph_from_data_frame(
         as.data.frame(edges_matrix), 
         directed = FALSE, 
-        vertices = nodes_attr_df
+        vertices = covPattern
       )
       
       # 5. Store in your list

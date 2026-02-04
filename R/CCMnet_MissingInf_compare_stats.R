@@ -25,7 +25,8 @@
 #' )
 #' }
 #'
-#' @export
+#' @noRd
+
 CCM_compare_stats <- function(result,
                               G_stats_truth,
                               stats = NULL,
@@ -86,7 +87,7 @@ CCM_compare_stats <- function(result,
     ggplot2::geom_density(fill = fill, alpha = alpha) +
     ggplot2::geom_vline(
       data = truth_df,
-      ggplot2::aes(xintercept = truth),
+      ggplot2::aes(xintercept = .data$truth),
       color = "red",
       linetype = "dashed"
     ) +

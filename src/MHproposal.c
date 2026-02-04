@@ -31,7 +31,7 @@ void MH_init(MHproposal *MHp,
   MHproposaltype[i] = 0;
   /* Extract the required string information from the relevant sources */
   if((fn=(char *)malloc(sizeof(char)*(i+4)))==NULL){
-    error("Error in MCMCSample: Can't allocate %d bytes for fn. Memory has not been deallocated, so restart R sometime soon.\n",
+    error("Error in MCMCSample: Can't allocate %zu bytes for fn. Memory has not been deallocated, so restart R sometime soon.\n",
 	  sizeof(char)*(i+4));
   }
   fn[0]='M';
@@ -44,7 +44,7 @@ void MH_init(MHproposal *MHp,
   for (i = 0; MHproposalpackage[i] != ' ' && MHproposalpackage[i] != 0; i++);
   MHproposalpackage[i] = 0;
   if((sn=(char *)malloc(sizeof(char)*(i+1)))==NULL){
-    error("Error in ModelInitialize: Can't allocate %d bytes for sn. Memory has not been deallocated, so restart R sometime soon.\n",
+    error("Error in ModelInitialize: Can't allocate %zu bytes for sn. Memory has not been deallocated, so restart R sometime soon.\n",
 	  sizeof(char)*(i+1));
   }
   sn=strncpy(sn,MHproposalpackage,i);

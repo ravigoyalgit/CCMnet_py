@@ -1,17 +1,38 @@
 Package: CCMnet
 Type: Package
-Title: CCMnet for python
-Version: 0.1.1
+Title: Congruence Class Models for Networks
+Version: 0.1.2
 Authors@R: person("Ravi", "Goyal", email = "ravi.j.goyal@gmail.com",
                   role = c("aut", "cre"))
-Description: Fit and analyze Congruence Class Models (CCM) in R using Python backends.
+Description: Provides an implementation of Congruence Class Models (CCM) for 
+    generating  networks. It facilitates sampling networks based 
+    on specific topological properties and attribute mixing patterns using 
+    a Markov Chain Monte Carlo (MCMC) framework. The implementation extends 
+    methods developed by the Statnet Project, particularly those found in 
+    the 'ergm' and 'network' packages (Handcock et al., 2008 <doi:10.18637/jss.v024.i01>). 
 License: GPL-3
 Encoding: UTF-8
-Imports: igraph, dplyr, ggplot2, tidyr, tibble, mvtnorm
-Suggests: reticulate, knitr, rmarkdown, testthat
-NeedsCompilation: no
-Packaged: 2025-12-06 18:33:59 UTC; ravigoyal
-Author: Ravi Goyal [aut, cre]
-Maintainer: Ravi Goyal <ravi.j.goyal@gmail.com>
+LazyData: true
+Imports: 
+    dplyr,
+    ergm,
+    ggplot2,
+    gtools,
+    igraph,
+    intergraph,
+    kableExtra,
+    mvtnorm,
+    network,
+    RBesT,
+    rlang,
+    stats,
+    tibble,
+    tidyr,
+    utils
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat
 VignetteBuilder: knitr
 RoxygenNote: 7.3.2
+NeedsCompilation: yes

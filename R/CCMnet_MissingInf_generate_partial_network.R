@@ -48,7 +48,8 @@
 #' g_truth <- result$g_truth
 #' }
 #'
-#' @export
+#' @noRd
+
 generate_partial_network <- function(population,
                                      sample_fraction,
                                      Network_stats,
@@ -63,14 +64,14 @@ generate_partial_network <- function(population,
   set.seed(seed)
   
   # Generate the full network using CCM_fit
-  fit <- CCM_fit(Network_stats = Network_stats,
-                 Prob_Distr = Prob_Distr,
-                 Prob_Distr_Params = Prob_Distr_Params,
+  fit <- sample_ccm(network_stats = Network_stats,
+                 prob_distr = Prob_Distr,
+                 prob_distr_params = Prob_Distr_Params,
                  population = population,
-                 samplesize = n_mcmc,
+                 sample_size = n_mcmc,
                  burnin = burnin,
                  interval = interval,
-                 covPattern = covPattern)
+                 cov_pattern = covPattern)
   
   g_truth <- fit$g      # the full igraph network
   G_stats_truth <- fit$mcmc_stats   # network statistics

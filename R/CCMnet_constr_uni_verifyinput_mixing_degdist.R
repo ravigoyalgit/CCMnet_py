@@ -1,6 +1,6 @@
 #' Verify input
 #'
-#' @keywords internal
+#' @noRd
 
 CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                    population, covPattern, remove_var_last_entry) {
@@ -115,7 +115,7 @@ CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Dis
     
     inputs = c(c(0,1,0,0), length(Prob_Distr_Params[[1]][[1]][[1]]) + length(Prob_Distr_Params[[1]][[1]][[2]]),
                2*(length(Prob_Distr_Params[[1]][[1]][[1]])+length(Prob_Distr_Params[[1]][[1]][[2]])) + population, inputs1, inputs2, covariate_list, c(4,2,4 + population), c(1,2,2,2), covariate_list)
-    eta0 = rep(-999.5,length(c(nedges[1], Prob_Distr_Params[[1]][[1]][[1]],Prob_Distr_Params[[1]][[1]][[2]],1,1)))
+    eta0 = rep(-999.5,length(c(1, Prob_Distr_Params[[1]][[1]][[1]],Prob_Distr_Params[[1]][[1]][[2]],1,1)))
     
     mean_vector = c(Prob_Distr_Params[[1]][[1]][[1]], Prob_Distr_Params[[1]][[1]][[2]],  Prob_Distr_Params[[2]][[1]], Prob_Distr_Params[[1]][[3]][1], Prob_Distr_Params[[1]][[3]][2], Prob_Distr_Params[[2]][[3]])
     

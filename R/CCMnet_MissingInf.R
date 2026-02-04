@@ -24,7 +24,8 @@
 #' \item{g_final}{igraph object representing the final network from MCMC.}
 #' \item{sample_ids}{Observed node IDs.}
 #' \item{population}{Number of nodes in the network.}
-#' @export
+#' @noRd
+
 CCM_MissingInference <- function(g_obs,
                                  sample_ids,
                                  population,
@@ -76,17 +77,17 @@ CCM_MissingInference <- function(g_obs,
     G_df[,2] <- as.integer(G_df[,2])
     
     # Single-step CCM_fit using current network
-    fit <- CCM_fit(
-      Network_stats = Network_stats,
-      Prob_Distr = Prob_Distr,
-      Prob_Distr_Params = Prob_Distr_Params,
+    fit <- sample_ccm(
+      network_stats = Network_stats,
+      prob_distr = Prob_Distr,
+      prob_distr_params = Prob_Distr_Params,
       population = population,
-      covPattern = covPattern,
-      use_G = TRUE,
-      G = G_df,
+      cov_pattern = covPattern,
+      use_initial_g = TRUE,
+      initial_g = G_df,
       obs_nodes = sample_ids,
       burnin = 10000,
-      samplesize = 1,
+      sample_size = 1,
       interval = 1,
       partial_network = 1
     )

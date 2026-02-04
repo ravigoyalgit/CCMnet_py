@@ -1,6 +1,6 @@
 #' Verify input
 #'
-#' @keywords internal
+#' @noRd
 
 CCMnet_constr_uni_verifyinput_degdist <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                             population, covPattern, remove_var_last_entry) {
@@ -78,7 +78,7 @@ CCMnet_constr_uni_verifyinput_degdist <- function(Network_stats, Prob_Distr, Pro
       Clist_fnamestring = "edges degree",
       Clist_snamestring = "CCMnet CCMnet",
       inputs = c(c(0,1,0,0), length(mean_vector), length(mean_vector), c(0:(length(mean_vector)-1))),
-      eta0 = rep(-999.5,length(c(nedges[1], mean_vector,0))),
+      eta0 = rep(-999.5,length(c(1, mean_vector,0))),
       stats = NULL,
       MHproposal_name = "TNT",
       MHproposal_package = "CCMnet"

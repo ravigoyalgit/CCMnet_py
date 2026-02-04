@@ -7,7 +7,7 @@
 CCM_theoretical_check(fit, n_sim = nrow(fit$mcmc_stats))
 }
 \arguments{
-\item{fit}{An object returned by \code{CCM_fit}.}
+\item{fit}{An object returned by \code{ccm_sample}.}
 
 \item{n_sim}{The number of samples drawn from the theoretical distribution}
 }
@@ -15,23 +15,18 @@ CCM_theoretical_check(fit, n_sim = nrow(fit$mcmc_stats))
 A diagnostic plot comparing empirical and theoretical distributions.
 }
 \description{
-This function compares the empirical MCMC distribution from \code{CCM_fit}
+This function compares the empirical MCMC distribution from \code{sample_ccm}
 with the theoretical distribution from the CCM model. It is used as a diagnostic
 tool to evaluate model adequacy.
 }
 \examples{
-CCMnet_python_setup()
-population = 100L
-fit <- sample_ccm(
-  Network_stats = list("edges"),
-  Prob_Distr = list("NP"),
-  Prob_Distr_Params = list(dnbinom(0:choose(population,2), size = 1.017340, mu = 6.192894)),
-  population = population,
-  samplesize = 1000L,
-  burnin = 200000L,
-  interval = 1000L,
-  covPattern = rep(0L, population)  
+ccm_sample <- sample_ccm(
+  network_stats = list("edges"),
+  prob_distr = list("poisson"),
+  prob_distr_params = list(list(350)),
+  population = 100 
 )
-CCM_theoretical_check(fit, n_sim = nrow(fit$mcmc_stats))
+ccm_sample<- CCM_theoretical_check(ccm_sample, n_sim = 1000)
+plot(ccm_sample, stats = "edges", type = "hist", include_theoretical = TRUE)
 
 }

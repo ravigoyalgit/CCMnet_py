@@ -31,12 +31,7 @@
 #' or a list of network objects produced by the underlying \code{uni_modal_constr} 
 #' or \code{bi_modal_constr} functions.
 #'
-#' @export
-#' @seealso \code{\link{uni_modal_constr}}, \code{\link{bi_modal_constr}}
-#'
-#' @examples
-#' # Example usage (assuming appropriate data)
-#' # results <- CCMnet_constr(Network_stats = "edges", population = 100, Prob_Distr = "Normal")
+#' @noRd
 
 CCMnet_constr <- function(Network_stats, 
                           Prob_Distr, 

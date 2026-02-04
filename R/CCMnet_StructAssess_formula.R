@@ -5,7 +5,7 @@
 #'
 #' @return A list containing the observed network and parsed terms.
 #'
-#' @keywords internal
+#' @noRd
 parse_ccm_formulas <- function(null_model, alt_model) {
   
   if (!inherits(null_model, "formula")) {

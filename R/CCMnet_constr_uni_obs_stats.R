@@ -41,7 +41,7 @@
 #'   \item \code{stats}
 #' }
 #' 
-#' @export
+#' @noRd
 
 CCMnet_constr_uni_obs_stats <-function(CCM_constr_info, Network_stats, Prob_Distr, Prob_Distr_Params,
                             samplesize, burnin, interval,
@@ -51,47 +51,69 @@ CCMnet_constr_uni_obs_stats <-function(CCM_constr_info, Network_stats, Prob_Dist
   
   if ((length(Obs_stats) == 1) && (Obs_stats == "Edges")) {
     
-    CCM_constr_Obs_stats_info = CCMnet_constr_uni_edges(Obs_stats, Prob_Distr, Prob_Distr_Params,
-                                              nedges, g, max_degree,
-                                              population, covPattern, remove_var_last_entry)
+    CCM_constr_info_verify = CCMnet_constr_uni_verifyinput_edges(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                          population, covPattern, remove_var_last_entry)
+    
+    CCM_constr_info_initial = CCMnet_constr_uni_initalstat_edges(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                         nedges, g, max_degree,
+                                                         population, covPattern, remove_var_last_entry,
+                                                         CCM_constr_info)
     
   } else if ((length(Obs_stats) == 1) && (Obs_stats == "Mixing")) {
     
-    CCM_constr_Obs_stats_info = CCMnet_constr_uni_mixing(Obs_stats, Prob_Distr, Prob_Distr_Params,
-                                               nedges, g, max_degree,
-                                               population, covPattern, remove_var_last_entry)
+    CCM_constr_info_verify = CCMnet_constr_uni_verifyinput_mixing(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                                 population, covPattern, remove_var_last_entry)
+    
+    CCM_constr_info_initial = CCMnet_constr_uni_initalstat_mixing(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                                 nedges, g, max_degree,
+                                                                 population, covPattern, remove_var_last_entry,
+                                                                 CCM_constr_info)
     
   } else if ((length(Obs_stats) == 1) && (Obs_stats == "DegreeDist")) {
     Prob_Distr='DirMult'
     Prob_Distr_Params=list(list(rep(1,population)))
     
-    CCM_constr_Obs_stats_info = CCMnet_constr_uni_degdist(Obs_stats, Prob_Distr, Prob_Distr_Params,
-                                                nedges, g, max_degree = NULL,
-                                                population, covPattern, remove_var_last_entry)
+    CCM_constr_info_verify = CCMnet_constr_uni_verifyinput_degdist(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                                  population, covPattern, remove_var_last_entry)
+    
+    CCM_constr_info_initial = CCMnet_constr_uni_initalstat_degdist(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                                  nedges, g, max_degree,
+                                                                  population, covPattern, remove_var_last_entry,
+                                                                  CCM_constr_info)
     
   } else if (((length(Obs_stats) == 2) && (Obs_stats[1] == "Mixing") && (Obs_stats[2] == "DegreeDist")) ||
              ((length(Obs_stats) == 2) && (Obs_stats[1] == "DegreeDist") && (Obs_stats[2] == "Mixing"))) {
     
-    CCM_constr_Obs_stats_info = CCMnet_constr_uni_mixing_degdist(Obs_stats, Prob_Distr, Prob_Distr_Params,
-                                                       nedges, g, max_degree,
-                                                       population, covPattern, remove_var_last_entry)
+    CCM_constr_info_verify = CCMnet_constr_uni_verifyinput_mixing_degdist(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                                  population, covPattern, remove_var_last_entry)
+    
+    CCM_constr_info_initial = CCMnet_constr_uni_initalstat_mixing_degdist(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                                  nedges, g, max_degree,
+                                                                  population, covPattern, remove_var_last_entry,
+                                                                  CCM_constr_info)
     
   } else if ((length(Obs_stats) == 1) && (Obs_stats == "DegMixing"))  {
     
-    CCM_constr_Obs_stats_info = CCMnet_constr_uni_degmixing(Obs_stats, Prob_Distr, Prob_Distr_Params,
-                                                  nedges, g, max_degree,
-                                                  population, covPattern, remove_var_last_entry)
+    CCM_constr_info_verify = CCMnet_constr_uni_verifyinput_degmixing(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                                  population, covPattern, remove_var_last_entry)
+    
+    CCM_constr_info_initial = CCMnet_constr_uni_initalstat_degmixing(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                                  nedges, g, max_degree,
+                                                                  population, covPattern, remove_var_last_entry,
+                                                                  CCM_constr_info)
     
   } else if  (((length(Obs_stats) == 2) && (Obs_stats[1] == c("DegMixing")) && (Obs_stats[2] == c("Triangles"))) ||
               ((length(Obs_stats) == 2) && (Obs_stats[1] == "Triangles") && (Obs_stats[2] == "DegMixingg"))) {
     
-    CCM_constr_Obs_stats_info = CCMnet_constr_uni_degmixing_clustering(Obs_stats, Prob_Distr, Prob_Distr_Params,
-                                                             nedges, g, max_degree,
-                                                             population, covPattern, remove_var_last_entry)
+    CCM_constr_info_verify = CCMnet_constr_uni_verifyinput_degmixing_clustering(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                                  population, covPattern, remove_var_last_entry)
     
+    CCM_constr_info_initial = CCMnet_constr_uni_initalstat_degmixing_clustering(Network_stats, Prob_Distr, Prob_Distr_Params,
+                                                                  nedges, g, max_degree,
+                                                                  population, covPattern, remove_var_last_entry,
+                                                                  CCM_constr_info)
   } else {
-    print("Error: No such distribution for mixing currently implemented.")
-    print("Email ravi.goyal@mail.harvard.edu to add feature.")
+    print("Error: No such distribution of observation currently implemented.")
     return(CCM_constr_info)
   }
   
@@ -102,12 +124,12 @@ CCMnet_constr_uni_obs_stats <-function(CCM_constr_info, Network_stats, Prob_Dist
   #CCM_constr_info[["prob_type"]]
   #CCM_constr_info[["mean_vector"]]
   #CCM_constr_info[["var_vector"]]
-  CCM_constr_info[["Clist_nterms"]] = CCM_constr_Obs_stats_info[["Clist_nterms"]]
-  CCM_constr_info[["Clist_fnamestring"]] = CCM_constr_Obs_stats_info[["Clist_fnamestring"]]
-  CCM_constr_info[["Clist_snamestring"]] = CCM_constr_Obs_stats_info[["Clist_snamestring"]]
-  CCM_constr_info[["inputs"]] = CCM_constr_Obs_stats_info[["inputs"]]
-  CCM_constr_info[["eta0"]] = CCM_constr_Obs_stats_info[["eta0"]]
-  CCM_constr_info[["stats"]] = CCM_constr_Obs_stats_info[["stats"]]
+  CCM_constr_info[["Clist_nterms"]] = CCM_constr_info_verify[["Clist_nterms"]]
+  CCM_constr_info[["Clist_fnamestring"]] = CCM_constr_info_verify[["Clist_fnamestring"]]
+  CCM_constr_info[["Clist_snamestring"]] = CCM_constr_info_verify[["Clist_snamestring"]]
+  CCM_constr_info[["inputs"]] = CCM_constr_info_verify[["inputs"]]
+  CCM_constr_info[["eta0"]] = CCM_constr_info_verify[["eta0"]]
+  CCM_constr_info[["stats"]] = CCM_constr_info_initial[["stats"]]
   #CCM_constr_info[["MHproposal_name"]]
   #CM_constr_info[["MHproposal_package"]]
   

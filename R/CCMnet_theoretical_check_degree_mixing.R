@@ -7,7 +7,7 @@
 #' @param n_sim Number of theoretical samples
 #'
 #' @return Updated fit object with theoretical degree + mixing distribution
-#' @keywords internal
+#' @noRd
 
 CCM_theoretical_check_degree_mixing <- function(fit,
                                         n_sim) {

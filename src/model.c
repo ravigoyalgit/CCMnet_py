@@ -63,7 +63,7 @@ Model* ModelInitialize (char *fnames, char *sonames, double **inputsp,
       sonames[j] = 0;
       /* Extract the required string information from the relevant sources */
       if((fn=(char *)malloc(sizeof(char)*(i+3)))==NULL){
-        error("Error in ModelInitialize: Can't allocate %d bytes for fn. Memory has not been deallocated, so restart R sometime soon.\n",
+        error("Error in ModelInitialize: Can't allocate %zu bytes for fn. Memory has not been deallocated, so restart R sometime soon.\n",
 		sizeof(char)*(i+3));
       }
       fn[0]='d';
@@ -74,7 +74,7 @@ Model* ModelInitialize (char *fnames, char *sonames, double **inputsp,
       /* fn is now the string 'd_[name]', where [name] is fname */
 /*      Rprintf("fn: %s\n",fn); */
       if((sn=(char *)malloc(sizeof(char)*(j+1)))==NULL){
-        error("Error in ModelInitialize: Can't allocate %d bytes for sn. Memory has not been deallocated, so restart R sometime soon.\n",
+        error("Error in ModelInitialize: Can't allocate %zu bytes for sn. Memory has not been deallocated, so restart R sometime soon.\n",
 		sizeof(char)*(j+1));
       }
       sn=strncpy(sn,sonames,j);

@@ -1,0 +1,474 @@
+---
+title: "CCMnet: Congruence Class Models for Networks"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CCMnet: Congruence Class Models for Networks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+# Set global chunk options
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 6,
+  fig.height = 4
+)
+
+# Load libraries
+library(CCMnet)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+set.seed(1)
+```
+
+#Introduction
+The CCMnet package is designed for generating network ensembles that reflect structural uncertainty in network properties. While traditional statistical models often place probability distributions directly on graphs, Congruence Class Models (CCMs) define distributions over specific network statistics—such as edge counts, degree sequences, or mixing patterns.
+
+##Analysis Workflow
+Using CCMnet for network analysis typically follows a three-step process:
+
+> **Model Specification**: Defining the network properties of interest and their corresponding probability distributions.
+
+> **MCMC Sampling**: Using the package's computational backend to generate a representative ensemble of networks.
+
+> **Verification and Diagnostics**: Assessing the sampler's performance and validating that the generated networks align with the specified theoretical targets.
+
+> **Create Network Ensemble for Analysis** : Once the sampler is validated, one can generate an emsemble of networks for analysis.
+
+# Section 1: Edge Count Sampler Verification
+
+This section verifies that the CCM sampler correctly reproduces networks according to specified edge-count distributions. In a CCM, the probability of sampling a network with $k$ edges is defined by the probability assigned to the congruence class consisting of all networks with exactly $k$ edges. The sampler then assigns equal probability to each individual network within that class.
+
+## Example 1.1: Poisson Edge Count
+
+We fit a CCM where the **number of edges** follows a Poisson distribution with \(\lambda = 350\). The probability of sampling a network with k edges is given by the Poisson mass function:
+
+\[ P(K=k) = \frac{\lambda^k e^{-\lambda}}{k!} \]
+
+```{r edge-example-poisson}
+
+ccm_sample <- sample_ccm(
+  network_stats = list("edges"),
+  prob_distr = list("poisson"),
+  prob_distr_params = list(list(350)), 
+  population = 100
+)
+
+summary(ccm_sample)
+
+print(ccm_sample)
+
+# Compare MCMC samples to theoretical Poisson distribution
+ccm_sample<- CCM_theoretical_check(ccm_sample, n_sim = 1000)
+
+# Plot density with theoretical distribution
+plot(ccm_sample, stats = "edges", type = "hist", include_theoretical = TRUE)
+```
+
+> **Explanation:** The density plot shows the CCM MCMC samples (blue) and the theoretical Poisson distribution (red). Close overlap verifies correct sampling.
+
+## Example 1.2: Uniforn
+
+We fit a CCM where the **number of edges** follows a uniform distribution.
+
+```{r edge-example-uniform}
+
+ccm_sample <- sample_ccm(
+  network_stats = list("edges"),
+  prob_distr = list("uniform"), 
+  prob_distr_params = list(list(0)),
+  population = 50,
+  sample_size = 50000L,
+  burnin = 200000L,
+  interval = 1000L,
+)
+
+ccm_sample<- CCM_theoretical_check(ccm_sample, n_sim = 1000)
+plot(ccm_sample, stats = "edges", type = "hist", include_theoretical = TRUE)
+```
+
+> **Explanation:** The density plot verifies that CCM samples uniformly reproduce all possible edge counts.
+
+## Example 1.3: Non-Parametric
+
+Arbitrary edge count distributions can be specified using the non-parametric ("NP") option. This direct control over congruence class probabilities allows for stable simulation even under non-standard structural priors.
+
+```{r edge-example-np}
+
+n_max <- choose(100, 2)
+alpha <- dpois(0:n_max, lambda = 50) + dpois(0:n_max, lambda = 100)
+prob_distr_params <- alpha / sum(alpha)
+
+ccm_sample <- sample_ccm(
+  network_stats = list("edges"),
+  prob_distr = list("np"),
+  prob_distr_params = list(list(prob_distr_params)),
+  population = 100,
+  sample_size = 50000L,
+  burnin = 200000L
+)
+
+ccm_sample<- CCM_theoretical_check(ccm_sample, n_sim = 50000)
+plot(ccm_sample, stats = "edges", type = "hist", include_theoretical = TRUE)
+```
+
+> **Explanation:** The density plot verifies that CCM samples uniformly reproduce all possible edge counts.
+
+# Section 2: Degree Distribution Sampler Verification
+
+Here, the network property of interest is the frequency of each degree within the network. This distribution is modeled using a Dirichlet-Multinomial specification, which allows for flexible modeling of degree frequencies while accounting for overdispersion. The verification step ensures that the empirical densities of node degrees (e.g., the number of nodes with degrees 0 through 3) closely match the theoretical target distribution.
+
+```{r degree-example-dirmult}
+
+ccm_sample<- sample_ccm(network_stats='DegreeDist',
+               prob_distr='DirMult',
+               prob_distr_params=list(list(c(2,21,15,12))), 
+               population = 500, 
+               sample_size = 10000,
+               burnin=100000, 
+               interval=1000) 
+
+ccm_sample <- CCM_theoretical_check(ccm_sample, n_sim = 1000)
+plot(ccm_sample, 
+  stats = paste0("deg", 0:3), 
+  type = "hist", 
+  include_theoretical = TRUE
+)    
+```
+
+> **Explanation:** The density plot verifies that CCM samples reproduce the correct degre distribution.
+
+# Section 3: Degree Mixing and Triangle
+
+This section illustrates the sampler for models involving higher-order dependencies. In this example, a multivariate normal constraint is placed on the degree mixing matrix and a univariate normal constraint is placed on the triangle count. Because the degree mixing matrix effectively determines the number of connected triples, the simultaneous constraint on triangle counts implicitly influences the network’s global clustering coefficient.
+
+```{r degmix_triangle-example-normal}
+mean_vec = c(23, 66, 44, 9, 118, 80)
+var_mat = matrix(data = c(22, -3, -2, -5, -6, -4,
+                          -3, 58, -7, -14, -18, -12,
+                          -2, -7, 41, -9, -12, -8,
+                          -5, -14, -9, 75, -25, -17,
+                          -6, -18, -12, -25, 89, -22,
+                          -4, -12, -8, -17, -22, 68), ncol = 6)
+prob_distr_params = list(list(mean_vec, var_mat),
+                         list(6,3))
+
+ccm_sample <- sample_ccm(network_stats=c('DegMixing', 'Triangles'),
+                              prob_distr=c('Normal', 'Normal'),
+                              prob_distr_params=prob_distr_params, 
+                              sample_size = 100000,
+                              burnin=1000000, 
+                              interval=1000,
+                              population=500) 
+
+ccm_sample <- CCM_theoretical_check(ccm_sample, n_sim = 100)
+plot(ccm_sample, 
+   stats = c("DM11", "DM12", "DM13", "DM22", "DM23", "DM33", "triangles"), 
+   type = "hist", 
+   include_theoretical = TRUE)
+CCM_traceplot(ccm_sample, stats = "triangles")
+```
+
+> **Explanation:** The density plots show sampled degrees (blue) versus theoretical probabilities (red). Close match verifies correct MCMC sampling.
+
+# Section 4: Illustration
+
+A primary use case for CCMnet is generating network ensembles that reflect the uncertainty in properties estimated from empirical data. These examples demonstrate how uncertainty induced by different sampling designs is explicitly propagated into the predictive network ensembles.
+
+> **Posterior Predictive for a New School**: This illustrates whole-network sampling, where uncertainty arises from heterogeneity across multiple distinct populations (e.g., different high schools).
+
+> **Posterior Predictive for a Sampled School**: This demonstrates individual-level sampling, where uncertainty arises from the partial observation of nodes and edges within a single population.
+
+By comparing CCMnet to standard benchmarks like ERGMs, we can evaluate how well the model captures both population-level heterogeneity and sampling-induced uncertainty.
+
+# Section 4.1: Data
+
+```{r data-school}
+
+utils::data("faux.mesa.high", package = "ergm", envir = environment())
+utils::data("faux.desert.high", package = "ergm", envir = environment())
+utils::data("faux.dixon.high", package = "ergm", envir = environment())
+utils::data("faux.magnolia.high", package = "ergm", envir = environment())
+#data("faux.desert.high")
+#data("faux.dixon.high")
+#data("faux.magnolia.high")
+
+mesa_net = intergraph::asIgraph(faux.mesa.high)
+desert_net = intergraph::asIgraph(faux.desert.high)
+dixon_net = intergraph::asIgraph(faux.dixon.high)
+magnolia_net = intergraph::asIgraph(faux.magnolia.high)
+
+# Create summary table
+hs_summary <- data.frame(
+  High_School = c("Mesa High", "Desert High", "Dixon High", "Magnolia High"),
+  Nodes = c(
+    igraph::vcount(mesa_net),
+    igraph::vcount(desert_net),
+    igraph::vcount(dixon_net),
+    igraph::vcount(magnolia_net)
+  ),
+  Edges = c(
+    igraph::gsize(mesa_net),
+    igraph::gsize(desert_net),
+    igraph::gsize(dixon_net),
+    igraph::gsize(magnolia_net)
+  )
+)
+
+# Render table
+kableExtra::kable(
+  hs_summary,
+  caption = "Summary of high school friendship networks from the ERGM package"
+)
+
+```
+
+# 4.2 Posterior Predictive for a New School
+
+This section illustrates whole-network sampling, where uncertainty arises from heterogeneity across multiple distinct populations (e.g., different high schools).
+
+## 4.2.1 Posterior Distribution for Edge Propensity
+
+```{r new-school-estimation}
+
+#Normal
+densities <- hs_summary$Edges / choose(hs_summary$Nodes, 2)
+sigma <- sd(densities)
+prior <- RBesT::mixnorm(c(1, 0.5, 1), sigma = sigma)
+post_normal <- RBesT::postmix(prior, m = mean(densities), n = length(densities))
+
+```
+
+## 4.2.2 Generation of Network Statistics for CCM, ERGM, and G(n,m)
+
+```{r density-example-new_school-normal}
+population = 100
+n_samples = 10000L
+
+#CCM
+ccm_sample <- sample_ccm(
+  network_stats = list("Density"),
+  prob_distr = list("Normal"),
+  prob_distr_params = list(list(post_normal[2], (post_normal[3])^2)), 
+  population = population,
+  sample_size = n_samples,
+  burnin = 100000L,
+  interval = 1000L,
+)
+
+#ERGM
+net <- network::network(population, 
+               directed = FALSE)
+ergm_sample <- simulate(net ~ edges,
+                     coef = log(post_normal[2] / (1 - post_normal[2])),
+                     nsim = n_samples,
+                     output = "stats") / choose(population, 2)
+
+#G(n,m)
+m_edges = round(post_normal[2]*choose(population, 2))
+er_gnm_list <- replicate(n_samples, 
+                         igraph::sample_gnm(n = population, m = m_edges, directed = FALSE), 
+                         simplify = FALSE)
+er_gnm_stats <- sapply(er_gnm_list, igraph::ecount)
+er_gnm_sample <- er_gnm_stats / choose(population, 2)
+```
+
+## 4.2.3 Density Plot of Network Statistics for CCM, ERGM, and G(n,m)
+
+```{r density-example-new_school-normal-compare}
+
+Network_samples <- data.frame(
+  value = c(ccm_sample$mcmc_stats$density, ergm_sample, er_gnm_sample),
+  model = c(rep("CCMnet", n_samples), rep("ERGM", n_samples), rep("ER", n_samples))
+)
+
+ggplot2::ggplot( Network_samples %>% filter(model != "ER"), 
+  aes(x = value, fill = model)
+) +
+  geom_density(alpha = 0.25, linewidth = .1) +
+  geom_vline(
+    aes(xintercept = er_gnm_sample[1], colour = "ER"),
+    linewidth = 1,
+    linetype = "solid"
+  ) +
+  scale_fill_manual(
+    values = c(CCMnet = "red", ERGM = "green")
+  ) +
+  scale_colour_manual(
+    values = c(ER = "blue")
+  ) +
+  labs(x = "Density", y = "Probability density", fill = "Model", colour = "Model") +
+  theme_bw() + 
+  theme(legend.position = "top")
+
+```
+# Posterior Predictive Network Statistics and Ensembles for Sampled School
+
+## 4.3.1 Generation of Posterior Predictive Network Statistics for Sampled School for CCM, ERGM, and G(n,m)
+
+```{r density-example-sampled_school-beta}
+
+res = data.frame(model = NULL,
+                 value = NULL)
+
+
+dixon_deg = igraph::degree(dixon_net)
+prior.unif <- RBesT::mixbeta(c(1, 1, 1))
+N = igraph::vcount(dixon_net)
+
+for (num_sample_nodes in seq(0,240,40)) {
+  dixon_deg_sample = sample(x = dixon_deg, size = num_sample_nodes, replace = FALSE)
+  
+  r=sum(dixon_deg_sample)
+  n=sum(num_sample_nodes*(N-1))
+  posterior.sum_beta <- RBesT::postmix(prior.unif, 
+                                n=n, 
+                                r=r)
+  
+  alpha_post <- posterior.sum_beta[2]
+  beta_post  <- posterior.sum_beta[3]
+
+  # Infinite-population variance
+  var_inf <- (alpha_post * beta_post) /
+            ((alpha_post + beta_post)^2 * (alpha_post + beta_post + 1))
+
+  # Finite population correction
+  fpc <- (N - num_sample_nodes) / (N - 1)
+  var_fpc <- var_inf * fpc
+
+  # Moment-matched Beta parameters
+  mu <- alpha_post / (alpha_post + beta_post)
+  S <- mu * (1 - mu) / var_fpc - 1
+  posterior.sum_beta[2] <- mu * S
+  posterior.sum_beta[3] <- (1 - mu) * S
+
+  ccm_sample <- sample_ccm(
+    network_stats = list("Density"),
+    prob_distr = list("Beta"),
+    prob_distr_params = list(list(posterior.sum_beta[2], posterior.sum_beta[3])), 
+    population = N,
+    sample_size = 10000L,
+    burnin = 100000L
+  )
+  
+  res = bind_rows(res, data.frame(
+    model = rep("CCMnet", length(ccm_sample$mcmc_stats$density)),
+    value = ccm_sample$mcmc_stats$density,
+    sample = num_sample_nodes))
+  
+  n_samples <- nrow(ccm_sample$mcmc_stats)
+  
+  net <- network::network(N, directed = FALSE)
+  p = posterior.sum_beta[2]/(posterior.sum_beta[2] + posterior.sum_beta[3])
+  theta = log(p / (1-p))
+
+  ERGM <- simulate(
+    net ~ edges,
+    coef = theta,
+    nsim = n_samples,
+    output = "stats"
+  ) / choose(N, 2)
+
+  ER = rep(posterior.sum_beta[2]/(posterior.sum_beta[2] + posterior.sum_beta[3]), n_samples)
+  
+  res <- bind_rows(res, data.frame(
+    value = c(ERGM, ER),
+    model = c(rep("ERGM", n_samples), rep("ER", n_samples)),
+    sample = c(rep(num_sample_nodes, n_samples), rep(num_sample_nodes, n_samples))
+  ))
+  
+}
+
+
+```
+
+## 4.3.2 Plot of Posterior Predictive Network Statistics for Sampled School for CCM, ERGM, and G(n,m)
+
+```{r density-example-sampled_school-compare}
+
+# ER vertical lines
+ER_lines <- res %>%
+  filter(model == "ER") %>%
+  group_by(sample, model) %>%
+  summarise(xintercept = unique(value), .groups = "drop")
+
+ggplot2::ggplot(
+  res %>% filter(model != "ER"),
+  aes(x = value, fill = model)
+) +
+  geom_density(alpha = 0.25, linewidth = .1) +
+
+  # ER vertical lines
+  geom_vline(
+    data = ER_lines,
+    aes(xintercept = xintercept, colour = model),
+    linetype = "dotted",
+    linewidth = 1
+  ) +
+
+  scale_fill_manual(
+    values = c(
+      CCMnet = "red",
+      ERGM   = "green"
+    )
+  ) +
+  scale_colour_manual(
+    values = c(
+      ER = "blue"
+    )
+  ) +
+
+  labs(
+    x = "Density",
+    y = "Probability density",
+    fill = "Model",
+    colour = NULL
+  ) +
+
+  guides(
+    colour = guide_legend(override.aes = list(fill = NA)),
+    fill   = guide_legend(override.aes = list(colour = NA))
+  ) +
+
+  theme_bw() +
+  theme(legend.position = "top") +
+  facet_wrap(~sample, scales =  "free")
+
+```
+
+## 4.3.2 Generation of Network Ensembles for Sampled School for CCM, ERGM, and G(n,m)
+
+
+```{r density-example-sampled_school-ensemble}
+
+ccm_sample <- sample_ccm(
+  network_stats = list("Density"),
+  prob_distr = list("Normal"),
+  prob_distr_params = list(list(post_normal[2], (post_normal[3])^2)), 
+  population = 100,
+  sample_size = 10000L,
+  burnin = 100000L
+)
+
+school_ensemble <- sample_ccm(
+  network_stats = list("Density"),
+  prob_distr = list("Normal"),
+  prob_distr_params = list(list(post_normal[2], (post_normal[3])^2)), 
+  population = 100,
+  sample_size = 10L,
+  burnin = 1L,
+  interval = 1000L,
+  initial_g = ccm_sample$g[[1]], 
+  use_initial_g = TRUE, 
+  stats_only = FALSE)
+
+class(school_ensemble$g)
+length(school_ensemble$g)
+class(school_ensemble$g[[1]])
+
+```

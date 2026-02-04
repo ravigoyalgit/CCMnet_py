@@ -1,6 +1,6 @@
 #' Plot CCM Test Statistic
 #'
-#' @keywords internal
+#' @noRd
 plot_ccm_test <- function(x, term) {
   
   test <- x$tests[[term]]

@@ -7,7 +7,7 @@
 #' @param n_sim Number of theoretical samples
 #'
 #' @return Updated fit object with theoretical degree distribution
-#' @keywords internal
+#' @noRd
 
 CCM_theoretical_check_degree <- function(fit,
                                         n_sim) {

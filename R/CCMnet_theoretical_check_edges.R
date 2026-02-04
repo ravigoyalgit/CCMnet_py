@@ -6,7 +6,7 @@
 #' @param n_sim Number of theoretical samples
 #'
 #' @return Updated fit object with theoretical edge distribution
-#' @keywords internal
+#' @noRd
 
 CCM_theoretical_check_edges <- function(fit,
                                         n_sim) {

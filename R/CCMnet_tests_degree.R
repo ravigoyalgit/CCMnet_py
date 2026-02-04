@@ -1,6 +1,6 @@
 #' Run CCM Hypothesis Tests
 #'
-#' @keywords internal
+#' @noRd
 run_ccm_tests <- function(g_obs,
                           fit_null,
                           alt_terms,
@@ -24,7 +24,7 @@ run_ccm_tests <- function(g_obs,
 
 #' Degree-Based CCM Test
 #'
-#' @keywords internal
+#' @noRd
 test_degree_ccm <- function(g_obs,
                             fit_null,
                             population,

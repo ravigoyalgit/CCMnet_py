@@ -2,37 +2,31 @@
 % Please edit documentation in R/CCMnet_diagnostics_traceplot.R
 \name{CCM_traceplot}
 \alias{CCM_traceplot}
-\title{Plot MCMC Trace for CCM Fit}
+\title{Plot MCMC Trace for sample_ccm}
 \usage{
 CCM_traceplot(object, stats = NULL, ...)
 }
 \arguments{
+\item{object}{A \code{ccm_sample} object.}
+
+\item{stats}{string. Which statistic to plot.}
+
 \item{...}{Additional arguments passed to \code{plot()}.}
-
-\item{fit}{A \code{CCM_fit} object.}
-
-\item{stat_index}{Integer. Which statistic to plot.}
 }
 \value{
 A trace plot for the selected MCMC chain.
 }
 \description{
 \code{CCM_traceplot} produces a trace plot of the MCMC samples from
-\code{CCM_fit}. This is used to diagnose convergence and mixing.
+\code{sample_ccm}. This is used to diagnose convergence and mixing.
 }
 \examples{
-CCMnet_python_setup()
-population = 100L
-fit <- CCM_fit(
-  Network_stats = list("Edge"),
-  Prob_Distr = list("NP"),
-  Prob_Distr_Params = list(dnbinom(0:choose(population,2), size = 1.017340, mu = 6.192894)),
-  population = population,
-  samplesize = 1000L,
-  burnin = 200000L,
-  interval = 1000L,
-  covPattern = rep(0L, population)  
+ccm_sample <- sample_ccm(
+  network_stats = list("edges"),
+  prob_distr = list("poisson"),
+  prob_distr_params = list(list(350)),
+  population = 100 
 )
-CCM_traceplot(fit, stats = "edges")
+CCM_traceplot(ccm_sample, stats = "edges")
 
 }

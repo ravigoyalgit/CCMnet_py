@@ -5,7 +5,7 @@
 #' @param term Network term to plot.
 #' @param ... Additional arguments (unused).
 #'
-#' @export
+#' @noRd
 plot.ccm_inference <- function(x,
                                type = c("test", "network"),
                                term = NULL,

@@ -1,6 +1,6 @@
 #' Verify input
 #'
-#' @keywords internal
+#' @noRd
 
 CCMnet_constr_uni_verifyinput_edges <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                     population, covPattern, remove_var_last_entry) {
@@ -33,9 +33,20 @@ CCMnet_constr_uni_verifyinput_edges <- function(Network_stats, Prob_Distr, Prob_
         var_vector = c(Prob_Distr_Params[[1]][[2]], Prob_Distr_Params[[1]][[2]])
       }
     } else if (Prob_Distr == "lognormal") {
-      prob_type = c(0,0,0,0,2)
-      mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
-      var_vector = c(0,0)
+      if (length(Prob_Distr_Params[[1]][[1]]) != 1) {
+        cat("Fail\n")
+        print("Error: lambda for EDGES is not one value")
+        error = 1
+      } else if (Prob_Distr_Params[[1]][[1]] <= 0) {
+        cat("Fail\n")
+        print("Error: lambda for EDGES not a positive value")
+        error = 1
+      } 
+      if (error == 0) {
+        prob_type = c(0,0,0,0,2)
+        mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
+        var_vector = c(0,0)
+      }
     } else if (Prob_Distr == "poisson") {
       if (length(Prob_Distr_Params[[1]][[1]]) != 1) {
         cat("Fail\n")
@@ -56,15 +67,28 @@ CCMnet_constr_uni_verifyinput_edges <- function(Network_stats, Prob_Distr, Prob_
       mean_vector = c(1, 1)
       var_vector = c(0,0)
     } else if (Prob_Distr == "np") {
-      prob_type = c(0,0,0,0,99)
-      mean_vector = Prob_Distr_Params[[1]][[1]]
-      var_vector = c(0,0)
+      if (length(Prob_Distr_Params[[1]][[1]]) != (choose(population,2)+1)) {
+        cat("Fail\n")
+        print("Error: need probability for all possible values for EDGES")
+        error = 1
+      } else if (sum(Prob_Distr_Params[[1]][[1]]) != 1) {
+        cat("Fail\n")
+        print("Error: probabilities much sum to 1")
+        error = 1
+      } 
+      if (error == 0) {
+        prob_type = c(0,0,0,0,99)
+        mean_vector = Prob_Distr_Params[[1]][[1]]
+        var_vector = c(0,0)
+      }
     } else {
       cat("Fail\n")
       print("Error: No such distribution for EDGES currently implemented.")
       error = 1
     } 
   }
+  
+  
   if (Network_stats == "Density") {
     if (Prob_Distr == "Normal") {
       prob_type = c(0,0,0,0,11)

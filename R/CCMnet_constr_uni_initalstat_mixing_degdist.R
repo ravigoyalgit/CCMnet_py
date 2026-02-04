@@ -1,6 +1,6 @@
 #' Calculate initial statistics
 #'
-#' @keywords internal
+#' @noRd
 
 CCMnet_constr_uni_initalstat_mixing_degdist <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                    nedges, g, max_degree,
@@ -36,7 +36,7 @@ CCMnet_constr_uni_initalstat_mixing_degdist <- function(Network_stats, Prob_Dist
   deg_dist_1 = c(deg_dist_1, rep(0,max(0,length(deg_dist_2)-length(deg_dist_1))))
   deg_dist_2 = c(deg_dist_2, rep(0,max(0,length(deg_dist_1)-length(deg_dist_2))))
   
-  stats = c(nedges[1], deg_dist_1, deg_dist_2, mixing[c(2,3)])
+  stats = c(nedges[1], deg_dist_1, deg_dist_2, mixing[c(1,2,3)])
   
   CCM_constr_info[["stats"]] <- stats
   return(CCM_constr_info)

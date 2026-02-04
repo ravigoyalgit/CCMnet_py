@@ -3,7 +3,7 @@
 #' @param x A \code{ccm_inference} object.
 #' @param ... Unused.
 #'
-#' @export
+#' @noRd
 print.ccm_inference <- function(x, ...) {
   
   cat("CCM inference for network data\n\n")

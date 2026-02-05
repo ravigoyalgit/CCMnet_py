@@ -1,15 +1,14 @@
 Package: CCMnet
 Type: Package
 Title: Congruence Class Models for Networks
-Version: 0.1.2
+Version: 0.1.3
 Authors@R: person("Ravi", "Goyal", email = "ravi.j.goyal@gmail.com",
                   role = c("aut", "cre"))
-Description: Provides an implementation of Congruence Class Models (CCM) for 
+Description: Provides an implementation of Congruence Class Models for 
     generating  networks. It facilitates sampling networks based 
     on specific topological properties and attribute mixing patterns using 
-    a Markov Chain Monte Carlo (MCMC) framework. The implementation extends 
-    methods developed by the Statnet Project, particularly those found in 
-    the 'ergm' and 'network' packages (Handcock et al., 2008 <doi:10.18637/jss.v024.i01>). 
+    a Markov Chain Monte Carlo framework. The implementation builds upon code 
+    from the 'ergm' package; see Handcock et al. (2008) <doi:10.18637/jss.v024.i01>. 
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

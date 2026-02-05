@@ -56,7 +56,7 @@ ccm_sample <- sample_ccm(
   network_stats = list("edges"),
   prob_distr = list("poisson"),
   prob_distr_params = list(list(350)), 
-  population = 100
+  population = 50
 )
 
 summary(ccm_sample)
@@ -82,13 +82,13 @@ ccm_sample <- sample_ccm(
   network_stats = list("edges"),
   prob_distr = list("uniform"), 
   prob_distr_params = list(list(0)),
-  population = 50,
-  sample_size = 50000L,
-  burnin = 200000L,
+  population = 20,
+  sample_size = 20000L,
+  burnin = 100000L,
   interval = 1000L,
 )
 
-ccm_sample<- CCM_theoretical_check(ccm_sample, n_sim = 1000)
+ccm_sample<- CCM_theoretical_check(ccm_sample, n_sim = 10000)
 plot(ccm_sample, stats = "edges", type = "hist", include_theoretical = TRUE)
 ```
 
@@ -100,7 +100,7 @@ Arbitrary edge count distributions can be specified using the non-parametric ("N
 
 ```{r edge-example-np}
 
-n_max <- choose(100, 2)
+n_max <- choose(50, 2)
 alpha <- dpois(0:n_max, lambda = 50) + dpois(0:n_max, lambda = 100)
 prob_distr_params <- alpha / sum(alpha)
 
@@ -108,9 +108,9 @@ ccm_sample <- sample_ccm(
   network_stats = list("edges"),
   prob_distr = list("np"),
   prob_distr_params = list(list(prob_distr_params)),
-  population = 100,
-  sample_size = 50000L,
-  burnin = 200000L
+  population = 50,
+  sample_size = 10000L,
+  burnin = 100000L
 )
 
 ccm_sample<- CCM_theoretical_check(ccm_sample, n_sim = 50000)
@@ -128,7 +128,7 @@ Here, the network property of interest is the frequency of each degree within th
 ccm_sample<- sample_ccm(network_stats='DegreeDist',
                prob_distr='DirMult',
                prob_distr_params=list(list(c(2,21,15,12))), 
-               population = 500, 
+               population = 100, 
                sample_size = 10000,
                burnin=100000, 
                interval=1000) 
@@ -148,7 +148,7 @@ plot(ccm_sample,
 This section illustrates the sampler for models involving higher-order dependencies. In this example, a multivariate normal constraint is placed on the degree mixing matrix and a univariate normal constraint is placed on the triangle count. Because the degree mixing matrix effectively determines the number of connected triples, the simultaneous constraint on triangle counts implicitly influences the network’s global clustering coefficient.
 
 ```{r degmix_triangle-example-normal}
-mean_vec = c(23, 66, 44, 9, 118, 80)
+mean_vec = c(23, 66, 44, 9, 120, 80)
 var_mat = matrix(data = c(22, -3, -2, -5, -6, -4,
                           -3, 58, -7, -14, -18, -12,
                           -2, -7, 41, -9, -12, -8,
@@ -162,7 +162,7 @@ ccm_sample <- sample_ccm(network_stats=c('DegMixing', 'Triangles'),
                               prob_distr=c('Normal', 'Normal'),
                               prob_distr_params=prob_distr_params, 
                               sample_size = 100000,
-                              burnin=1000000, 
+                              burnin=500000, 
                               interval=1000,
                               population=500) 
 
@@ -194,9 +194,6 @@ utils::data("faux.mesa.high", package = "ergm", envir = environment())
 utils::data("faux.desert.high", package = "ergm", envir = environment())
 utils::data("faux.dixon.high", package = "ergm", envir = environment())
 utils::data("faux.magnolia.high", package = "ergm", envir = environment())
-#data("faux.desert.high")
-#data("faux.dixon.high")
-#data("faux.magnolia.high")
 
 mesa_net = intergraph::asIgraph(faux.mesa.high)
 desert_net = intergraph::asIgraph(faux.desert.high)
@@ -321,7 +318,9 @@ dixon_deg = igraph::degree(dixon_net)
 prior.unif <- RBesT::mixbeta(c(1, 1, 1))
 N = igraph::vcount(dixon_net)
 
-for (num_sample_nodes in seq(0,240,40)) {
+n_samples <- 1000L
+
+for (num_sample_nodes in seq(40,240,40)) {
   dixon_deg_sample = sample(x = dixon_deg, size = num_sample_nodes, replace = FALSE)
   
   r=sum(dixon_deg_sample)
@@ -352,7 +351,7 @@ for (num_sample_nodes in seq(0,240,40)) {
     prob_distr = list("Beta"),
     prob_distr_params = list(list(posterior.sum_beta[2], posterior.sum_beta[3])), 
     population = N,
-    sample_size = 10000L,
+    sample_size = n_samples,
     burnin = 100000L
   )
   
@@ -360,8 +359,6 @@ for (num_sample_nodes in seq(0,240,40)) {
     model = rep("CCMnet", length(ccm_sample$mcmc_stats$density)),
     value = ccm_sample$mcmc_stats$density,
     sample = num_sample_nodes))
-  
-  n_samples <- nrow(ccm_sample$mcmc_stats)
   
   net <- network::network(N, directed = FALSE)
   p = posterior.sum_beta[2]/(posterior.sum_beta[2] + posterior.sum_beta[3])

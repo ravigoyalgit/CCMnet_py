@@ -213,14 +213,22 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       
       # 4. Create the new igraph object
       # vertices = nodes_attr_df ensures all original attributes are preserved
-      nodes_attr_df = data.frame(name = c(1:(population)), #data.frame(name = c(0:(population-1)), 
-                                 covPattern = covPattern)
+      nodes_attr_df = data.frame(
+        name = as.character(1:population), 
+        covPattern = covPattern,
+        stringsAsFactors = FALSE
+      )
+      
+      edges_df <- as.data.frame(edges_matrix)
+      edges_df[[1]] <- as.character(edges_df[[1]])
+      edges_df[[2]] <- as.character(edges_df[[2]])
       
       new_g <- graph_from_data_frame(
-        as.data.frame(edges_matrix), 
+        d = edges_df, 
         directed = FALSE, 
         vertices = nodes_attr_df
       )
+      
       newnetwork[[sample_net]] = new_g
       
       statsmatrix <- rbind(statsmatrix, matrix(z$s, nrow = samplesize, ncol = length(stats), byrow = TRUE))

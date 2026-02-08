@@ -80,11 +80,20 @@ plot.ccm_sample <- function(x,
     theme_bw() +
     facet_wrap(~stat, scales = "free") +
     labs(x = "Count", y = ifelse(type=="density", "Density", "Frequency"),
-         title = "CCM_fit: MCMC vs Theoretical") +
-    theme(legend.position = "top")
+         title = "") +
+    theme(legend.position = "bottom",
+          legend.title = element_blank(), # Removes "source"
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank())
   
   if (type == "hist") {
-    p <- p + geom_histogram(aes(y = after_stat(.data$density)), alpha = 0.5, position = "identity", bins = 30)
+    p <- p + geom_histogram(
+      aes(y = after_stat(.data$density)), 
+      alpha = 0.5, 
+      position = "identity", 
+      binwidth = 1,
+      center = 0  
+    )
   } else if (type == "density") {
     p <- p + geom_density(alpha = 0.25)
   }

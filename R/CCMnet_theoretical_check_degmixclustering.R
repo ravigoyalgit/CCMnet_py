@@ -39,9 +39,9 @@ CCM_theoretical_check_degmixclustering <- function(fit,
     simulated_1 <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
     
     mean_scalar <- fit$prob_distr_params[[2]][[1]]
-    sigma_scalar  <- fit$prob_distr_params[[2]][[2]]
+    var_scalar  <- fit$prob_distr_params[[2]][[2]]
     
-    simulated_2 <- rnorm(n_sim, mean = mean_scalar, sd = sigma_scalar)
+    simulated_2 <- rnorm(n_sim, mean = mean_scalar, sd = sqrt(var_scalar))
     
   } else {
     warning("Theoretical distribution not currently implemented. Returning NULL.")

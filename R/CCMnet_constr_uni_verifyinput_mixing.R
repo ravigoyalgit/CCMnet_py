@@ -7,21 +7,27 @@ CCMnet_constr_uni_verifyinput_mixing <- function(Network_stats, Prob_Distr, Prob
   
   error = 0
   
-  covariate_list = covPattern
+  k <- length(unique(covPattern))
+  num_params <- (k * (k + 1)) / 2  
+  total_pair_indices <- num_params * 2 
   
-  term1_header   <- c(0, 1, 0) # Edges: Offset 0, Stats 1, Params 0
-  nodemix_params <- c(2, 0, 3, 0, 1, 2) # n_lev, directed, n_stats, base, lev1, lev2
+  block1 <- unlist(lapply(1:k, seq_len))
+  block2 <- rep(1:k, times = 1:k)
   
-  term2_header   <- c(
-    length(nodemix_params),     # Offset to reach attributes
-    3,                          # Number of stats
-    length(nodemix_params) + population  # Total jump to reach the end of the model
+  # 5. Build the inputs vector
+  inputs <- c(
+    0, 1, 0,                      # input[0:2]
+    total_pair_indices,           # input[3]: e.g., 42 for k=6
+    num_params,                   # input[4]: e.g., 21 for k=6
+    total_pair_indices + population, # input[5]: offset (42 + 1461 = 1503)
+    block1,                       # The "From" indices
+    block2,                       # The "To" indices
+    covPattern                    # The data (starts at index 6 + total_pair_indices)
   )
   
-  #inputs <- c(term1_header, term2_header, nodemix_params, covariate_list)
-  inputs <- c(c(0, 1, 0), c(6,3,6 + population), c(1,1,2,1,2,2), covariate_list)
+  #inputs <- c(c(0, 1, 0), c(6,3,6 + population), c(1,1,2,1,2,2), covPattern)
   
-  eta0 = rep(-999.5,length(c(1,1,1,1)))
+  eta0 = rep(-999.5,1 + num_params)
   
   
   if (Prob_Distr[[1]] == 'Poisson') {

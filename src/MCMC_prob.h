@@ -159,8 +159,18 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
     
     ///MIXING MATRIX: BEGIN///
     if ((prob_type[0] == 0) && (prob_type[1] >= 1) && (prob_type[2] == 0) && (prob_type[3] == 0) && (prob_type[4] >= 1)){
-      int Cov_types[2], Num_Cov_type[2];
-      double nwp_mix[3], MHp_mix[3];
+      int L = m->n_stats; // Or however your C struct tracks total stats
+      int num_params = L - 1; 
+      int k = (int)((sqrt(8.0 * num_params + 1.0) - 1.0) / 2.0 + 0.1);
+      
+      // Now your DEBUG will finally show:
+      //Rprintf("--- DEBUG: L=%d, num_params=%d, k=%d ---\n", L, num_params, k);
+      
+      // 2. Dynamic Allocation
+      int *Cov_types = (int *)R_alloc(2, sizeof(int)); 
+      int *Num_Cov_type = (int *)R_alloc(k, sizeof(int));
+      double *nwp_mix = (double *)R_alloc(num_params, sizeof(double));
+      double *MHp_mix = (double *)R_alloc(num_params, sizeof(double));
       
       // 1. Get Stats
       calc_stat_mixing(nwp, m, MHp, networkstatistics, Cov_types, Num_Cov_type, nwp_mix, MHp_mix);

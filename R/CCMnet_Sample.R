@@ -34,17 +34,15 @@
 #' }
 #'
 #' @examples
-#' \dontrun{
 #' # Basic sampling of a random graph with an edge constraint
 #' ccm_sample <- sample_ccm(
 #'   network_stats = list("edges"),
 #'   prob_distr = list("poisson"),
 #'   prob_distr_params = list(list(350)),
-#'   population = 100 
+#'   population = 50 
 #' )
 #' summary(ccm_sample)
 #' plot(ccm_sample, stats = "edges", type = "hist")
-#' }
 #'
 #' @export
 

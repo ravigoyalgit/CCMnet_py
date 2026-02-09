@@ -1,9 +1,11 @@
 Package: CCMnet
 Type: Package
 Title: Congruence Class Models for Networks
-Version: 0.1.3
-Authors@R: person("Ravi", "Goyal", email = "ravi.j.goyal@gmail.com",
-                  role = c("aut", "cre"))
+Version: 0.1.4
+Authors@R: c(person("Ravi", "Goyal", email = "ravi.j.goyal@gmail.com",
+                  role = c("aut", "cre")),
+             person("Statnet Development Team", 
+                  role = c("ctb", "cph")))
 Description: Provides an implementation of Congruence Class Models for 
     generating  networks. It facilitates sampling networks based 
     on specific topological properties and attribute mixing patterns using 

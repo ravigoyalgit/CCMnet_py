@@ -14,7 +14,7 @@
 #'   network_stats = list("edges"),
 #'   prob_distr = list("poisson"),
 #'   prob_distr_params = list(list(350)),
-#'   population = 100 
+#'   population = 50 
 #' )
 #' ccm_sample<- CCM_theoretical_check(ccm_sample, n_sim = 1000)
 #' plot(ccm_sample, stats = "edges", type = "hist", include_theoretical = TRUE)

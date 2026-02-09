@@ -25,7 +25,7 @@ ccm_sample <- sample_ccm(
   network_stats = list("edges"),
   prob_distr = list("poisson"),
   prob_distr_params = list(list(350)),
-  population = 100 
+  population = 50 
 )
 CCM_traceplot(ccm_sample, stats = "edges")
 

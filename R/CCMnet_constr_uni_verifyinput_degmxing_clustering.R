@@ -12,23 +12,23 @@ CCMnet_constr_uni_verifyinput_degmixing_clustering <- function(Network_stats, Pr
     Prob_Distr_Params[[2]] = Prob_Distr_Params_temp
   }
   if (!inherits(Prob_Distr_Params[[1]][[1]], "numeric")) {
-    print("Error: Mean degree mixing should be a vector representing upper triangle of degree mixing matrix.")
+    stop("Mean degree mixing should be a vector representing upper triangle of degree mixing matrix.")
     error = 1
   }
   if (dim(Prob_Distr_Params[[1]][[2]])[1] != dim(Prob_Distr_Params[[1]][[2]])[2]) {
-    print("Error: Covariance matrix is not square.")
+    stop("Covariance matrix is not square.")
     error = 1
   }
   if (length(Prob_Distr_Params[[1]][[1]]) != dim(Prob_Distr_Params[[1]][[2]])[2]) {
-    print("Error: mean vector and covariance matrix are not similar dimensions.")
+    stop("mean vector and covariance matrix are not similar dimensions.")
     error = 1
   }
   if (length(Prob_Distr_Params[[2]][[1]]) != 1) {
-    print("Error: Mean Triangles such be a single positive value.")
+    stop("Mean Triangles such be a single positive value.")
     error = 1
   }
   if (length(Prob_Distr_Params[[2]][[2]]) != 1) {
-    print("Error: Variance of Triangles such be a single positive value.")
+    stop("Variance of Triangles such be a single positive value.")
     error = 1
   }
   if ((Prob_Distr[1] == "Normal") && (Prob_Distr[2] == "Normal")) {
@@ -64,8 +64,7 @@ CCMnet_constr_uni_verifyinput_degmixing_clustering <- function(Network_stats, Pr
     
     var_vector = c(inverse_var_x)
   } else {
-    print("Error: No such distribution for degree mixing currently implemented.")
-    print("Email ravi.goyal@mail.harvard.edu to add feature.")
+    stop("No such distribution for DEGREE MIXING + CLUSTERING currently implemented.")
     error = 1
   }
 

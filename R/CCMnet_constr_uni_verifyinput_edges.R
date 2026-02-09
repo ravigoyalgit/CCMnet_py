@@ -5,26 +5,20 @@
 CCMnet_constr_uni_verifyinput_edges <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                     population, covPattern, remove_var_last_entry) {
   
-  cat("Verifying inputs for EDGES...")
-  
   error = 0
   if (Network_stats == "edges") {
     if (Prob_Distr == "normal") {
       if (length(Prob_Distr_Params[[1]][[1]]) != 1) {
-        cat("Fail\n")
-        print("Error: mean for EDGES is not one value")
+        stop("mean for EDGES is not one value")
         error = 1
       } else if (length(Prob_Distr_Params[[1]][[2]]) != 1) {
-        cat("Fail\n")
-        print("Error: variance for EDGES is not one value")
+        stop("variance for EDGES is not one value")
         error = 1
       } else if (Prob_Distr_Params[[1]][[1]] <= 0) {
-        cat("Fail\n")
-        print("Error: mean for EDGES not a positive value")
+        stop("mean for EDGES not a positive value")
         error = 1
       } else if (Prob_Distr_Params[[1]][[2]] <= 0) {
-        cat("Fail\n")
-        print("Error: variance for EDGES not a positive value")
+        stop("variance for EDGES not a positive value")
         error = 1
       }
       if (error == 0) {
@@ -34,12 +28,10 @@ CCMnet_constr_uni_verifyinput_edges <- function(Network_stats, Prob_Distr, Prob_
       }
     } else if (Prob_Distr == "lognormal") {
       if (length(Prob_Distr_Params[[1]][[1]]) != 1) {
-        cat("Fail\n")
-        print("Error: lambda for EDGES is not one value")
+        stop("lambda for EDGES is not one value")
         error = 1
       } else if (Prob_Distr_Params[[1]][[1]] <= 0) {
-        cat("Fail\n")
-        print("Error: lambda for EDGES not a positive value")
+        stop("lambda for EDGES not a positive value")
         error = 1
       } 
       if (error == 0) {
@@ -49,12 +41,10 @@ CCMnet_constr_uni_verifyinput_edges <- function(Network_stats, Prob_Distr, Prob_
       }
     } else if (Prob_Distr == "poisson") {
       if (length(Prob_Distr_Params[[1]][[1]]) != 1) {
-        cat("Fail\n")
-        print("Error: lambda for EDGES is not one value")
+        stop("lambda for EDGES is not one value")
         error = 1
       } else if (Prob_Distr_Params[[1]][[1]] <= 0) {
-        cat("Fail\n")
-        print("Error: lambda for EDGES not a positive value")
+        stop("lambda for EDGES not a positive value")
         error = 1
       } 
       if (error == 0) {
@@ -68,12 +58,10 @@ CCMnet_constr_uni_verifyinput_edges <- function(Network_stats, Prob_Distr, Prob_
       var_vector = c(0,0)
     } else if (Prob_Distr == "np") {
       if (length(Prob_Distr_Params[[1]][[1]]) != (choose(population,2)+1)) {
-        cat("Fail\n")
-        print("Error: need probability for all possible values for EDGES")
+        stop("need probability for all possible values for EDGES")
         error = 1
       } else if (sum(Prob_Distr_Params[[1]][[1]]) != 1) {
-        cat("Fail\n")
-        print("Error: probabilities much sum to 1")
+        stop("probabilities much sum to 1")
         error = 1
       } 
       if (error == 0) {
@@ -82,8 +70,7 @@ CCMnet_constr_uni_verifyinput_edges <- function(Network_stats, Prob_Distr, Prob_
         var_vector = c(0,0)
       }
     } else {
-      cat("Fail\n")
-      print("Error: No such distribution for EDGES currently implemented.")
+      stop("No such distribution for EDGES currently implemented.")
       error = 1
     } 
   }
@@ -95,11 +82,11 @@ CCMnet_constr_uni_verifyinput_edges <- function(Network_stats, Prob_Distr, Prob_
       mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
       var_vector = c(Prob_Distr_Params[[1]][[2]], Prob_Distr_Params[[1]][[2]])
       if (length(Prob_Distr_Params[[1]][[1]]) != 1) {
-        print("Error: mean value for network density is one positive value")
+        stop("mean value for network density is one positive value")
         error = 1
       }
       if (length(Prob_Distr_Params[[1]][[2]]) != 1) {
-        print("Error: variance for network density is one positive value")
+        stop("variance for network density is one positive value")
         error = 1
       }
     } else if (Prob_Distr == "Beta") {
@@ -107,7 +94,7 @@ CCMnet_constr_uni_verifyinput_edges <- function(Network_stats, Prob_Distr, Prob_
       mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[2]])
       var_vector = c(0,0)
     } else {
-      print("Error: No such distribution for DENSITY currently implemented.")
+      stop("No such distribution for DENSITY currently implemented.")
       error = 1
     } 
   }
@@ -128,7 +115,6 @@ CCMnet_constr_uni_verifyinput_edges <- function(Network_stats, Prob_Distr, Prob_
     )
   }
   if (error == 0) {
-    cat("Check\n")
     CCM_constr_info <- list(
       error = 0,
       prob_type = prob_type,

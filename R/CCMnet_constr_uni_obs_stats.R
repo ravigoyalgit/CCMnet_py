@@ -113,7 +113,7 @@ CCMnet_constr_uni_obs_stats <-function(CCM_constr_info, Network_stats, Prob_Dist
                                                                   population, covPattern, remove_var_last_entry,
                                                                   CCM_constr_info)
   } else {
-    print("Error: No such distribution of observation currently implemented.")
+    stop("No such NETWORK PROPERTY of observation currently implemented.")
     return(CCM_constr_info)
   }
   

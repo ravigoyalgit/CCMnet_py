@@ -9,15 +9,15 @@ CCMnet_constr_uni_verifyinput_degmixing <- function(Network_stats, Prob_Distr, P
   if (Prob_Distr == "Normal") {
     
     if (!inherits(Prob_Distr_Params[[1]][[1]], "numeric")) {
-      print("Error: Mean degree mixing should be a vector representing upper triangle of degree mixing matrix.")
+      stop("Mean degree mixing should be a vector representing upper triangle of degree mixing matrix.")
       error = 1
     }
     if (dim(Prob_Distr_Params[[1]][[2]])[1] != dim(Prob_Distr_Params[[1]][[2]])[2]) {
-      print("Error: Covariance matrix is not square.")
+      stop("Covariance matrix is not square.")
       error = 1
     }
     if (length(Prob_Distr_Params[[1]][[1]]) != dim(Prob_Distr_Params[[1]][[2]])[2]) {
-      print("Error: mean vector and covariance matrix are not similar dimensions.")
+      stop("mean vector and covariance matrix are not similar dimensions.")
       error = 1
     }
     
@@ -48,8 +48,7 @@ CCMnet_constr_uni_verifyinput_degmixing <- function(Network_stats, Prob_Distr, P
     
     var_vector = c(inverse_var_x)
   } else {
-    print("Error: No such distribution for degree mixing currently implemented.")
-    print("Email ravi.goyal@mail.harvard.edu to add feature.")
+    stop("No such distribution for DEGREE MIXING currently implemented.")
     error = 1
   }
 

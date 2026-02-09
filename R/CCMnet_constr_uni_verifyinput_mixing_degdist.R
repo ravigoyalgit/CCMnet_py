@@ -12,7 +12,7 @@ CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Dis
     Prob_Distr_Params[[2]] = Prob_Distr_Params_temp
   }
   if (length(Prob_Distr_Params[[1]][[1]][[1]]) != length(Prob_Distr_Params[[1]][[1]][[2]])) {
-    print("Error: Current limitation requires mean degree distributions to be of equal length.")
+    stop("Current limitation requires mean degree distributions to be of equal length.")
     error = 1
   }
   # if (dim(Prob_Distr_Params[[1]][[2]][[1]])[1] != dim(Prob_Distr_Params[[1]][[2]][[2]])[1]) {
@@ -101,11 +101,11 @@ CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Dis
       
     }
     if (dim(Prob_Distr_Params[[1]][[3]][1]) > 0) {
-      print("Error: Degrees of freedom are not greater than 0.")
+      stop("Degrees of freedom are not greater than 0.")
       error = 1
     }
     if (dim(Prob_Distr_Params[[1]][[3]][2]) > 0) {
-      print("Error: Degrees of freedom are not greater than 0.")
+      stop("Degrees of freedom are not greater than 0.")
       error = 1
     }
     covariate_list = covPattern
@@ -137,7 +137,7 @@ CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Dis
     prob_type = c(2,2,0,0,1)
     
   } else {
-    print("Error: No such distribution for degree distribution and mixing currently implemented.")
+    stop("No such distribution for DEGREE DISTRIBUTION + MIXING currently implemented.")
     error = 1
   }
   

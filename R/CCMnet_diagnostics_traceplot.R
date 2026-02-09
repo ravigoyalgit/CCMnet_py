@@ -14,7 +14,7 @@
 #'   network_stats = list("edges"),
 #'   prob_distr = list("poisson"),
 #'   prob_distr_params = list(list(350)),
-#'   population = 100 
+#'   population = 50 
 #' )
 #' CCM_traceplot(ccm_sample, stats = "edges")
 #'
@@ -55,7 +55,6 @@ CCM_traceplot <- function(object, stats = NULL, ...) {
     ggplot2::labs(title = "Traceplots", x = "Iteration", y = "Value") +
     ggplot2::theme_minimal()
   
-  print(p)
-  invisible(p)
+  return(p)
 }
 

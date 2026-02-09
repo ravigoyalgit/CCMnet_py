@@ -7,7 +7,7 @@ CCMnet_constr_uni_verifyinput_degdist <- function(Network_stats, Prob_Distr, Pro
   
   error = 0
   if (length(Prob_Distr_Params[[1]][[1]]) < 2) {
-    print("Error: length of mean vector is less than 2")
+    stop("length of mean vector is less than 2")
     error = 1
   }
   if (Prob_Distr == "Normal") {
@@ -18,11 +18,11 @@ CCMnet_constr_uni_verifyinput_degdist <- function(Network_stats, Prob_Distr, Pro
     var_vector = var_vector / population^2
     prob_type = c(1,0,0,0,1)
     if (dim(var_vector)[1] != dim(var_vector)[2]) {
-      print("Error: Covariance matrix is not square")
+      stop("Covariance matrix is not square")
       error = 1
     }
     if (dim(var_vector)[1] != length(mean_vector)) {
-      print("Error: Dimension mismatch between covariance matrix and mean vector")
+      stop("Dimension mismatch between covariance matrix and mean vector")
       error = 1
     }
     
@@ -44,8 +44,7 @@ CCMnet_constr_uni_verifyinput_degdist <- function(Network_stats, Prob_Distr, Pro
     var_vector = c(0,0)
     prob_type = c(3,0,0,0,1)
   } else {
-    print("Error: No such distribution for degree distribution currently implemented.")
-    print("Email ravi.goyal@mail.harvard.edu to add feature.")
+    stop("No such distribution for DEGREE DISTRIBUTION currently implemented.")
     error = 1
   }
   if (error == 0) {

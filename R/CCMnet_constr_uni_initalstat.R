@@ -52,7 +52,7 @@ CCMnet_constr_uni_initalstat <- function(Network_stats, Prob_Distr, Prob_Distr_P
                                                                         CCM_constr_info)
     
   } else {
-    print("Error: No such NETWORK STATS currently implemented.")
+    stop("No such NETWORK STATS currently implemented.")
     CCM_constr_info <- list(
       error = 1,
       prob_type = NULL,

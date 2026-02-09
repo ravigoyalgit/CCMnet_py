@@ -9,11 +9,6 @@
  *  Copyright 2012 the statnet development team
  */
 
-/*
- * Includes code written by Nicole Bohme Carnegie. Email: carnegie@hsph.harvard.edu
- * See d_degmix function
- */
-
 #include "changestats.h"
 
 /********************  changestats:  A    ***********/
@@ -5619,10 +5614,6 @@ D_CHANGESTAT_FN(d_nfstab) {
     }
   UNDO_PREVIOUS_TOGGLES(i);
 }
-
-/*
- * Code by Nicole Bohme Carnegie. Email: carnegie@hsph.harvard.edu
- */
 
 D_CHANGESTAT_FN(d_degmix){
   Vertex tail, head, taildeg, headdeg, node3, node3deg;

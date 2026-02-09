@@ -29,7 +29,6 @@ generate_initial_graph_CCMnet <- function(G, max_degree, ER_prob, covPattern, po
   Gen_Net_counter = 1
   G_max_degree_bool = FALSE
   if (is.null(G)) {
-    cat("Generating random initial network...")
     while (!G_max_degree_bool) {
       g <- sample_gnp(n = population, p = ER_prob, directed = FALSE)
       V(g)$CovAttribute <- covPattern
@@ -37,7 +36,6 @@ generate_initial_graph_CCMnet <- function(G, max_degree, ER_prob, covPattern, po
       G_max_degree_bool = max(degree(g)) <= max_degree
       Gen_Net_counter =   Gen_Net_counter + 1
     }
-    cat("Check\n")
     P = g
   } else {
     g = G

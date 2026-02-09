@@ -121,8 +121,6 @@ CCM_MissingInference <- function(g_obs,
     
     Prob_Distr_Params.df <- rbind(Prob_Distr_Params.df, Prob_Distr_Params[[2]])
     
-    # Optional progress print
-    cat("MCMC iteration:", mcmc_counter, "\n")
   }
   
   # Return results

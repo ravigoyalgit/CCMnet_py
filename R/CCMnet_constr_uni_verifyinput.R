@@ -38,7 +38,7 @@ CCMnet_constr_uni_verifyinput <- function(Network_stats, Prob_Distr, Prob_Distr_
                                                                          population, covPattern, remove_var_last_entry)
     
   } else {
-    print("Error: No such NETWORK STATS currently implemented.")
+    stop("No such NETWORK STATS currently implemented.")
     CCM_constr_info <- list(
       error = 1,
       prob_type = NULL,

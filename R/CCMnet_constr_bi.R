@@ -45,14 +45,12 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   
   if ((length(Network_stats) == 1) && (Network_stats == "Density")){
     if (is.null(P)) {
-      print("Generating Random Initial Network...")
-      
+
       g <-network.initialize(population[1] + population[2],directed = FALSE, bipartite=population[1])
       g %v% "CovAttribute" = covPattern
       
       add.edges(g, tail = 1, head = population[1] + 1)
       
-      print("COMPLETED: Generated Random Initial Network")
       P = g
     } else {
       g = P
@@ -62,8 +60,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   subpopulation = tabulate(covPattern[c(1:population[1])])
   Gen_Net_counter = 1
   if (is.null(P)) {
-    print("Generating Random Initial Network...")
-    
+
     g <-network.initialize(population[1] + population[2],directed = FALSE, bipartite=population[1])
     g %v% "CovAttribute" = covPattern
     
@@ -87,7 +84,6 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
         }
       }
     }
-    print("COMPLETED: Generated Random Initial Network")
     P = g
   } else {
     g = P
@@ -117,11 +113,11 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   
   if ((length(Network_stats) == 1) && (Network_stats == "DegreeDist")) {
     if (length(Prob_Distr_Params[[1]][[1]]) < 2) {
-      print("Error: length of mean vector of type 1 is less than 2")
+      stop("length of mean vector of type 1 is less than 2")
       error = 1
     }
     if (length(Prob_Distr_Params[[2]][[1]]) < 2) {
-      print("Error: length of mean vector of type 2 is less than 2")
+      stop("length of mean vector of type 2 is less than 2")
       error = 1
     }
     if (Prob_Distr == "Normal") {
@@ -153,8 +149,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       
       prob_type = c(99,0,0,0,1)
     } else {
-      print("Error: No such distribution for degree distribution currently implemented.")
-      print("Email ravi.goyal@mail.harvard.edu to add feature.")
+      stop("No such distribution for degree distribution currently implemented.")
       error = 1
     }
     if (error == 0) {
@@ -194,8 +189,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       mean_vector = Prob_Distr_Params[[1]][[1]]
       var_vector = c(0,0)
     } else {
-      print("Error: No such distribution for degree distribution currently implemented.")
-      print("Email ravi.goyal@mail.harvard.edu to add feature.")
+      stop("No such distribution for degree distribution currently implemented.")
       error = 1
     }
     if (error == 0) {
@@ -209,8 +203,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       MHproposal_package = "CCMnet"
     }
   } else if ((length(Network_stats) == 1) && (Network_stats == "Mixing")) {
-    print("Error: No such distribution for mixing currently implemented.")
-    print("Email ravi.goyal@mail.harvard.edu to add feature.")
+    stop("No such distribution for mixing currently implemented.")
     error = 1
   } else if (((length(Network_stats) == 2) && (Network_stats[1] == "DegreeDist") && (Network_stats[2] == "Mixing")) ||
              ((length(Network_stats) == 2) && (Network_stats[1] == "Mixing") && (Network_stats[2] == "DegreeDist")))  {
@@ -263,8 +256,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       var_vector = rep(1, dim(Prob_Distr_Params[[1]][[1]])[2]^2 *  dim(Prob_Distr_Params[[1]][[1]])[1] * 2 +  dim(Prob_Distr_Params[[1]][[1]])[1]^4)
       prob_type = c(2,2,0,0,1)
     } else {
-      print("Error: No such distribution for degree distribution and mixing currently implemented.")
-      print("Email ravi.goyal@mail.harvard.edu to add feature.")
+      stop("No such distribution for degree distribution and mixing currently implemented.")
       error = 1
     }
     
@@ -303,8 +295,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
     }
     
   } else {
-    print("Error: No such Network Statistics currently implemented.")
-    print("Email ravi.goyal@mail.harvard.edu to add feature.")
+    stop("No such Network Statistics currently implemented.")
     error = 1
   }
   

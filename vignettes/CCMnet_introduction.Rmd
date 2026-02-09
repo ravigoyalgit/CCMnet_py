@@ -108,7 +108,7 @@ ccm_sample <- sample_ccm(
   network_stats = list("edges"),
   prob_distr = list("np"),
   prob_distr_params = list(list(prob_distr_params)),
-  population = 50,
+  population = 50L,
   sample_size = 10000L,
   burnin = 100000L
 )
@@ -128,10 +128,10 @@ Here, the network property of interest is the frequency of each degree within th
 ccm_sample<- sample_ccm(network_stats='DegreeDist',
                         prob_distr='DirMult',
                         prob_distr_params=list(list(c(2,21,15,12))), 
-                        population = 100, 
-                        sample_size = 10000,
-                        burnin=100000, 
-                        interval=1000) 
+                        population = 100L, 
+                        sample_size = 10000L,
+                        burnin=100000L, 
+                        interval=1000L) 
 
 ccm_sample <- CCM_theoretical_check(ccm_sample, n_sim = 1000)
 plot(ccm_sample, 
@@ -161,10 +161,10 @@ prob_distr_params = list(list(mean_vec, var_mat),
 ccm_sample <- sample_ccm(network_stats=c('DegMixing', 'Triangles'),
                          prob_distr=c('Normal', 'Normal'),
                          prob_distr_params=prob_distr_params, 
-                         sample_size = 100000,
-                         burnin=500000, 
-                         interval=1000,
-                         population=500) 
+                         sample_size = 10000L,
+                         burnin=100000L, 
+                         interval=1000L,
+                         population=500L) 
 
 ccm_sample <- CCM_theoretical_check(ccm_sample, n_sim = 1000)
 plot(ccm_sample, 
@@ -456,7 +456,7 @@ ccm_sample <- sample_ccm(
   network_stats = list("Density"),
   prob_distr = list("Normal"),
   prob_distr_params = list(list(post_normal[2], (post_normal[3])^2)), 
-  population = 100,
+  population = 100L,
   sample_size = 10000L,
   burnin = 100000L
 )
@@ -465,7 +465,7 @@ school_ensemble <- sample_ccm(
   network_stats = list("Density"),
   prob_distr = list("Normal"),
   prob_distr_params = list(list(post_normal[2], (post_normal[3])^2)), 
-  population = 100,
+  population = 100L,
   sample_size = 10L,
   burnin = 1L,
   interval = 1000L,

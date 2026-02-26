@@ -652,226 +652,226 @@ D_CHANGESTAT_FN(d_b2twostar) {
 /*****************
  changestat: d_balance
 *****************/
-D_CHANGESTAT_FN(d_balance) { 
-  int i, edgeflag, a, b, c, d, e, edgecount, t300, 
-  t210, t120C, t120U, t120D, t201, t030C, t030T, t111U, 
-  t111D, t021C, t021U, t021D, t102, t012; /* , t003; */
-  Vertex node3, tail, head;
-
-
-  /* *** don't forget tail -> head */    
-  CHANGE_STAT[0] = 0.0;
-  if (DIRECTED) { /* directed version */
-    FOR_EACH_TOGGLE(i) {
-      tail = TAIL(i);
-      head = HEAD(i);
-      edgeflag = IS_OUTEDGE(tail, head);
-      t300 = 0;
-      t210 = 0;
-      t120C = 0;  t120U = 0;   t120D = 0;  t201 = 0;
-      t030C = 0;  t030T = 0;   t111U = 0;  t111D = 0;
-      t021C = 0;  t021U = 0;   t021D = 0;  t102 = 0;
-      t012 = 0;
-
-      if (MIN_OUTEDGE(head)!=0 || MIN_INEDGE(head)!=0 || 
-      MIN_OUTEDGE(tail)!=0 || MIN_INEDGE(tail)!=0) {
-
-        /* ****** loop through node3 ****** */
-          for (node3=1; node3 <= N_NODES; node3++) { 
-            if (node3 != tail && node3 != head) {  
-              a = IS_OUTEDGE(head, tail);
-              b = IS_OUTEDGE(head, node3);
-              c = IS_OUTEDGE(node3, head);
-              d = IS_OUTEDGE(node3, tail);
-              e = IS_OUTEDGE(tail, node3);
-              edgecount = (a + b + c + d + e);
-              
-              switch(edgecount) {  
-                case 0:   /* 012 */
-                ++t012;
-                
-                case 1: {  /* 021C, 021U, 021D, 102 */
-                  if ((b == 1) || (d == 1))
-                    ++t021C;
-                  if (c == 1)
-                    ++t021U;
-                  if (e == 1)
-                    ++t021D;
-                  if (a == 1)
-                    ++t102;
-                }
-                break;
-
-                case 2:  { /* 030C, 030T, 111U, 111D */
-                  if ((b + d) == 2)       
-                    ++t030C;
-                  if (((b + e) == 2) || ((c + d) == 2) || ((c + e) == 2))
-                    ++t030T;
-                  if (((a + b) == 2) || ((a + e) == 2) || ((d + e) == 2))
-                    ++t111U;
-                  if (((a + c) == 2) || ((a + d) == 2) || ((b + c) == 2))
-                    ++t111D;
-                }
-                break;
-            
-                case 3: {   /* 120C, 120U, 120D, 201 */
-                  if (a == 1) {
-                    if (((b + d) == 2) || ((c + e) == 2))
-                      ++t120C;
-                    if ((b + e) == 2)
-                      ++t120U;
-                    if ((c + d) == 2)
-                      ++t120D;
-                    if (((b + c) == 2) || ((d + e) == 2))
-                      ++t201;
-                  } else { 
-                    if (b == 1) {
-                      if (((c + d) == 2) || ((d + e) == 2))
-                        ++t120C;
-                      if ((c + e) == 2)
-                        ++t120D;
-                    } else {
-                      ++t120U;
-                    }
-                  } 
-                }
-                break;
-             
-                case 4:   /* 210 */
-                ++t210;
-                break;
-             
-                case 5:   /* 300 */            
-                ++t300;
-                break;
-              }
-
-              switch(edgecount) {  
-                case 1:   /* 102, 021D, 021U, 021C */
-                --t012;
-                break;
-                
-                case 2: {   /* 030C, 030T, 111U, 111D */ 
-                  if (((a + c) == 2) || ((a + e) == 2) || ((b + d) == 2) || 
-                    ((c + e) == 2)) 
-                  --t021C;
-                  if (((a + d) == 2) || ((b + e) == 2))
-                    --t021U;
-                  if (((a + b) == 2) || ((c + d) == 2))
-                    --t021D;
-                  if (((b + c) == 2) || ((d + e) == 2))
-                    --t102;
-                } 
-                break;
-
-                case 3: {  /* 201, 120D, 120U, 120C */
-                  if (a == 1) {
-                    if ((c + e) == 2)       
-                      --t030C;
-                    if (((c + d) == 2) || ((b + e) == 2) || ((b + d) == 2))
-                      --t030T;
-                    if ((b + c) == 2)
-                      --t111U;
-                    if ((d + e) == 2)
-                      --t111D;
-                  } else {
-                    if (b == 1) {
-                      if ((c + d) == 2)
-                        --t111U;
-                      if (((c + e) == 2) || ((d + e) == 2))
-                        --t111D;
-                    }
-                    else
-                      --t111U;
-                  }
-                }
-                break;
-          
-                case 4: {   /* 210 */
-                  if (a == 1) {
-                    if (((b + c + e) == 3) || ((c + d + e) == 3))
-                      --t120C;
-                    if ((b + c + d) == 3)
-                      --t120U;
-                    if ((b + d + e) == 3)
-                      --t120D;
-                  } else {
-                    if ((b + c + d + e) == 4)
-                      --t201;
-                  } 
-                }
-                break;
-                
-                case 5:   /* 300 */            
-                --t210;
-                break;
-              }
-            }
-          }    /* ******  move to next node3 ******** */
-      }
-      else 
-        t012 = t012 + (N_NODES - 2);  
-      
-      /*        t003 = (t300+t210+t120C+t120U+t120D+t201+t030C+t030T); 
-      t003 = t003+(t111U+t111D+t021C+t021U+t021D+t102+t012); */
-      b = t102 + t300; 
-      CHANGE_STAT[0] += edgeflag ? -(double)b : (double)b;
-
-      TOGGLE_IF_MORE_TO_COME(i);
-    }
-
-  /* *** don't forget tail -> head */    
-  }else{ /*  undirected */
-    FOR_EACH_TOGGLE(i) {
-      tail = TAIL(i); 
-      head = HEAD(i);
-      edgeflag = IS_OUTEDGE(tail, head);
-      t300 = 0; t201 = 0; t102 = 0; t012 = 0;
-      
-      if (MIN_OUTEDGE(head)!=0 || MIN_INEDGE(head)!=0 ||
-      MIN_OUTEDGE(tail)!=0 || MIN_INEDGE(tail)!=0) {
-        
-        /* ****** loop through node3 ****** */
-        for (node3=1; node3 <= N_NODES; node3++) { 
-          if (node3 != tail && node3 != head) {
-            a = IS_UNDIRECTED_EDGE(node3, head);
-            b = IS_UNDIRECTED_EDGE(node3, tail);
-            edgecount = (a + b);
-            
-            switch(edgecount){  
-              case 0: {  /* 012 */
-                ++t102;
-                --t012;
-              }
-              break;
-              
-              case 1: {  /* 021C, 021U, 021D, 102 */
-                ++t201;
-                --t102;
-              }
-              break;
-              
-              case 2: {  /* 030C, 030T, 111U, 111D */
-                ++t300;
-                --t201;
-              }
-              break;
-            }
-          }
-          
-        }    /* ******  move to next node3 ******** */
-      } else 
-      t102 = t102 + (N_NODES - 2);  
-      
-      /* t003 = (t102+t201+t300); */
-      b = t102 + t300; 
-      CHANGE_STAT[0] += edgeflag ? -(double)b : (double)b;
-      
-      TOGGLE_IF_MORE_TO_COME(i);
-    } /* i loop */
-  }
-  UNDO_PREVIOUS_TOGGLES(i); /* Needed on exit in case of multiple toggles */
-}
+// D_CHANGESTAT_FN(d_balance) { 
+//   int i, edgeflag, a, b, c, d, e, edgecount, t300, 
+//   t210, t120C, t120U, t120D, t201, t030C, t030T, t111U, 
+//   t111D, t021C, t021U, t021D, t102, t012; /* , t003; */
+//   Vertex node3, tail, head;
+// 
+// 
+//   /* *** don't forget tail -> head */    
+//   CHANGE_STAT[0] = 0.0;
+//   if (DIRECTED) { /* directed version */
+//     FOR_EACH_TOGGLE(i) {
+//       tail = TAIL(i);
+//       head = HEAD(i);
+//       edgeflag = IS_OUTEDGE(tail, head);
+//       t300 = 0;
+//       t210 = 0;
+//       t120C = 0;  t120U = 0;   t120D = 0;  t201 = 0;
+//       t030C = 0;  t030T = 0;   t111U = 0;  t111D = 0;
+//       t021C = 0;  t021U = 0;   t021D = 0;  t102 = 0;
+//       t012 = 0;
+// 
+//       if (MIN_OUTEDGE(head)!=0 || MIN_INEDGE(head)!=0 || 
+//       MIN_OUTEDGE(tail)!=0 || MIN_INEDGE(tail)!=0) {
+// 
+//         /* ****** loop through node3 ****** */
+//           for (node3=1; node3 <= N_NODES; node3++) { 
+//             if (node3 != tail && node3 != head) {  
+//               a = IS_OUTEDGE(head, tail);
+//               b = IS_OUTEDGE(head, node3);
+//               c = IS_OUTEDGE(node3, head);
+//               d = IS_OUTEDGE(node3, tail);
+//               e = IS_OUTEDGE(tail, node3);
+//               edgecount = (a + b + c + d + e);
+//               
+//               switch(edgecount) {  
+//                 case 0:   /* 012 */
+//                 ++t012;
+//                 
+//                 case 1: {  /* 021C, 021U, 021D, 102 */
+//                   if ((b == 1) || (d == 1))
+//                     ++t021C;
+//                   if (c == 1)
+//                     ++t021U;
+//                   if (e == 1)
+//                     ++t021D;
+//                   if (a == 1)
+//                     ++t102;
+//                 }
+//                 break;
+// 
+//                 case 2:  { /* 030C, 030T, 111U, 111D */
+//                   if ((b + d) == 2)       
+//                     ++t030C;
+//                   if (((b + e) == 2) || ((c + d) == 2) || ((c + e) == 2))
+//                     ++t030T;
+//                   if (((a + b) == 2) || ((a + e) == 2) || ((d + e) == 2))
+//                     ++t111U;
+//                   if (((a + c) == 2) || ((a + d) == 2) || ((b + c) == 2))
+//                     ++t111D;
+//                 }
+//                 break;
+//             
+//                 case 3: {   /* 120C, 120U, 120D, 201 */
+//                   if (a == 1) {
+//                     if (((b + d) == 2) || ((c + e) == 2))
+//                       ++t120C;
+//                     if ((b + e) == 2)
+//                       ++t120U;
+//                     if ((c + d) == 2)
+//                       ++t120D;
+//                     if (((b + c) == 2) || ((d + e) == 2))
+//                       ++t201;
+//                   } else { 
+//                     if (b == 1) {
+//                       if (((c + d) == 2) || ((d + e) == 2))
+//                         ++t120C;
+//                       if ((c + e) == 2)
+//                         ++t120D;
+//                     } else {
+//                       ++t120U;
+//                     }
+//                   } 
+//                 }
+//                 break;
+//              
+//                 case 4:   /* 210 */
+//                 ++t210;
+//                 break;
+//              
+//                 case 5:   /* 300 */            
+//                 ++t300;
+//                 break;
+//               }
+// 
+//               switch(edgecount) {  
+//                 case 1:   /* 102, 021D, 021U, 021C */
+//                 --t012;
+//                 break;
+//                 
+//                 case 2: {   /* 030C, 030T, 111U, 111D */ 
+//                   if (((a + c) == 2) || ((a + e) == 2) || ((b + d) == 2) || 
+//                     ((c + e) == 2)) 
+//                   --t021C;
+//                   if (((a + d) == 2) || ((b + e) == 2))
+//                     --t021U;
+//                   if (((a + b) == 2) || ((c + d) == 2))
+//                     --t021D;
+//                   if (((b + c) == 2) || ((d + e) == 2))
+//                     --t102;
+//                 } 
+//                 break;
+// 
+//                 case 3: {  /* 201, 120D, 120U, 120C */
+//                   if (a == 1) {
+//                     if ((c + e) == 2)       
+//                       --t030C;
+//                     if (((c + d) == 2) || ((b + e) == 2) || ((b + d) == 2))
+//                       --t030T;
+//                     if ((b + c) == 2)
+//                       --t111U;
+//                     if ((d + e) == 2)
+//                       --t111D;
+//                   } else {
+//                     if (b == 1) {
+//                       if ((c + d) == 2)
+//                         --t111U;
+//                       if (((c + e) == 2) || ((d + e) == 2))
+//                         --t111D;
+//                     }
+//                     else
+//                       --t111U;
+//                   }
+//                 }
+//                 break;
+//           
+//                 case 4: {   /* 210 */
+//                   if (a == 1) {
+//                     if (((b + c + e) == 3) || ((c + d + e) == 3))
+//                       --t120C;
+//                     if ((b + c + d) == 3)
+//                       --t120U;
+//                     if ((b + d + e) == 3)
+//                       --t120D;
+//                   } else {
+//                     if ((b + c + d + e) == 4)
+//                       --t201;
+//                   } 
+//                 }
+//                 break;
+//                 
+//                 case 5:   /* 300 */            
+//                 --t210;
+//                 break;
+//               }
+//             }
+//           }    /* ******  move to next node3 ******** */
+//       }
+//       else 
+//         t012 = t012 + (N_NODES - 2);  
+//       
+//       /*        t003 = (t300+t210+t120C+t120U+t120D+t201+t030C+t030T); 
+//       t003 = t003+(t111U+t111D+t021C+t021U+t021D+t102+t012); */
+//       b = t102 + t300; 
+//       CHANGE_STAT[0] += edgeflag ? -(double)b : (double)b;
+// 
+//       TOGGLE_IF_MORE_TO_COME(i);
+//     }
+// 
+//   /* *** don't forget tail -> head */    
+//   }else{ /*  undirected */
+//     FOR_EACH_TOGGLE(i) {
+//       tail = TAIL(i); 
+//       head = HEAD(i);
+//       edgeflag = IS_OUTEDGE(tail, head);
+//       t300 = 0; t201 = 0; t102 = 0; t012 = 0;
+//       
+//       if (MIN_OUTEDGE(head)!=0 || MIN_INEDGE(head)!=0 ||
+//       MIN_OUTEDGE(tail)!=0 || MIN_INEDGE(tail)!=0) {
+//         
+//         /* ****** loop through node3 ****** */
+//         for (node3=1; node3 <= N_NODES; node3++) { 
+//           if (node3 != tail && node3 != head) {
+//             a = IS_UNDIRECTED_EDGE(node3, head);
+//             b = IS_UNDIRECTED_EDGE(node3, tail);
+//             edgecount = (a + b);
+//             
+//             switch(edgecount){  
+//               case 0: {  /* 012 */
+//                 ++t102;
+//                 --t012;
+//               }
+//               break;
+//               
+//               case 1: {  /* 021C, 021U, 021D, 102 */
+//                 ++t201;
+//                 --t102;
+//               }
+//               break;
+//               
+//               case 2: {  /* 030C, 030T, 111U, 111D */
+//                 ++t300;
+//                 --t201;
+//               }
+//               break;
+//             }
+//           }
+//           
+//         }    /* ******  move to next node3 ******** */
+//       } else 
+//       t102 = t102 + (N_NODES - 2);  
+//       
+//       /* t003 = (t102+t201+t300); */
+//       b = t102 + t300; 
+//       CHANGE_STAT[0] += edgeflag ? -(double)b : (double)b;
+//       
+//       TOGGLE_IF_MORE_TO_COME(i);
+//     } /* i loop */
+//   }
+//   UNDO_PREVIOUS_TOGGLES(i); /* Needed on exit in case of multiple toggles */
+// }
   
 /*****************
  changestat: d_boundeddegree

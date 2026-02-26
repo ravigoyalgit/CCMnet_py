@@ -425,9 +425,9 @@ double sp_gamma(double z)
   return accm/z;
 }
 
-int calcCNR( int n, int r)
+double calcCNR( int n, int r)
 {
-    int answer = 1;
+    double answer = 1;
     int multiplier = n;
     int divisor = 1;
     int k;

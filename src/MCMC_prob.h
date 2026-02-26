@@ -135,11 +135,11 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
   int total_max_edges = (nwp->nnodes * (nwp->nnodes-1) * .5) + .5;
   double cutoff=log(0);
   int counter;
-  int counter1;
-  int counter2;
+  //int counter1;
+  //int counter2;
   
-  double nwp_density;
-  double MHp_density;
+  //double nwp_density;
+  //double MHp_density;
   double pdf_gaussian_nwp = 0;
   double pdf_gaussian_MHp = log(0);
   
@@ -888,8 +888,8 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
         if ((prob_type[0] == 0) && (prob_type[1] == 0) && (prob_type[2] >= 1) && (prob_type[3] >= 1) && (prob_type[4] >= 1)){
           
           
-          double num_Tri = networkstatistics[m->n_stats-1]; //should be last statistic
-          double num_Tri_change = fabs(m->workspace[m->n_stats-1]); //should be last statistic
+          //double num_Tri = networkstatistics[m->n_stats-1]; //should be last statistic
+          //double num_Tri_change = fabs(m->workspace[m->n_stats-1]); //should be last statistic
           
           int n_dim = num_deg_stats - 1;
           

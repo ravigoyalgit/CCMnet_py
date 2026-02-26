@@ -69,7 +69,7 @@ void calc_f_mixing(Network *nwp, int *Cov_types, int *Num_Cov_type,
                    double *nwp_mixing_matrix, double *MHp_mixing_matrix,
                    double *prob_g_g2, double *prob_g2_g, int MHp_nedges,
                    Model *m, MHproposal *MHp, double *networkstatistics) {
-  int counter, Cov_type;
+  //int counter, Cov_type;
   ModelTerm *mtp2 = m->termarray;
   mtp2++; 
   
@@ -78,9 +78,9 @@ void calc_f_mixing(Network *nwp, int *Cov_types, int *Num_Cov_type,
   Cov_types[1] = (int)round(mtp2->inputparams[mtp2->ninputparams - nwp->nnodes + *(MHp->togglehead) - 1]);
   
   /* 2. Count global distribution of covariate types */
-  int L = m->n_stats; // Or however your C struct tracks total stats
-  int num_params = L - 1; 
-  int k = (int)((sqrt(8.0 * num_params + 1.0) - 1.0) / 2.0 + 0.1);
+  //int L = m->n_stats; // Or however your C struct tracks total stats
+  //int num_params = L - 1; 
+  //int k = (int)((sqrt(8.0 * num_params + 1.0) - 1.0) / 2.0 + 0.1);
   
   // Now your DEBUG will finally show:
   //Rprintf("--- DEBUG in function f: L=%d, num_params=%d, k=%d ---\n", L, num_params, k);
@@ -145,7 +145,7 @@ void calc_probs_mixing(Network *nwp, int num_mixing_terms, int *Cov_types, int *
                        Model *m, MHproposal *MHp, double *networkstatistics,
                        int *prob_type) {
   
-  int counter, Cov_type;
+  //int counter, Cov_type;
   ModelTerm *mtp2 = m->termarray;
   mtp2++; 
   

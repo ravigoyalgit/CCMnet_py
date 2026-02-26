@@ -95,4 +95,4 @@ MCMCStatus MCMCSample(MHproposal *MHp,
 #endif
 
 double sp_gamma(double z);
-int calcCNR( int n, int r);
+double calcCNR( int n, int r);

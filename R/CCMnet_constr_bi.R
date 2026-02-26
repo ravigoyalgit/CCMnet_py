@@ -177,11 +177,11 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
       var_vector = c(Prob_Distr_Params[[1]][[2]], Prob_Distr_Params[[1]][[2]])
       if (length(Prob_Distr_Params[[1]][[1]]) != 1) {
-        print("Error: mean value for network density is one positive value")
+        stop("Error: mean value for network density is one positive value")
         error = 1
       }
       if (length(Prob_Distr_Params[[1]][[2]]) != 1) {
-        print("Error: variance for network density is one positive value")
+        stop("Error: variance for network density is one positive value")
         error = 1
       }
     } else if (Prob_Distr == "NP") {

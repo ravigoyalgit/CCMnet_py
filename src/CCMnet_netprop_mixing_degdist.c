@@ -25,11 +25,11 @@ void calc_probs_mixing_degdist(int length_deg_dist, Model *m, Network *nwp,
       nwp_Deg_Distr_2[counter - (length_deg_dist + 1)] = (int)networkstatistics[counter];
     }
 
-    int nnodes_type1 = 0, nnodes_type2 = 0;
-    for (counter = 0; counter < nwp->nnodes; counter++) {
-      if ((int)round(mtp2->inputparams[mtp2->ninputparams - nwp->nnodes + counter]) == 1) nnodes_type1++;
-      else nnodes_type2++;
-    }
+    // int nnodes_type1 = 0, nnodes_type2 = 0;
+    // for (counter = 0; counter < nwp->nnodes; counter++) {
+    //   if ((int)round(mtp2->inputparams[mtp2->ninputparams - nwp->nnodes + counter]) == 1) nnodes_type1++;
+    //   else nnodes_type2++;
+    // }
 
     double nwp_mu_diff_1[length_deg_dist], MHp_mu_diff_1[length_deg_dist];
     double nwp_mu_diff_2[length_deg_dist], MHp_mu_diff_2[length_deg_dist];

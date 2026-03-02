@@ -9,7 +9,7 @@ run_ccm_tests <- function(g_obs,
   
   tests <- lapply(alt_terms, function(term) {
     
-    if (term == "DegreeDist") {
+    if (term == "degreedist") {
       return(test_degree_ccm(
         g_obs, fit_null, population, test_stat
       ))

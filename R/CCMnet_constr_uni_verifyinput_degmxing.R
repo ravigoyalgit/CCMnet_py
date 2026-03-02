@@ -6,7 +6,7 @@ CCMnet_constr_uni_verifyinput_degmixing <- function(Network_stats, Prob_Distr, P
                                               population, covPattern, remove_var_last_entry) {
   
   error = 0
-  if (Prob_Distr == "Normal") {
+  if (Prob_Distr == "mvn") {
     
     if (!inherits(Prob_Distr_Params[[1]][[1]], "numeric")) {
       stop("Mean degree mixing should be a vector representing upper triangle of degree mixing matrix.")

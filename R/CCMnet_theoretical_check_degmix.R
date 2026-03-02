@@ -11,7 +11,7 @@
 CCM_theoretical_check_degmix <- function(fit,
                                          n_sim) {
   
-  if (fit$prob_distr[[1]] == "Multinomial_Poisson") {
+  if (fit$prob_distr[[1]] == "multinomial_poisson") {
     
     lambda <- fit$prob_distr_params[[1]][1]
     probs  <- fit$prob_distr_params[[2]]
@@ -31,7 +31,7 @@ CCM_theoretical_check_degmix <- function(fit,
     
     simulated <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
 
-  } else if (fit$prob_distr[[1]] == "Normal") {
+  } else if (fit$prob_distr[[1]] == "mvn") {
     
     mean_vec <- fit$prob_distr_params[[1]][[1]]
     sigma_mat  <- fit$prob_distr_params[[1]][[2]]

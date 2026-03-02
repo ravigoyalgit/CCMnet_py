@@ -16,7 +16,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   G_max_degree_bool = FALSE
   ER_prob = .05
   
-  if ((length(Network_stats) == 1) && (Network_stats == "DegreeDist")){
+  if ((length(Network_stats) == 1) && (Network_stats == "degreedist")){
     max_degree_1 = length(Prob_Distr_Params[[1]][[1]])-1
     max_degree_2 = length(Prob_Distr_Params[[2]][[1]])-1
     max_degree = min(max_degree_1, max_degree_2)
@@ -29,12 +29,12 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
     len_deg_dist = length(Prob_Distr_Params[[2]][[1]])
     Prob_Distr_Params[[2]][[1]] = as.matrix(Prob_Distr_Params[[2]][[1]])
     dim(Prob_Distr_Params[[2]][[1]]) = c(1, len_deg_dist)
-  } else if ((length(Network_stats) == 2) && (Network_stats[1] == "DegreeDist") && (Network_stats[2] == "Mixing")) {
+  } else if ((length(Network_stats) == 2) && (Network_stats[1] == "degreedist") && (Network_stats[2] == "mixing")) {
     max_degree_1 = dim(Prob_Distr_Params[[1]][[1]])[2]-1
     max_degree_2 = dim(Prob_Distr_Params[[2]][[1]])[2]-1
     max_degree = min(max_degree_1, max_degree_2)
     max_degree_f = max(max_degree_1, max_degree_2)
-  } else if ((length(Network_stats) == 2) && (Network_stats[1] == "Mixing") && (Network_stats[2] == "DegreeDist")) {
+  } else if ((length(Network_stats) == 2) && (Network_stats[1] == "mixing") && (Network_stats[2] == "degreedist")) {
     max_degree_1 = length(Prob_Distr_Params[[1]][[1]])-1
     max_degree_2 = length(Prob_Distr_Params[[2]][[1]])-1
     max_degree = min(max_degree_1, max_degree_2)
@@ -43,7 +43,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
     max_degree_f = max_degree = sum(population) - 1
   }
   
-  if ((length(Network_stats) == 1) && (Network_stats == "Density")){
+  if ((length(Network_stats) == 1) && (Network_stats == "density")){
     if (is.null(P)) {
 
       g <-network.initialize(population[1] + population[2],directed = FALSE, bipartite=population[1])
@@ -111,7 +111,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   heads = edge_mat[2,]
   Clist_n = network.size(g)
   
-  if ((length(Network_stats) == 1) && (Network_stats == "DegreeDist")) {
+  if ((length(Network_stats) == 1) && (Network_stats == "degreedist")) {
     if (length(Prob_Distr_Params[[1]][[1]]) < 2) {
       stop("length of mean vector of type 1 is less than 2")
       error = 1
@@ -120,7 +120,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       stop("length of mean vector of type 2 is less than 2")
       error = 1
     }
-    if (Prob_Distr == "Normal") {
+    if (Prob_Distr == "mvn") {
       mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[2]][[1]])
       
       var_vector = c()
@@ -138,12 +138,12 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       
       prob_type = c(1,0,0,0,1)
       
-    } else if (Prob_Distr == "DirMult") {
+    } else if (Prob_Distr == "dirmult") {
       mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[2]][[1]])
       var_vector = c(0,0)
       
       prob_type = c(2,0,0,0,1)
-    } else if (Prob_Distr == "NP") {
+    } else if (Prob_Distr == "np") {
       mean_vector = Prob_Distr_Params[[3]][[1]]
       var_vector = c(0,0)
       
@@ -171,8 +171,8 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       
       eta0 = rep(-999.5, length(stats))
     }
-  } else if ((length(Network_stats) == 1) && (Network_stats == "Density")) {
-    if (Prob_Distr == "Normal") {
+  } else if ((length(Network_stats) == 1) && (Network_stats == "density")) {
+    if (Prob_Distr == "normal") {
       prob_type = c(0,0,0,0,1)
       mean_vector = c(Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[1]][[1]])
       var_vector = c(Prob_Distr_Params[[1]][[2]], Prob_Distr_Params[[1]][[2]])
@@ -184,7 +184,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
         stop("Error: variance for network density is one positive value")
         error = 1
       }
-    } else if (Prob_Distr == "NP") {
+    } else if (Prob_Distr == "np") {
       prob_type = c(0,0,0,0,99)
       mean_vector = Prob_Distr_Params[[1]][[1]]
       var_vector = c(0,0)
@@ -202,12 +202,12 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       MHproposal_name = "TNT"
       MHproposal_package = "CCMnet"
     }
-  } else if ((length(Network_stats) == 1) && (Network_stats == "Mixing")) {
+  } else if ((length(Network_stats) == 1) && (Network_stats == "mixing")) {
     stop("No such distribution for mixing currently implemented.")
     error = 1
-  } else if (((length(Network_stats) == 2) && (Network_stats[1] == "DegreeDist") && (Network_stats[2] == "Mixing")) ||
-             ((length(Network_stats) == 2) && (Network_stats[1] == "Mixing") && (Network_stats[2] == "DegreeDist")))  {
-    if (Network_stats[1] == "Mixing") { #swap prob_distr_params
+  } else if (((length(Network_stats) == 2) && (Network_stats[1] == "degreedist") && (Network_stats[2] == "mixing")) ||
+             ((length(Network_stats) == 2) && (Network_stats[1] == "mixing") && (Network_stats[2] == "degreedist")))  {
+    if (Network_stats[1] == "mixing") { #swap prob_distr_params
       Prob_Distr_Params_temp = Prob_Distr_Params[[1]]
       Prob_Distr_Params[[1]] = Prob_Distr_Params[[2]]
       Prob_Distr_Params[[2]] = Prob_Distr_Params_temp
@@ -216,7 +216,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       Prob_Distr_Params[[2]] = Prob_Distr_Params[[3]]
       Prob_Distr_Params[[3]] = Prob_Distr_Params_temp
     }
-    if ((Prob_Distr[1] == "Normal") && ((Prob_Distr[2] == "Normal"))) {
+    if ((Prob_Distr[1] == "mvn") && ((Prob_Distr[2] == "normal"))) {
       
       mean_vector = c(c(t(Prob_Distr_Params[[1]][[1]])),c(t(Prob_Distr_Params[[2]][[1]])),c(t(Prob_Distr_Params[[3]][[1]])))
       
@@ -251,7 +251,7 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       
       prob_type = c(1,1,0,0,1)
       
-    } else if ((Prob_Distr[1] == "DirMult") && ((Prob_Distr[2] == "DirMult"))) {
+    } else if ((Prob_Distr[1] == "dirmult") && ((Prob_Distr[2] == "dirmult"))) {
       mean_vector = c(c(t(Prob_Distr_Params[[1]][[1]])),c(t(Prob_Distr_Params[[2]][[1]])),c(t(Prob_Distr_Params[[3]][[1]])))
       var_vector = rep(1, dim(Prob_Distr_Params[[1]][[1]])[2]^2 *  dim(Prob_Distr_Params[[1]][[1]])[1] * 2 +  dim(Prob_Distr_Params[[1]][[1]])[1]^4)
       prob_type = c(2,2,0,0,1)
@@ -429,18 +429,18 @@ bi_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       dim(statsmatrix) = c(1,len_statsmatrix)
     }
     
-    if ((length(Network_stats) == 1) && (Network_stats == "DegreeDist")){
+    if ((length(Network_stats) == 1) && (Network_stats == "degreedist")){
       statsmatrix = statsmatrix[,-1]
       colnames(statsmatrix) = c(paste("Type1_Degree", c(0:(dim(statsmatrix)[2]/2-1)), sep = " "),
                                 paste("Type1_Degree", c(0:(dim(statsmatrix)[2]/2-1)), sep = " ")
       )
-    } else if  ((length(Network_stats) == 1) && (Network_stats == "Density")) {
+    } else if  ((length(Network_stats) == 1) && (Network_stats == "density")) {
       statsmatrix[,1] = statsmatrix[,1]/choose(population[1],2)
       statsmatrix[,2] = statsmatrix[,2]/choose(population[2],2)
       statsmatrix = statsmatrix[,c(1:2)]
-    } else if ((length(Network_stats) == 2) && (Network_stats[1] == "DegreeDist") && (Network_stats[2] == "Mixing")) {
+    } else if ((length(Network_stats) == 2) && (Network_stats[1] == "degreedist") && (Network_stats[2] == "mixing")) {
       statsmatrix = statsmatrix[,-1]
-    } else if ((length(Network_stats) == 2) && (Network_stats[1] == "Mixing") && (Network_stats[2] == "DegreeDist")) {
+    } else if ((length(Network_stats) == 2) && (Network_stats[1] == "mixing") && (Network_stats[2] == "degreedist")) {
       statsmatrix = statsmatrix[,-1]
     } else {
       statsmatrix = statsmatrix[,-1]

@@ -1,49 +1,80 @@
-#' Fit a Congruence Class Model (CCM)
+#' Sample from a Congruence Class Model (CCM)
 #'
-#' \code{sample_ccm} fits a Congruence Class Model using an MCMC framework to sample 
-#' networks that match specific topological property distributions. It facilitates 
-#' sampling based on specified network statistics (e.g., edges, degree distribution, 
-#' mixing patterns) and their associated probability distributions.
+#' \code{sample_ccm} generates networks from a Congruence Class Model using a 
+#' Metropolis-Hastings MCMC framework. Unlike traditional models that fit parameters 
+#' to a single observed graph, CCM samples from the space of all possible networks 
+#' where topological properties follow specified target probability distributions.
 #'
-#' @param network_stats Character vector of statistic names to be constrained (e.g., "edges", "degree", "density").
-#' @param prob_distr Character vector of probability distribution names corresponding to each statistic.
+#' \subsection{Target Distributions}{
+#' The model treats network statistics as random variables following a target 
+#' distribution. The following table summarizes the implemented network 
+#' statistics and their compatible distributions:
+#' \tabular{ll}{
+#'   \strong{Network Statistic} \tab \strong{Compatible Target Distributions} \cr
+#'   \code{"edges"} \tab \code{"poisson"}, \code{"uniform"}, \code{"np"} \cr
+#'   \code{"density"} \tab \code{"normal"}, \code{"beta"} \cr
+#'   \code{"degreedist"} \tab \code{"dirmult"} \cr
+#'   \code{"degmixing"} \tab \code{"mvn"} \cr
+#'   \code{"mixing"} \tab \code{"poisson"} \cr
+#'   \code{c("degmixing", "triangles")} \tab \code{c("mvn", "normal")} \cr
+#'   \code{c("degreedist", "mixing")} \tab \code{c("mvn", "normal")} \cr
+#' }
+#' }
+#'
+#' @param network_stats Character vector of statistic names to be targeted. 
+#'   For joint targets, use vectors like \code{c("degmixing", "triangles")}.
+#' @param prob_distr Character vector of probability distribution names 
+#'   corresponding to each statistic.
 #' @param prob_distr_params List of parameter sets for each specified distribution.
 #' @param population Integer. The number of nodes in the network.
 #' @param sample_size Integer. Number of MCMC samples to return. Default is 1000.
 #' @param burnin Integer. Number of MCMC iterations to discard before sampling begins. Default is 200,000.
 #' @param interval Integer. Thinning interval (number of iterations between samples). Default is 1000.
-#' @param cov_pattern Integer vector. Optional group labels or covariate patterns for nodes.
+#' @param cov_pattern Integer vector. Optional nodal attributes (group IDs) 
+#'   required for mixing or degree-mixing targets.
 #' @param initial_g An \code{igraph} object. The starting graph for the MCMC chain.
 #' @param use_initial_g Logical. If TRUE, the MCMC chain starts from \code{initial_g}.
-#' @param partial_network Integer. Reserved for future use in partial network observation.
+#' @param partial_network Integer. Reserved for future use.
 #' @param obs_nodes Integer vector. Reserved for future use in specifying observed nodes.
-#' @param Obs_stats Character vector of additional network statistics to monitor during sampling.
-#' @param remove_var_last_entry Logical. If TRUE, removes the variance constraint from the last entry of the distribution.
-#' @param stats_only Logical. If TRUE, only sufficient statistics are returned; otherwise, network objects are included.
+#' @param Obs_stats Character vector of additional network statistics to 
+#'   monitor (but not target) during sampling. Reserved for future use.
+#' @param remove_var_last_entry Logical. If TRUE, the last entry of the variance 
+#'   matrix is dropped to ensure invertibility for certain distributions.
+#' @param stats_only Logical. If TRUE, only sufficient statistics are returned; 
+#'   if FALSE, the list of sampled \code{igraph} objects is included.
 #'
 #' @return An object of class \code{ccm_sample} containing:
 #' \itemize{
 #'   \item \code{mcmc_stats}: A data frame of sampled network statistics.
 #'   \item \code{population}: The number of nodes in the network.
-#'   \item \code{prob_distr}: The distributions used for constraints.
-#'   \item \code{prob_distr_params}: Parameters used for the constraints.
-#'   \item \code{network_stats}: The names of the statistics constrained.
-#'   \item \code{cov_pattern}: The covariate pattern used.
-#'   \item \code{theoretical}: Theoretical distribution values, if calculated.
-#'   \item \code{g}: A list of sampled graphs.
+#'   \item \code{prob_distr}: The names of the target distributions used.
+#'   \item \code{prob_distr_params}: The parameter values used for the target distributions.
+#'   \item \code{network_stats}: The names of the network statistics targeted.
+#'   \item \code{cov_pattern}: The nodal covariate pattern used (if any).
+#'   \item \code{theoretical}: A list containing theoretical samples, populated by calling \code{sample_theoretical()}.
+#'   \item \code{g}: A list of sampled \code{igraph} objects (last network if \code{stats_only = TRUE}).
 #' }
 #'
-#' @examples
-#' # Basic sampling of a random graph with an edge constraint
-#' ccm_sample <- sample_ccm(
-#'   network_stats = list("edges"),
-#'   prob_distr = list("poisson"),
-#'   prob_distr_params = list(list(350)),
-#'   population = 50 
-#' )
-#' summary(ccm_sample)
-#' plot(ccm_sample, stats = "edges", type = "hist")
+#' @details 
+#' The returned \code{ccm_sample} object has associated \code{plot} and 
+#' \code{sample_theoretical} methods for diagnostic and comparative analysis.
 #'
+#' @examples
+#' # 1. Define target distributions and sample from the CCM
+#' ccm_sample <- sample_ccm(
+#'   network_stats = "edges",
+#'   prob_distr = "poisson",
+#'   prob_distr_params = list(list(350)),
+#'   population = 50
+#' )
+#' 
+#' # 2. Generate theoretical samples for the same target
+#' ccm_sample <- sample_theoretical(ccm_sample)
+#' 
+#' # 3. Visualize MCMC samples against theoretical target
+#' plot(ccm_sample, type = "hist", include_theoretical = TRUE)
+#' 
+#' @seealso \code{\link{sample_theoretical}}, \code{\link{plot.ccm_sample}}
 #' @export
 
 sample_ccm <- function(
@@ -63,6 +94,12 @@ sample_ccm <- function(
     remove_var_last_entry = FALSE,
     stats_only = TRUE
 ) {
+  
+  # Perform all input checks
+  .validate_sample_ccm_inputs(
+    network_stats, prob_distr, prob_distr_params, population,
+    sample_size, burnin, interval, cov_pattern, initial_g, use_initial_g
+  )
   
   # Call C backend
   out <- CCMnet_constr(

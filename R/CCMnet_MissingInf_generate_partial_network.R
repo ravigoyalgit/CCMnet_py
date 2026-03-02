@@ -6,7 +6,7 @@
 #' @param population Integer. Total number of nodes in the network.
 #' @param sample_fraction Numeric (0,1]. Fraction of nodes to include in the observed network.
 #' @param Network_stats List. Network statistics to constrain (e.g., \code{list("Degree")}).
-#' @param Prob_Distr List. Probability distributions for network statistics (e.g., \code{list("Multinomial_Poisson")}).
+#' @param Prob_Distr List. Probability distributions for network statistics (e.g., \code{list("multinomial_poisson")}).
 #' @param Prob_Distr_Params List. Parameters corresponding to the specified probability distributions.
 #' @param covPattern Integer vector. Covariate pattern for nodes (length = \code{population}).
 #' @param n_mcmc Integer. Number of MCMC samples to generate in \code{CCM_fit}. Default 1.
@@ -30,7 +30,7 @@
 #' population <- 100
 #' sample_fraction <- 0.8
 #' Network_stats <- list("Degree")
-#' Prob_Distr <- list("Multinomial_Poisson")
+#' Prob_Distr <- list("multinomial_poisson")
 #' Prob_Distr_Params <- list( # user must define appropriately
 #'   1,                       # placeholder for edges or mixing param
 #'   dpois(0:(population-1), lambda = 5)

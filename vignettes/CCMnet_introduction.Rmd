@@ -53,8 +53,8 @@ We fit a CCM where the **number of edges** follows a Poisson distribution with \
 ```{r edge-example-poisson}
 
 ccm_sample <- sample_ccm(
-  network_stats = list("edges"),
-  prob_distr = list("poisson"),
+  network_stats = c("edges"),
+  prob_distr = c("poisson"),
   prob_distr_params = list(list(350)), 
   population = 50
 )
@@ -64,7 +64,7 @@ summary(ccm_sample)
 print(ccm_sample)
 
 # Compare MCMC samples to theoretical Poisson distribution
-ccm_sample<- CCM_theoretical_check(ccm_sample, n_sim = 1000)
+ccm_sample<- sample_theoretical(ccm_sample, n_sim = 1000)
 
 # Plot density with theoretical distribution
 plot(ccm_sample, stats = "edges", type = "hist", include_theoretical = TRUE)
@@ -79,8 +79,8 @@ We fit a CCM where the **number of edges** follows a uniform distribution.
 ```{r edge-example-uniform}
 
 ccm_sample <- sample_ccm(
-  network_stats = list("edges"),
-  prob_distr = list("uniform"), 
+  network_stats = c("edges"),
+  prob_distr = c("uniform"), 
   prob_distr_params = list(list(0)),
   population = 20,
   sample_size = 20000L,
@@ -88,7 +88,7 @@ ccm_sample <- sample_ccm(
   interval = 1000L,
 )
 
-ccm_sample<- CCM_theoretical_check(ccm_sample, n_sim = 10000)
+ccm_sample<- sample_theoretical(ccm_sample, n_sim = 10000)
 plot(ccm_sample, stats = "edges", type = "hist", include_theoretical = TRUE)
 ```
 
@@ -105,15 +105,15 @@ alpha <- dpois(0:n_max, lambda = 50) + dpois(0:n_max, lambda = 100)
 prob_distr_params <- alpha / sum(alpha)
 
 ccm_sample <- sample_ccm(
-  network_stats = list("edges"),
-  prob_distr = list("np"),
+  network_stats = c("edges"),
+  prob_distr = c("np"),
   prob_distr_params = list(list(prob_distr_params)),
   population = 50L,
   sample_size = 10000L,
   burnin = 100000L
 )
 
-ccm_sample<- CCM_theoretical_check(ccm_sample, n_sim = 50000)
+ccm_sample<- sample_theoretical(ccm_sample, n_sim = 50000)
 plot(ccm_sample, stats = "edges", type = "hist", include_theoretical = TRUE)
 ```
 
@@ -125,15 +125,15 @@ Here, the network property of interest is the frequency of each degree within th
 
 ```{r degree-example-dirmult}
 
-ccm_sample<- sample_ccm(network_stats='DegreeDist',
-                        prob_distr='DirMult',
+ccm_sample<- sample_ccm(network_stats=c('degreedist'),
+                        prob_distr=c('dirmult'),
                         prob_distr_params=list(list(c(2,21,15,12))), 
                         population = 100L, 
                         sample_size = 10000L,
                         burnin=100000L, 
                         interval=1000L) 
 
-ccm_sample <- CCM_theoretical_check(ccm_sample, n_sim = 1000)
+ccm_sample <- sample_theoretical(ccm_sample, n_sim = 1000)
 plot(ccm_sample, 
      stats = paste0("deg", 0:3), 
      type = "hist", 
@@ -158,20 +158,25 @@ var_mat = matrix(data = c(22, -3, -2, -5, -6, -4,
 prob_distr_params = list(list(mean_vec, var_mat),
                          list(10,3))
 
-ccm_sample <- sample_ccm(network_stats=c('DegMixing', 'Triangles'),
-                         prob_distr=c('Normal', 'Normal'),
+ccm_sample <- sample_ccm(network_stats=c('degmixing', 'triangles'),
+                         prob_distr=c('mvn', 'normal'),
                          prob_distr_params=prob_distr_params, 
                          sample_size = 10000L,
                          burnin=100000L, 
                          interval=1000L,
                          population=500L) 
 
-ccm_sample <- CCM_theoretical_check(ccm_sample, n_sim = 1000)
+ccm_sample <- sample_theoretical(ccm_sample, n_sim = 1000)
+
 plot(ccm_sample, 
      stats = c("DM11", "DM12", "DM13", "DM22", "DM23", "DM33", "triangles"), 
      type = "hist", 
      include_theoretical = TRUE)
-CCM_traceplot(ccm_sample, stats = "triangles")
+
+plot(ccm_sample, 
+     stats = c("triangles"), 
+     type = "trace", 
+     include_theoretical = TRUE)
 ```
 
 > **Explanation:** The density plots show sampled degrees (blue) versus theoretical probabilities (red). Close match verifies correct MCMC sampling.
@@ -249,8 +254,8 @@ n_samples = 10000L
 
 #CCM
 ccm_sample <- sample_ccm(
-  network_stats = list("Density"),
-  prob_distr = list("Normal"),
+  network_stats = c("density"),
+  prob_distr = c("normal"),
   prob_distr_params = list(list(post_normal[2], (post_normal[3])^2)), 
   population = population,
   sample_size = n_samples,
@@ -306,7 +311,14 @@ ggplot2::ggplot( Network_samples %>% filter(model != "ER"),
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.text.y = element_blank(),  
-        axis.ticks.y = element_blank())
+        axis.ticks.y = element_blank(),
+      plot.title = element_text(size = 16, face = "bold"),  
+      axis.title.x = element_text(size = 12),               
+      axis.title.y = element_text(size = 12),              
+      axis.text.x = element_text(size = 10),               
+      strip.text.x = element_text(size = 14),  
+      strip.text.y = element_text(size = 14),  
+      strip.background = element_rect(fill = "lightgray", color = "black"))
 
 ```
 
@@ -325,8 +337,9 @@ prior.unif <- RBesT::mixbeta(c(1, 1, 1))
 N = igraph::vcount(dixon_net)
 
 n_samples <- 1000L
+num_sample_nodes_seq = seq(40,240,40)
 
-for (num_sample_nodes in seq(40,240,40)) {
+for (num_sample_nodes in num_sample_nodes_seq) {
   dixon_deg_sample = sample(x = dixon_deg, size = num_sample_nodes, replace = FALSE)
   
   r=sum(dixon_deg_sample)
@@ -353,8 +366,8 @@ for (num_sample_nodes in seq(40,240,40)) {
   posterior.sum_beta[3] <- (1 - mu) * S
   
   ccm_sample <- sample_ccm(
-    network_stats = list("Density"),
-    prob_distr = list("Beta"),
+    network_stats = c("density"),
+    prob_distr = c("beta"),
     prob_distr_params = list(list(posterior.sum_beta[2], posterior.sum_beta[3])), 
     population = N,
     sample_size = n_samples,
@@ -364,7 +377,7 @@ for (num_sample_nodes in seq(40,240,40)) {
   res = bind_rows(res, data.frame(
     model = rep("CCMnet", length(ccm_sample$mcmc_stats$density)),
     value = ccm_sample$mcmc_stats$density,
-    sample = num_sample_nodes))
+    sample = paste("Samples:",num_sample_nodes)))
   
   net <- network::network(N, directed = FALSE)
   p = posterior.sum_beta[2]/(posterior.sum_beta[2] + posterior.sum_beta[3])
@@ -382,7 +395,7 @@ for (num_sample_nodes in seq(40,240,40)) {
   res <- bind_rows(res, data.frame(
     value = c(ERGM, ER),
     model = c(rep("ERGM", n_samples), rep("ER", n_samples)),
-    sample = c(rep(num_sample_nodes, n_samples), rep(num_sample_nodes, n_samples))
+    sample = c(rep(paste("Samples:",num_sample_nodes), n_samples), rep(paste("Samples:",num_sample_nodes), n_samples))
   ))
 
 }
@@ -391,6 +404,11 @@ for (num_sample_nodes in seq(40,240,40)) {
 ## 4.3.2 Plot of Posterior Predictive Network Statistics for Sampled School for CCM, ERGM, and G(n,m)
 
 ```{r density-example-sampled_school-compare}
+
+res$sample <- factor(
+  res$sample,
+  levels = paste("Samples:", num_sample_nodes_seq)
+)
 
 # ER vertical lines
 ER_lines <- res %>%
@@ -442,7 +460,14 @@ ggplot2::ggplot(
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.text.y = element_blank(),  
-        axis.ticks.y = element_blank()) +
+        axis.ticks.y = element_blank(),
+      plot.title = element_text(size = 16, face = "bold"),  
+      axis.title.x = element_text(size = 12),               
+      axis.title.y = element_text(size = 12),              
+      axis.text.x = element_text(size = 10),               
+      strip.text.x = element_text(size = 14),  
+      strip.text.y = element_text(size = 14),  
+      strip.background = element_rect(fill = "lightgray", color = "black")) +
   facet_wrap(~sample, scales =  "free")
 
 ```
@@ -453,8 +478,8 @@ ggplot2::ggplot(
 ```{r density-example-sampled_school-ensemble}
 
 ccm_sample <- sample_ccm(
-  network_stats = list("Density"),
-  prob_distr = list("Normal"),
+  network_stats = list("density"),
+  prob_distr = list("normal"),
   prob_distr_params = list(list(post_normal[2], (post_normal[3])^2)), 
   population = 100L,
   sample_size = 10000L,
@@ -462,8 +487,8 @@ ccm_sample <- sample_ccm(
 )
 
 school_ensemble <- sample_ccm(
-  network_stats = list("Density"),
-  prob_distr = list("Normal"),
+  network_stats = list("density"),
+  prob_distr = list("normal"),
   prob_distr_params = list(list(post_normal[2], (post_normal[3])^2)), 
   population = 100L,
   sample_size = 10L,

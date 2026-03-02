@@ -11,14 +11,14 @@
 CCM_theoretical_check_mixing <- function(fit,
                                          n_sim) {
   
-  if (fit$prob_distr[[1]] == "Poisson") {
+  if (fit$prob_distr[[1]] == "poisson") {
     lambda_vec <- fit$prob_distr_params[[1]][[1]]
     simulated = NULL
     for (i in c(1:length(lambda_vec))) {
       m_edges <- rpois(n_sim, lambda_vec[i])
       simulated = bind_cols(simulated, m_edges)
     }
-  } else if (fit$prob_distr[[1]] == "Multinomial_Poisson") {
+  } else if (fit$prob_distr[[1]] == "multinomial_poisson") {
     
     lambda <- fit$prob_distr_params[[1]][1]
     probs  <- fit$prob_distr_params[[2]]
@@ -34,7 +34,7 @@ CCM_theoretical_check_mixing <- function(fit,
     warning("Theoretical distribution not currently implemented. Returning NULL.")
     fit$theoretical <- list(
       theory_stats = NULL,
-      type = "Mixing"
+      type = "mixing"
     )
     return(fit)
   }
@@ -52,7 +52,7 @@ CCM_theoretical_check_mixing <- function(fit,
     
   fit$theoretical <- list(
     theory_stats = simulated,
-    type = "Mixing"
+    type = "mixing"
   )
   
   return(fit)

@@ -18,16 +18,16 @@
 #' @param remove_var_last_entry Logical. If \code{TRUE}, removes linear 
 #'   dependencies in degree distributions during variance inversion.
 #' @param Obs_stats A character vector specifying the types of statistics to 
-#'   constrain. Supported values: "Edges", "Mixing", "DegreeDist", 
-#'   "DegMixing", "Triangles". Can be a combination (e.g., \code{c("DegMixing", "Triangles")}).
+#'   constrain. Supported values: "edges", "mixing", "degreedist", 
+#'   "degmixing", "triangles". Can be a combination (e.g., \code{c("degmixing", "triangles")}).
 #'
 #' @details 
 #' The function uses conditional logic to match \code{Obs_stats} to the 
 #' appropriate helper function (e.g., \code{\link{CCMnet_constr_uni_degmixing_clustering}}). 
 #' 
-#' \strong{Special Handling for DegreeDist:} 
-#' If \code{Obs_stats} is "DegreeDist", the function overrides \code{Prob_Distr} 
-#' to "DirMult" and sets a default parameter list of ones.
+#' \strong{Special Handling for degreedist:} 
+#' If \code{Obs_stats} is "degreedist", the function overrides \code{Prob_Distr} 
+#' to "dirmult" and sets a default parameter list of ones.
 #' 
 #' 
 #'
@@ -49,7 +49,7 @@ CCMnet_constr_uni_obs_stats <-function(CCM_constr_info, Network_stats, Prob_Dist
                             population, covPattern, remove_var_last_entry,
                             Obs_stats) {
   
-  if ((length(Obs_stats) == 1) && (Obs_stats == "Edges")) {
+  if ((length(Obs_stats) == 1) && (Obs_stats == "edges")) {
     
     CCM_constr_info_verify = CCMnet_constr_uni_verifyinput_edges(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                           population, covPattern, remove_var_last_entry)
@@ -59,7 +59,7 @@ CCMnet_constr_uni_obs_stats <-function(CCM_constr_info, Network_stats, Prob_Dist
                                                          population, covPattern, remove_var_last_entry,
                                                          CCM_constr_info)
     
-  } else if ((length(Obs_stats) == 1) && (Obs_stats == "Mixing")) {
+  } else if ((length(Obs_stats) == 1) && (Obs_stats == "mixing")) {
     
     CCM_constr_info_verify = CCMnet_constr_uni_verifyinput_mixing(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                                  population, covPattern, remove_var_last_entry)
@@ -69,8 +69,8 @@ CCMnet_constr_uni_obs_stats <-function(CCM_constr_info, Network_stats, Prob_Dist
                                                                  population, covPattern, remove_var_last_entry,
                                                                  CCM_constr_info)
     
-  } else if ((length(Obs_stats) == 1) && (Obs_stats == "DegreeDist")) {
-    Prob_Distr='DirMult'
+  } else if ((length(Obs_stats) == 1) && (Obs_stats == "degreedist")) {
+    Prob_Distr='dirmult'
     Prob_Distr_Params=list(list(rep(1,population)))
     
     CCM_constr_info_verify = CCMnet_constr_uni_verifyinput_degdist(Network_stats, Prob_Distr, Prob_Distr_Params,
@@ -81,8 +81,8 @@ CCMnet_constr_uni_obs_stats <-function(CCM_constr_info, Network_stats, Prob_Dist
                                                                   population, covPattern, remove_var_last_entry,
                                                                   CCM_constr_info)
     
-  } else if (((length(Obs_stats) == 2) && (Obs_stats[1] == "Mixing") && (Obs_stats[2] == "DegreeDist")) ||
-             ((length(Obs_stats) == 2) && (Obs_stats[1] == "DegreeDist") && (Obs_stats[2] == "Mixing"))) {
+  } else if (((length(Obs_stats) == 2) && (Obs_stats[1] == "mixing") && (Obs_stats[2] == "degreedist")) ||
+             ((length(Obs_stats) == 2) && (Obs_stats[1] == "degreedist") && (Obs_stats[2] == "mixing"))) {
     
     CCM_constr_info_verify = CCMnet_constr_uni_verifyinput_mixing_degdist(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                                   population, covPattern, remove_var_last_entry)
@@ -92,7 +92,7 @@ CCMnet_constr_uni_obs_stats <-function(CCM_constr_info, Network_stats, Prob_Dist
                                                                   population, covPattern, remove_var_last_entry,
                                                                   CCM_constr_info)
     
-  } else if ((length(Obs_stats) == 1) && (Obs_stats == "DegMixing"))  {
+  } else if ((length(Obs_stats) == 1) && (Obs_stats == "degmixing"))  {
     
     CCM_constr_info_verify = CCMnet_constr_uni_verifyinput_degmixing(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                                   population, covPattern, remove_var_last_entry)
@@ -102,8 +102,8 @@ CCMnet_constr_uni_obs_stats <-function(CCM_constr_info, Network_stats, Prob_Dist
                                                                   population, covPattern, remove_var_last_entry,
                                                                   CCM_constr_info)
     
-  } else if  (((length(Obs_stats) == 2) && (Obs_stats[1] == c("DegMixing")) && (Obs_stats[2] == c("Triangles"))) ||
-              ((length(Obs_stats) == 2) && (Obs_stats[1] == "Triangles") && (Obs_stats[2] == "DegMixingg"))) {
+  } else if  (((length(Obs_stats) == 2) && (Obs_stats[1] == c("degmixing")) && (Obs_stats[2] == c("triangles"))) ||
+              ((length(Obs_stats) == 2) && (Obs_stats[1] == "triangles") && (Obs_stats[2] == "degmixing"))) {
     
     CCM_constr_info_verify = CCMnet_constr_uni_verifyinput_degmixing_clustering(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                                   population, covPattern, remove_var_last_entry)

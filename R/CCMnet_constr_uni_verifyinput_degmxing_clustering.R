@@ -6,7 +6,7 @@ CCMnet_constr_uni_verifyinput_degmixing_clustering <- function(Network_stats, Pr
                                                          population, covPattern, remove_var_last_entry) {
   
   error = 0
-  if (Network_stats[1] == "Triangles") { #swap prob_distr_params
+  if (Network_stats[1] == "triangles") { #swap prob_distr_params
     Prob_Distr_Params_temp = Prob_Distr_Params[[1]]
     Prob_Distr_Params[[1]] = Prob_Distr_Params[[2]]
     Prob_Distr_Params[[2]] = Prob_Distr_Params_temp
@@ -31,7 +31,7 @@ CCMnet_constr_uni_verifyinput_degmixing_clustering <- function(Network_stats, Pr
     stop("Variance of Triangles such be a single positive value.")
     error = 1
   }
-  if ((Prob_Distr[1] == "Normal") && (Prob_Distr[2] == "Normal")) {
+  if ((Prob_Distr[1] == "mvn") && (Prob_Distr[2] == "normal")) {
     
     max_degree = floor(sqrt(2*length(upper.tri(Prob_Distr_Params[[1]][[1]], diag = TRUE))))
     

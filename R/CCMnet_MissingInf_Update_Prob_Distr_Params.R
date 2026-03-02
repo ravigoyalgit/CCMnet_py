@@ -6,8 +6,8 @@
 #'
 #' @param g An igraph object representing the current network state.
 #' @param Prob_Distr_Params_hyperprior A list of hyperprior parameters for the probability distributions.
-#' @param Network_stats A character vector specifying which network statistics to update (e.g., "Degree", "Mixing").
-#' @param Prob_Distr A list specifying the type of probability distribution used (e.g., "Multinomial_Poisson").
+#' @param Network_stats A character vector specifying which network statistics to update (e.g., "degreedist", "mixing").
+#' @param Prob_Distr A list specifying the type of probability distribution used (e.g., "multinomial_poisson").
 #' @param Prob_Distr_Params A list of current probability distribution parameters to be updated.
 #' @param G_stats A numeric vector of observed network statistics for the current network.
 #' @param MCMC_wgt Numeric, weight to apply to the network statistics in the update (default = 1).
@@ -30,8 +30,8 @@ Update_Prob_Distr_Params <- function(g,
   
   # Update for Degree distribution
   if (Network_stats == "Degree") {
-    if (Prob_Distr[[1]][1] == "Multinomial_Poisson") {
-      if (Prob_Distr_Params_hyperprior[[1]][1] == "Dirichlet_Gamma") {
+    if (Prob_Distr[[1]][1] == "multinomial_poisson") {
+      if (Prob_Distr_Params_hyperprior[[1]][1] == "dirichlet_gamma") {
         
         alpha <- Prob_Distr_Params_hyperprior[[3]]
         
@@ -47,9 +47,9 @@ Update_Prob_Distr_Params <- function(g,
   }
   
   # Update for Mixing distribution
-  if (Network_stats == "Mixing") {
-    if (Prob_Distr[[1]][1] == "Multinomial_Poisson") {
-      if (Prob_Distr_Params_hyperprior[[1]][1] == "Dirichlet_Gamma") {
+  if (Network_stats == "mixing") {
+    if (Prob_Distr[[1]][1] == "multinomial_poisson") {
+      if (Prob_Distr_Params_hyperprior[[1]][1] == "dirichlet_gamma") {
         
         gamma_kappa <- Prob_Distr_Params_hyperprior[[2]][1]
         gamma_theta <- Prob_Distr_Params_hyperprior[[2]][2]

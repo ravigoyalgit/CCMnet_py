@@ -1,7 +1,7 @@
 Package: CCMnet
 Type: Package
 Title: Congruence Class Models for Networks
-Version: 0.1.6
+Version: 1.0.0
 Authors@R: c(person("Ravi", "Goyal", email = "ravi.j.goyal@gmail.com",
                   role = c("aut", "cre")),
              person("Statnet Development Team", 

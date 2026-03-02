@@ -2,9 +2,9 @@
 #' based on specified network statistics and probability distributions. This 
 #' function interfaces with the C-level \code{MCMC_wrapper}.
 #'
-#' @param Network_stats Character vector. Supported values include "DegreeDist", 
-#'   "edges", "Mixing", "DegMixing", and "Triangles".
-#' @param Prob_Distr Character string. The distribution type (e.g., "Normal", "NegBin", "DirMult", "NP", "Tdist").
+#' @param Network_stats Character vector. Supported values include "degreedist", 
+#'   "edges", "mixing", "degmixing", and "triangles".
+#' @param Prob_Distr Character string. The distribution type (e.g., "normal", "dirmult", "np", "tdist").
 #' @param Prob_Distr_Params List. Distribution parameters (means, covariances, etc.).
 #' @param samplesize Integer. Number of network samples to collect.
 #' @param burnin Integer. Number of initial MCMC iterations to discard.
@@ -46,28 +46,28 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   }
   ER_prob = .05
   
-  if ((length(Network_stats) == 1) && (Network_stats == "DegreeDist")){
+  if ((length(Network_stats) == 1) && (Network_stats == "degreedist")){
     max_degree_f = max_degree = length(Prob_Distr_Params[[1]][[1]])-1
-  } else if  ((length(Network_stats) == 1) && (Network_stats == "edges" || Network_stats == "Density")) {
+  } else if  ((length(Network_stats) == 1) && (Network_stats == "edges" || Network_stats == "density")) {
     max_degree_f = max_degree = population - 1
     if (Prob_Distr == "np") {
       ER_prob = (max(which(Prob_Distr_Params[[1]][[1]] > 0))-1)/choose(population,2) * .8
     }
-  } else if ((length(Network_stats) == 2) && (Network_stats[1] == "DegreeDist") && (Network_stats[2] == "Mixing")) {
+  } else if ((length(Network_stats) == 2) && (Network_stats[1] == "degreedist") && (Network_stats[2] == "mixing")) {
     max_degree_1 = length(Prob_Distr_Params[[1]][[1]][[1]])-1
     max_degree_2 = length(Prob_Distr_Params[[1]][[1]][[2]])-1
     max_degree = min(max_degree_1, max_degree_2)
     max_degree_f = max(max_degree_1, max_degree_2)
-  } else if ((length(Network_stats) == 2) && (Network_stats[1] == "Mixing") && (Network_stats[2] == "DegreeDist")) {
+  } else if ((length(Network_stats) == 2) && (Network_stats[1] == "mixing") && (Network_stats[2] == "degreedist")) {
     max_degree_1 = length(Prob_Distr_Params[[2]][[1]][[1]])-1
     max_degree_2 = length(Prob_Distr_Params[[2]][[1]][[2]])-1
     max_degree = min(max_degree_1, max_degree_2)
     max_degree_f = max(max_degree_1, max_degree_2)
-  } else if ((length(Network_stats) == 1) && (Network_stats == "DegMixing")) {
+  } else if ((length(Network_stats) == 1) && (Network_stats == "degmixing")) {
     max_degree_f = max_degree = floor(sqrt(2*length(upper.tri(Prob_Distr_Params[[1]][[1]], diag = TRUE))))
-  } else if  ((length(Network_stats) == 2) && (Network_stats[1] == c("DegMixing")) && (Network_stats[2] == c("Triangles"))) {
+  } else if  ((length(Network_stats) == 2) && (Network_stats[1] == c("degmixing")) && (Network_stats[2] == c("triangles"))) {
     max_degree_f = max_degree = floor(sqrt(2*length(upper.tri(Prob_Distr_Params[[1]][[1]], diag = TRUE))))
-  } else if  ((length(Network_stats) == 2) && (Network_stats[1] == c("Triangles")) && (Network_stats[2] == c("DegMixing"))) {
+  } else if  ((length(Network_stats) == 2) && (Network_stats[1] == c("triangles")) && (Network_stats[2] == c("degmixing"))) {
     max_degree_f = max_degree = floor(sqrt(2*length(upper.tri(Prob_Distr_Params[[2]][[1]], diag = TRUE))))
   } else {
     max_degree_f = max_degree = population - 1
@@ -209,7 +209,11 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       raw_heads <- z$newnwheads[2:(m + 1)]
       
       # 3. Create the edge matrix for igraph
-      edges_matrix <- bind_cols(raw_tails, raw_heads)
+      edges_df <- data.frame(
+        from = as.character(raw_tails),
+        to   = as.character(raw_heads),
+        stringsAsFactors = FALSE
+      )
       
       # 4. Create the new igraph object
       # vertices = nodes_attr_df ensures all original attributes are preserved
@@ -218,10 +222,6 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
         covPattern = covPattern,
         stringsAsFactors = FALSE
       )
-      
-      edges_df <- as.data.frame(edges_matrix)
-      edges_df[[1]] <- as.character(edges_df[[1]])
-      edges_df[[2]] <- as.character(edges_df[[2]])
       
       new_g <- graph_from_data_frame(
         d = edges_df, 
@@ -249,21 +249,21 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
     if (!(is.null(Obs_stats))) {
         statsmatrix = statsmatrix
     } else {
-      if ((length(Network_stats) == 1) && (Network_stats == "DegreeDist")){
+      if ((length(Network_stats) == 1) && (Network_stats == "degreedist")){
         statsmatrix = statsmatrix[,-1]
       } else if  ((length(Network_stats) == 1) && (Network_stats == "edges")) {
         statsmatrix = statsmatrix[,1]
-      } else if ((length(Network_stats) == 1)  && (Network_stats == "Density")) {
+      } else if ((length(Network_stats) == 1)  && (Network_stats == "density")) {
         statsmatrix = statsmatrix[,1] / choose(population, 2)
-      } else if ((length(Network_stats) == 2) && (Network_stats[1] == "DegreeDist") && (Network_stats[2] == "Mixing")) {
+      } else if ((length(Network_stats) == 2) && (Network_stats[1] == "degreedist") && (Network_stats[2] == "mixing")) {
         statsmatrix = statsmatrix[,-1]
-      } else if ((length(Network_stats) == 2) && (Network_stats[1] == "Mixing") && (Network_stats[2] == "DegreeDist")) {
+      } else if ((length(Network_stats) == 2) && (Network_stats[1] == "mixing") && (Network_stats[2] == "degreedist")) {
         statsmatrix = statsmatrix[,-1]
-      } else if ((length(Network_stats) == 1) && (Network_stats == "DegMixing")) {
+      } else if ((length(Network_stats) == 1) && (Network_stats == "degmixing")) {
         statsmatrix = statsmatrix[,-1]
-      } else if  ((length(Network_stats) == 2) && (Network_stats[1] == c("DegMixing")) && (Network_stats[2] == c("Triangles"))) {
+      } else if  ((length(Network_stats) == 2) && (Network_stats[1] == c("degmixing")) && (Network_stats[2] == c("triangles"))) {
         statsmatrix = statsmatrix[,-1]
-      } else if  ((length(Network_stats) == 2) && (Network_stats[1] == c("Triangles")) && (Network_stats[2] == c("DegMixing"))) {
+      } else if  ((length(Network_stats) == 2) && (Network_stats[1] == c("triangles")) && (Network_stats[2] == c("degmixing"))) {
         statsmatrix = statsmatrix[,-1]
         statsmatrix = cbind(statsmatrix[,dim(statsmatrix)[2]], statsmatrix[,-dim(statsmatrix)[2]])
       } else {

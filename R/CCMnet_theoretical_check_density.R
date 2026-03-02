@@ -11,15 +11,15 @@
 CCM_theoretical_check_density <- function(fit,
                                         n_sim) {
   
-  if (fit$prob_distr[[1]] == "Beta") {
+  if (fit$prob_distr[[1]] == "beta") {
     density <- rbeta(n_sim, shape1 = fit$prob_distr_params[[1]][[1]][1], shape2 = fit$prob_distr_params[[1]][[2]][1]) 
-  } else if (fit$prob_distr[[1]] == "Normal") {
+  } else if (fit$prob_distr[[1]] == "normal") {
     density <- rnorm(n_sim, mean = fit$prob_distr_params[[1]][[1]][1], sd = sqrt(fit$prob_distr_params[[1]][[2]][1])) 
   } else {
     warning("Theoretical distribution not currently implemented. Returning NULL.")
     fit$theoretical <- list(
       theory_stats = NULL,
-      type = "Density"
+      type = "density"
     )
     return(fit)
   }
@@ -28,7 +28,7 @@ CCM_theoretical_check_density <- function(fit,
   
   fit$theoretical <- list(
     theory_stats = df,
-    type = "Density"
+    type = "density"
   )
   
   return(fit)

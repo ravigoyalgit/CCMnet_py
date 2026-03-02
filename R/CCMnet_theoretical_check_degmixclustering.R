@@ -11,7 +11,7 @@
 CCM_theoretical_check_degmixclustering <- function(fit,
                                          n_sim) {
   
-  if (fit$prob_distr[[1]] == "Multinomial_Poisson" && fit$prob_distr[[2]] == "Normal") {
+  if (fit$prob_distr[[1]] == "multinomial_poisson" && fit$prob_distr[[2]] == "normal") {
     
     lambda <- fit$prob_distr_params[[1]][[1]][1]
     probs  <- fit$prob_distr_params[[1]][[2]]
@@ -23,7 +23,7 @@ CCM_theoretical_check_degmixclustering <- function(fit,
       total_edges <- rpois(1, lambda)
       simulated_1[i, ] <- rmultinom(1, size = total_edges, prob = probs)
     }
-  } else if (fit$prob_distr[[1]] == "Multivariate_normal" && fit$prob_distr[[2]] == "Normal") {
+  } else if (fit$prob_distr[[1]] == "multivariate_normal" && fit$prob_distr[[2]] == "normal") {
     
     mean_vec <- fit$prob_distr_params[[1]][[1]]
     invsigma_mat  <- fit$prob_distr_params[[1]][[2]]
@@ -31,7 +31,7 @@ CCM_theoretical_check_degmixclustering <- function(fit,
     
     simulated_1 <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
 
-  } else if (fit$prob_distr[[2]] == "Normal" && fit$prob_distr[[2]] == "Normal") {
+  } else if (fit$prob_distr[[1]] == "mvn" && fit$prob_distr[[2]] == "normal") {
     
     mean_vec <- fit$prob_distr_params[[1]][[1]]
     sigma_mat  <- fit$prob_distr_params[[1]][[2]]

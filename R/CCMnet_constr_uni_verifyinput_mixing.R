@@ -30,7 +30,7 @@ CCMnet_constr_uni_verifyinput_mixing <- function(Network_stats, Prob_Distr, Prob
   eta0 = rep(-999.5,1 + num_params)
   
   
-  if (Prob_Distr[[1]] == 'Poisson') {
+  if (Prob_Distr[[1]] == 'poisson') {
     mean_vector = Prob_Distr_Params[[1]][[1]]
     var_vector = c(0,0)
   

@@ -3,7 +3,7 @@
 #' @noRd
 plot_ccm_network <- function(x, term) {
   
-  if (term == "DegreeDist") {
+  if (term == "degreedist") {
     return(plot_ccm_degree(x))
   }
   

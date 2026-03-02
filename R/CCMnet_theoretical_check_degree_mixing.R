@@ -12,7 +12,7 @@
 CCM_theoretical_check_degree_mixing <- function(fit,
                                         n_sim) {
   
-  if (fit$prob_distr[[1]] == "Normal") {
+  if (fit$prob_distr[[1]] == "mvn") {
     degrees_0.df <- rmvnorm(n = n_sim, 
             mean = fit$prob_distr_params[[1]][[1]][[1]],
             sigma = fit$prob_distr_params[[1]][[2]][[1]])
@@ -37,7 +37,7 @@ CCM_theoretical_check_degree_mixing <- function(fit,
     warning("Theoretical distribution not currently implemented. Returning NULL.")
     fit$theoretical <- list(
       theory_stats = NULL,
-      type = "Degree_Mixing"
+      type = "degree_mixing"
     )
     return(fit)
   }
@@ -47,7 +47,7 @@ CCM_theoretical_check_degree_mixing <- function(fit,
   
   fit$theoretical <- list(
     theory_stats = df,
-    type = "Degree_Mixing"
+    type = "degree_mixing"
   )
   
   return(fit)

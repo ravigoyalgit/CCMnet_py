@@ -12,11 +12,11 @@
 CCM_theoretical_check_degree <- function(fit,
                                         n_sim) {
   
-  if (fit$prob_distr[[1]] == "Multinomial_Poisson") {
+  if (fit$prob_distr[[1]] == "multinomial_poisson") {
     fit$population <- ncol(fit$mcmc_stats)
     theoretical_pmf <- fit$prob_distr_params[[2]]
     degrees.df <- t(rmultinom(n_sim, fit$population, prob = theoretical_pmf))
-  } else if (fit$prob_distr[[1]] == "DirMult") {
+  } else if (fit$prob_distr[[1]] == "dirmult") {
     degrees.df = matrix(NA, nrow = n_sim, ncol = length(fit$prob_distr_params[[1]][[1]]))
     for (i in c(1:n_sim)) {
       degrees.df[i,] <- rmultinom(1, fit$population, prob = rdirichlet(1, alpha = fit$prob_distr_params[[1]][[1]]))

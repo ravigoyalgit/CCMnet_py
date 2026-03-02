@@ -6,7 +6,7 @@ CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Dis
                                                    population, covPattern, remove_var_last_entry) {
   
   error = 0
-  if (Network_stats[1] == "Mixing") { #swap prob_distr_params
+  if (Network_stats[1] == "mixing") { #swap prob_distr_params
     Prob_Distr_Params_temp = Prob_Distr_Params[[1]]
     Prob_Distr_Params[[1]] = Prob_Distr_Params[[2]]
     Prob_Distr_Params[[2]] = Prob_Distr_Params_temp
@@ -28,7 +28,7 @@ CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Dis
   #   error = 1
   # }
   
-  if ((Prob_Distr[1] == "Poisson") && ((Prob_Distr[2] == "Poisson"))) {
+  if ((Prob_Distr[1] == "poisson") && ((Prob_Distr[2] == "poisson"))) {
     covariate_list = covPattern
     
     inputs1 = c(rbind(c(0:(length(Prob_Distr_Params[[1]][[1]][[1]])-1)), rep(1,length(Prob_Distr_Params[[1]][[1]][[1]]))))
@@ -44,7 +44,7 @@ CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Dis
     
     prob_type = c(1,1,0,0,1)
     
-  } else if ((Prob_Distr[1] == "Normal") && ((Prob_Distr[2] == "Normal"))) {
+  } else if ((Prob_Distr[1] == "mvn") && ((Prob_Distr[2] == "normal"))) {
     covariate_list = covPattern
     
     # 1. Degree Metadata (16 values)

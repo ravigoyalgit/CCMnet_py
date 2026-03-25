@@ -18,7 +18,7 @@ CCMnet_constr_uni_verifyinput_edges <- function(network_stats, prob_distr, prob_
       if (length(sigma2) != 1 || !is.numeric(sigma2) || sigma2 <= 0) 
         stop("The 'variance' for EDGES must be a single positive numeric value.")
       
-      prob_type <- c(0,0,0,0,1)
+      prob_type <- c(0,0,0,0,1,1)
       mean_vector <- c(mu, mu)
       var_vector <- c(sigma2, sigma2)
       
@@ -28,12 +28,12 @@ CCMnet_constr_uni_verifyinput_edges <- function(network_stats, prob_distr, prob_
         stop(paste("The parameter for", toupper(prob_distr), "EDGES must be a single positive numeric value."))
       
       type_code <- ifelse(prob_distr == "lognormal", 2, 3)
-      prob_type <- c(0,0,0,0, type_code)
+      prob_type <- c(0,0,0,0, 1, type_code)
       mean_vector <- c(lambda, lambda)
       var_vector <- c(0, 0)
       
     } else if (prob_distr == "uniform") {
-      prob_type <- c(0,0,0,0,4)
+      prob_type <- c(0,0,0,0,1, 4)
       mean_vector <- c(1, 1)
       var_vector <- c(0,0)
       
@@ -45,7 +45,7 @@ CCMnet_constr_uni_verifyinput_edges <- function(network_stats, prob_distr, prob_
       if (abs(sum(probs) - 1) > 1e-8) 
         stop("Non-parametric probabilities for EDGES must sum to 1.")
       
-      prob_type <- c(0,0,0,0,99)
+      prob_type <- c(0,0,0,0,1,99)
       mean_vector <- probs
       var_vector <- c(0,0)
       
@@ -65,7 +65,7 @@ CCMnet_constr_uni_verifyinput_edges <- function(network_stats, prob_distr, prob_
       if (length(sigma2) != 1 || sigma2 <= 0) 
         stop("The 'variance' for DENSITY must be a single positive numeric value.")
       
-      prob_type <- c(0,0,0,0,11)
+      prob_type <- c(0,0,0,0,2,1)
       mean_vector <- c(mu, mu)
       var_vector <- c(sigma2, sigma2)
       
@@ -76,9 +76,9 @@ CCMnet_constr_uni_verifyinput_edges <- function(network_stats, prob_distr, prob_
       if (length(shape1) != 1 || shape1 <= 0 || length(shape2) != 1 || shape2 <= 0)
         stop("BETA distribution for DENSITY requires positive alpha and beta shape parameters.")
       
-      prob_type <- c(0,0,0,0,12)
-      mean_vector <- c(shape1, shape2)
-      var_vector <- c(0,0)
+      prob_type <- c(0,0,0,0,2,5)
+      mean_vector <- c(shape1, shape1)
+      var_vector <- c(shape2, shape2)
       
     }
   }

@@ -58,7 +58,7 @@ CCMnet_constr_uni_verifyinput_degdist <- function(Network_stats, Prob_Distr, Pro
     
     mean_vector <- mean_vector_raw
     var_vector  <- c(0, 0)
-    prob_type   <- c(3, 0, 0, 0, 1)
+    prob_type   <- c(1, 0, 0, 0, 1, 6)
   }
   
   CCM_constr_info <- list(

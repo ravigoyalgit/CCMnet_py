@@ -16,12 +16,4 @@ void calc_f_mixing(Network *nwp, int *Cov_types, int *Num_Cov_type,
                    double *prob_g_g2, double *prob_g2_g, int MHp_nedges,
                    Model *m, MHproposal *MHp, double *networkstatistics);
 
-/* Step 3: Perform Gaussian/Matrix math */
-void calc_probs_mixing(Network *nwp, int num_mixing_terms, int *Cov_types, int *Num_Cov_type, 
-                       double *nwp_mixing_matrix, double *MHp_mixing_matrix, 
-                       double *meanvalues, double *varvalues,
-                       double *pdf_gaussian_nwp, double *pdf_gaussian_MHp,
-                       Model *m, MHproposal *MHp, double *networkstatistics,
-                       int *prob_type);
-
 #endif

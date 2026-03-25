@@ -34,7 +34,7 @@ CCMnet_constr_uni_verifyinput_mixing <- function(Network_stats, Prob_Distr, Prob
     mean_vector = Prob_Distr_Params[[1]][[1]]
     var_vector = c(0,0)
   
-    prob_type = c(0,1,0,0,1)
+    prob_type = c(0,1,0,0,1,3)
   }
   
   if (error == 1) {

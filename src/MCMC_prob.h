@@ -11,6 +11,7 @@
 #include "CCMnet_netprop_mixing_degdist.h"
 #include "CCMnet_netprop_degmixing.h"
 #include "CCMnet_netprop_degmixing_clustering.h"
+#include "CCMnet_netprop_prob_dist.h"
 
 MCMCStatus MetropolisHastings(MHproposal *MHp,
                               double *theta, double *statistics,
@@ -54,6 +55,8 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
                               double *evolutionvar) {
   
   int print_info_MH = 0;
+  
+  double cutoff=log(0);
   
   if (print_info_MH == 1) {
     Rprintf("Entered: MH Code \n");
@@ -133,13 +136,10 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
   double prob_g2_g = 1;
   double prob_g_g2 = 1;
   int total_max_edges = (nwp->nnodes * (nwp->nnodes-1) * .5) + .5;
-  double cutoff=log(0);
   int counter;
   //int counter1;
   //int counter2;
   
-  //double nwp_density;
-  //double MHp_density;
   double pdf_gaussian_nwp = 0;
   double pdf_gaussian_MHp = log(0);
   
@@ -151,9 +151,30 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
     //Rprintf("Entered GUF: MH Code \n");
     
     ///EDGES: BEGIN///
-    if ((prob_type[0] == 0) && (prob_type[1] == 0) && (prob_type[2] == 0) && (prob_type[3] == 0) && (prob_type[4] >= 1)){
-      calc_f_edges(nwp->nedges, MHp_nedges, total_max_edges, networkstatistics, &prob_g_g2, &prob_g2_g);
-      calc_probs_edges(MHp_nedges, total_max_edges, prob_type, networkstatistics, meanvalues, varvalues, &pdf_gaussian_nwp, &pdf_gaussian_MHp);
+    if ((prob_type[0] == 0) && (prob_type[1] == 0) && (prob_type[2] == 0) && (prob_type[3] == 0) && (prob_type[4] >= 1)) {
+      
+      // Stage 1: Keep raw counts for Stage 2
+      double v_current_raw[1] = { (double)networkstatistics[0] };
+      double v_proposal_raw[1] = { (double)MHp_nedges };
+      
+      // Create a separate version for Stage 3 if density is required
+      double v_current_stat[1] = { v_current_raw[0] };
+      double v_proposal_stat[1] = { v_proposal_raw[0] };
+      
+      // Apply transformation for the Statistical Model if needed
+      // (e.g., if prob_type[4] indicates a density-based distribution like Beta)
+      if (prob_type[4] == 2) {
+        v_current_stat[0] /= (double)total_max_edges;
+        v_proposal_stat[0] /= (double)total_max_edges;
+      }
+      
+      // Stage 2: Combinatorial logic ALWAYS uses the discrete counts
+      calc_f_edges(v_current_raw[0], v_proposal_raw[0], total_max_edges, networkstatistics, &prob_g_g2, &prob_g2_g);
+      
+      // Stage 3: Statistical logic uses the transformed values (density or raw)
+      calc_prob_dist(v_current_stat, v_proposal_stat, 1, prob_type, 
+                     meanvalues, varvalues, 
+                     &pdf_gaussian_nwp, &pdf_gaussian_MHp);
     }
     ///EDGES: END ///
     
@@ -180,7 +201,10 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
       calc_f_mixing(nwp, Cov_types, Num_Cov_type, nwp_mix, MHp_mix, &prob_g_g2, &prob_g2_g, MHp_nedges, m, MHp, networkstatistics);
       
       // 3. Get Gaussian Math
-      calc_probs_mixing(nwp, 3, Cov_types, Num_Cov_type, nwp_mix, MHp_mix, meanvalues, varvalues, &pdf_gaussian_nwp, &pdf_gaussian_MHp, m, MHp, networkstatistics, prob_type);
+      //calc_probs_mixing(nwp, 3, Cov_types, Num_Cov_type, nwp_mix, MHp_mix, meanvalues, varvalues, &pdf_gaussian_nwp, &pdf_gaussian_MHp, m, MHp, networkstatistics, prob_type);
+      calc_prob_dist(nwp_mix, MHp_mix, num_params, prob_type, 
+                     meanvalues, varvalues, 
+                     &pdf_gaussian_nwp, &pdf_gaussian_MHp);
     }
     ///MIXING MATRIX: END///
     
@@ -211,8 +235,20 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
                        nwp_Deg_Distr, MHp_Deg_Distr);
         
         // Step 3: Gaussian calculation
-        calc_probs_degdist(num_deg_stats, nwp, prob_type, meanvalues, varvalues,
-                           nwp_Deg_Distr, MHp_Deg_Distr, &pdf_gaussian_nwp, &pdf_gaussian_MHp);
+        
+        // 3.1. Allocate temporary double arrays for the universal function
+        double *v_current = (double *)R_alloc(num_deg_stats, sizeof(double));
+        double *v_proposal = (double *)R_alloc(num_deg_stats, sizeof(double));
+        
+        // 3.2. Explicitly cast the int distribution counts to doubles
+        for (int i = 0; i < num_deg_stats; i++) {
+          v_current[i] = (double)nwp_Deg_Distr[i];
+          v_proposal[i] = (double)MHp_Deg_Distr[i];
+        }
+        
+        calc_prob_dist(v_current, v_proposal, num_deg_stats, prob_type, 
+                       meanvalues, varvalues, 
+                       &pdf_gaussian_nwp, &pdf_gaussian_MHp);
       }
     }
     /// DEGREE DISTRIBUTION: END ///
@@ -414,558 +450,192 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
     
     /////DEGREE MIXING MATRIX//////////////////////
     
-    // if ((prob_type[0] == 0) && (prob_type[1] == 0) && (prob_type[2] >= 1) && (prob_type[3] >= 0) && (prob_type[4] >= 1)){
-    // 
-    //   // --- Variables assumed to be in scope from your MH loop ---
-    //   // Network *nwp; Model *m; MHproposal *MHp; 
-    //   // double *networkstatistics; int *prob_type;
-    //   // double *meanvalues; double *varvalues;
-    //   
-    //   // 1. Local storage variables
-    //   int num_deg_stats, Proposal_prob_zero;
-    //   int Deg_nwp[2], Deg_MHp[2];
-    //   int deg_dist_nwp[1000], deg_dist_MHp[1000]; 
-    //   int n_i[1000], n_j[1000];
-    //   double prob_g_g2 = 1.0, prob_g2_g = 1.0;
-    //   double pdf_gaussian_nwp, pdf_gaussian_MHp;
-    //   
-    //   // Calculate n_dim to allocate mixing matrices
-    //   int n_stats_for_dim = (prob_type[3] > 0) ? (m->n_stats - 2) : (m->n_stats - 1);
-    //   int n_dim = (int)((-1.0 + sqrt(1.0 + 8.0 * n_stats_for_dim)) / 2.0);
-    //   
-    //   int *g_dmm_flat = malloc(n_dim * n_dim * sizeof(int));
-    //   int *g2_dmm_flat = malloc(n_dim * n_dim * sizeof(int));
-    //   
-    //   // 2. Call Statistics and Matrix Reconstruction
-    //   calc_stat_degmixing(nwp, m, MHp, networkstatistics, prob_type,
-    //                       &num_deg_stats, Deg_nwp, Deg_MHp,
-    //                       deg_dist_nwp, deg_dist_MHp,
-    //                       g_dmm_flat, g2_dmm_flat, 
-    //                       n_i, n_j, &Proposal_prob_zero);
-    //   
-    //   if (Proposal_prob_zero == 0) {
-    //     
-    //     // 3. Logic Branch for Clustering vs. Standard Mixing
-    //     if (prob_type[3] > 0) {
-    //       // Calculate Mixing Base
-    //       calc_f_degmixing(num_deg_stats, Deg_nwp, Deg_MHp, 
-    //                        deg_dist_nwp, deg_dist_MHp,
-    //                        g_dmm_flat, g2_dmm_flat, n_i, n_j, 
-    //                        (nwp->nedges + m->workspace[0]), nwp->nedges, 
-    //                        &prob_g_g2, &prob_g2_g);
-    //       
-    //       // Add Clustering Multiplier
-    //       calc_f_degmixing_clustering(num_deg_stats, nwp, m, networkstatistics,
-    //                                   deg_dist_nwp, deg_dist_MHp,
-    //                                   g_dmm_flat, g2_dmm_flat, 
-    //                                   Deg_nwp, Deg_MHp, 
-    //                                   (nwp->nedges + m->workspace[0]), 
-    //                                   &prob_g_g2, &prob_g2_g);
-    //       
-    //       // Calculate Probabilities (Precision matrix includes Triangles)
-    //       calc_prob_degmixing_clustering(m, networkstatistics, meanvalues, 
-    //                                      varvalues, &pdf_gaussian_nwp, &pdf_gaussian_MHp);
-    //     } else {
-    //       // Standard Mixing Only
-    //       calc_f_degmixing(num_deg_stats, Deg_nwp, Deg_MHp, 
-    //                        deg_dist_nwp, deg_dist_MHp,
-    //                        g_dmm_flat, g2_dmm_flat, n_i, n_j, 
-    //                        (nwp->nedges + m->workspace[0]), nwp->nedges, 
-    //                        &prob_g_g2, &prob_g2_g);
-    //       
-    //       calc_prob_degmixing(m, networkstatistics, meanvalues, 
-    //                           varvalues, &pdf_gaussian_nwp, &pdf_gaussian_MHp);
-    //     }
-    //     
-    //     // 4. Metropolis-Hastings Ratio
-    //     double ratio = (pdf_gaussian_MHp - pdf_gaussian_nwp) + log(prob_g2_g / prob_g_g2);
-    //     
-    //     if (unif_rand() < exp(ratio)) {
-    //       // Accept Step...
-    //     }
-    //   }
-    //   
-    //   free(g_dmm_flat);
-    //   free(g2_dmm_flat);
-    // }
-    
     if ((prob_type[0] == 0) && (prob_type[1] == 0) && (prob_type[2] >= 1) && (prob_type[3] >= 0) && (prob_type[4] >= 1)){
-      
-      int num_deg_stats = (int)((-1.0 + sqrt(1.0 + 8.0 * (m->n_stats-1))) / 2.0) + 1; //(int)(sqrt(2*(double)(m->n_stats-1))) + 1;
-      if (prob_type[3] > 0) {
-        num_deg_stats = (int)((-1.0 + sqrt(1.0 + 8.0 * (m->n_stats-2))) / 2.0) + 1; //(int)(sqrt(2*(double)(m->n_stats-2))) + 1; //minus 2 for edges and clustering
-      }
       
       int Proposal_prob_zero = 0;
       
-      Edge nextedge=0;
-      int nmax = 100000;
+      // 1. Calculate num_deg_stats based on prob_type[3] (Clustering)
+      int n_skip = (prob_type[3] > 0) ? 2 : 1;
+      int num_deg_stats = (int)((-1.0 + sqrt(1.0 + 8.0 * (m->n_stats - n_skip))) / 2.0) + 1;
       
-      int index1;
-      int index2;
-      
+      // 2. Declare matrices using Variable Length Arrays (VLA)
       int g_dmm[num_deg_stats-1][num_deg_stats-1];
+      int g2_dmm[num_deg_stats-1][num_deg_stats-1];
       
-      counter = 1;
-      for (index1 = 0; index1 < (num_deg_stats-1); index1++) { //ignore number of edges
-        for (index2 = 0; index2 <= index1; index2++) { //ignore number of edges
-          g_dmm[index1][index2] = networkstatistics[counter];
-          g_dmm[index2][index1] = networkstatistics[counter];
-          counter++;
-        }
-      }
-      
+      // 3. Populate them in one call
+      get_properties(m, networkstatistics, num_deg_stats, g_dmm, g2_dmm);
+    
       int deg_dist_nwp[num_deg_stats];
-      int sum_g_dmm;
-      int num_deg_nodes = 0;
+      int deg_dist_MHp[num_deg_stats];
       
-      for (index1 = 0; index1 < (num_deg_stats-1); index1++) { //ignore number of edges
-        sum_g_dmm = 0;
-        for (index2 = 0; index2 < (num_deg_stats-1); index2++) { //ignore number of edges
-          sum_g_dmm += g_dmm[index1][index2];
-          if (index1 == index2){
-            sum_g_dmm += g_dmm[index1][index2];
-          }
-        }
-        deg_dist_nwp[index1+1] = (int)sum_g_dmm/(index1+1);
-        num_deg_nodes += deg_dist_nwp[index1+1];
-      }
-      deg_dist_nwp[0] = nwp->nnodes - num_deg_nodes;
-      
-      
-      //Step 1: begin
       int Deg_nwp[2];
       int Deg_MHp[2];
       
-      Deg_nwp[0] = OUT_DEG[*(MHp->toggletail)] + IN_DEG[*(MHp->toggletail)];
-      Deg_nwp[1] = OUT_DEG[*(MHp->togglehead)] + IN_DEG[*(MHp->togglehead)];
-      
-      if (nwp->nedges > MHp_nedges) {
-        Deg_MHp[0] = Deg_nwp[0] - 1;
-        Deg_MHp[1] = Deg_nwp[1] - 1;
-      } else {
-        Deg_MHp[0] = Deg_nwp[0] + 1;
-        Deg_MHp[1] = Deg_nwp[1] + 1;
-      }
-      //Step 1: end
-      
-      
-      if ((Deg_MHp[0] > (num_deg_stats-1)) || (Deg_MHp[1] > (num_deg_stats-1))) {
-        Proposal_prob_zero = 1;
-      }
+      calculate_congruence_ratios(
+        nwp,
+        MHp,
+        num_deg_stats,
+        g_dmm,
+        g2_dmm,
+        &prob_g_g2,
+        &prob_g2_g,
+        MHp_nedges,
+        &pdf_gaussian_nwp,
+        &pdf_gaussian_MHp,
+        &Proposal_prob_zero,
+        deg_dist_nwp,
+        deg_dist_MHp,
+        Deg_nwp,
+        Deg_MHp
+      );
       
       if (Proposal_prob_zero == 1) {
-        prob_g2_g = 1;
-        pdf_gaussian_MHp = log(0);
-        prob_g_g2 = 1;
-        pdf_gaussian_nwp = 0;
-      } else {
+           prob_g2_g = 1;
+           pdf_gaussian_MHp = log(0);
+           prob_g_g2 = 1;
+           pdf_gaussian_nwp = 0;
+       } else {
         
-        //Step 2: begin - Find degrees of neighbors
-        int n_i[num_deg_stats-1]; //Do not need degree zero
-        int n_j[num_deg_stats-1];
+      int num_degmix_stats = m->n_stats-1;
+      if (prob_type[3] > 0) {
+         num_degmix_stats = m->n_stats-2;
+      }
+      
+      double v_current_stat[num_degmix_stats];
+      double v_proposal_stat[num_degmix_stats];
+      double meanvalues_TEMP[num_degmix_stats];
+      
+      int num_degmix_var = prob_type[7];
+      double varvalues_TEMP[num_degmix_var];
+      
+      counter = 1;
+      for (int index1 = 0; index1 < num_degmix_stats; index1++) { //ignore first edge term
+        v_current_stat[index1] = (double)(networkstatistics[counter]);
+        v_proposal_stat[index1] = (double)(networkstatistics[counter] + m->workspace[counter]);
+        meanvalues_TEMP[index1] = (double)(meanvalues[index1]); //don't ignore
+        counter++;
+      }
+      
+      for (int index1 = 0; index1 < num_degmix_var; index1++) {
+        varvalues_TEMP[index1] = (double)(varvalues[index1]);
+      }
+      
+      calc_prob_dist(v_current_stat,  v_proposal_stat, num_degmix_stats, prob_type,
+                     meanvalues_TEMP, varvalues_TEMP,
+                     &pdf_gaussian_nwp, &pdf_gaussian_MHp);
+      
+      /////CLUSTERING//////////////////////
+      
+      if ((prob_type[0] == 0) && (prob_type[1] == 0) && (prob_type[2] >= 1) && (prob_type[3] >= 1) && (prob_type[4] >= 1)){
         
-        for (counter = 0; counter < (num_deg_stats-1); counter++) {
-          n_i[counter] = 0;
-          n_j[counter] = 0;
-        }
         
-        for(Vertex e = EdgetreeMinimum(nwp->outedges, *(MHp->toggletail));
-            nwp->outedges[e].value != 0 && nextedge < nmax;
-            e = EdgetreeSuccessor(nwp->outedges, e)){
-          Vertex k = nwp->outedges[e].value;
-          n_i[OUT_DEG[k]+IN_DEG[k]-1]++;    //Index starts at zero
-        }
+        //double num_Tri = networkstatistics[m->n_stats-1]; //should be last statistic
+        //double num_Tri_change = fabs(m->workspace[m->n_stats-1]); //should be last statistic
         
-        for(Vertex e = EdgetreeMinimum(nwp->inedges, *(MHp->toggletail));
-            nwp->inedges[e].value != 0 && nextedge < nmax;
-            e = EdgetreeSuccessor(nwp->inedges, e)){
-          Vertex k = nwp->inedges[e].value;
-          n_i[OUT_DEG[k]+IN_DEG[k]-1]++;    //Index starts at zero
-        }
+        int n_dim = num_deg_stats - 1;
         
-        for(Vertex e = EdgetreeMinimum(nwp->outedges, *(MHp->togglehead));
-            nwp->outedges[e].value != 0 && nextedge < nmax;
-            e = EdgetreeSuccessor(nwp->outedges, e)){
-          Vertex k = nwp->outedges[e].value;
-          n_j[OUT_DEG[k]+IN_DEG[k]-1]++;    //Index starts at zero
-        }
+        // Allocate flat arrays (or use a pre-allocated workspace)
+        int g_dmm_flat[n_dim * n_dim];
+        int g2_dmm_flat[n_dim * n_dim];
         
-        for(Vertex e = EdgetreeMinimum(nwp->inedges, *(MHp->togglehead));
-            nwp->inedges[e].value != 0 && nextedge < nmax;
-            e = EdgetreeSuccessor(nwp->inedges, e)){
-          Vertex k = nwp->inedges[e].value;
-          n_j[OUT_DEG[k]+IN_DEG[k]-1]++;    //Index starts at zero
-        }
-        
-        int denominator;
-        int numerator;
-        
-        //Step 3a: begin - ADD
-        if (nwp->nedges < MHp_nedges) {
-          if (Deg_nwp[0] == Deg_nwp[1]) {
-            prob_g_g2 = deg_dist_nwp[Deg_nwp[0]] * (deg_dist_nwp[Deg_nwp[0]] - 1) * .5;
-          } else {
-            prob_g_g2 = deg_dist_nwp[Deg_nwp[0]] * (deg_dist_nwp[Deg_nwp[1]]);
-          }
-          if (Deg_nwp[0] > 0 && Deg_nwp[1] > 0 ) {
-            prob_g_g2 = prob_g_g2 - g_dmm[Deg_nwp[0]-1][Deg_nwp[1]-1];
-          }
-          
-          
-          for (index1=0; index1 < ((num_deg_stats)-1); index1++){
-            g_dmm[index1][index1] = 2 * g_dmm[index1][index1];
-          }
-          
-          //Step 3b: begin - ADD identical degrees
-          
-          numerator = 1;
-          
-          if ((Deg_nwp[0] == Deg_nwp[1]) && (Deg_nwp[0] > 0)) {
-            denominator = calcCNR( (deg_dist_nwp[Deg_nwp[0]] * Deg_nwp[0]), (Deg_nwp[0] + Deg_nwp[1]));
-            for (counter=0; counter < (num_deg_stats-1); counter++) {
-              numerator = numerator * calcCNR(g_dmm[Deg_nwp[0]-1][counter], (n_i[counter] + n_j[counter]));
+        // Flatten
+        for (int i = 0; i < n_dim; i++) {
+          for (int j = 0; j < n_dim; j++) {
+            int idx = i * n_dim + j;
+            if (i == j) {
+              g_dmm_flat[idx] = (int)(g_dmm[i][j]);
+              g2_dmm_flat[idx] = (int)(g2_dmm[i][j]);
+            } else {
+              g_dmm_flat[idx] = g_dmm[i][j];
+              g2_dmm_flat[idx] = g2_dmm[i][j];
             }
-            prob_g_g2 = prob_g_g2 * ((double)numerator / denominator);
-          } else {
-            //Step 3c: begin - ADD degree Node 1
-            
-            if (Deg_nwp[0] > 0) {
-              denominator = calcCNR( (deg_dist_nwp[Deg_nwp[0]] * Deg_nwp[0]), (Deg_nwp[0]));
-              numerator = 1;
-              for (counter=0; counter < (num_deg_stats-1); counter++) {
-                numerator = numerator * calcCNR(g_dmm[Deg_nwp[0]-1][counter], (n_i[counter]));
-              }
-              prob_g_g2 = prob_g_g2 * ((double)numerator / denominator);
-            }
-            //Step 3d: begin - ADD degree Node 2
-            if (Deg_nwp[1] > 0) {
-              denominator = calcCNR( (deg_dist_nwp[Deg_nwp[1]] * Deg_nwp[1]), (Deg_nwp[1]));
-              numerator = 1;
-              for (counter=0; counter < (num_deg_stats-1); counter++) {
-                numerator = numerator * calcCNR(g_dmm[Deg_nwp[1]-1][counter], (n_j[counter]));
-              }
-              prob_g_g2 = prob_g_g2 * ((double)numerator / denominator);
-            }
-          }
-        } else {
-          //Step 4a: begin - Remove
-          prob_g_g2 = g_dmm[Deg_nwp[0]-1][Deg_nwp[1]-1];
-          
-          for (index1=0; index1 < ((num_deg_stats)-1); index1++){
-            g_dmm[index1][index1] = 2 * g_dmm[index1][index1];
-          }
-          
-          //Step 4b: begin - ADD identical degrees
-          numerator = 1;
-          
-          if (Deg_nwp[0] == Deg_nwp[1]) {
-            denominator = calcCNR( (deg_dist_nwp[Deg_nwp[0]] * Deg_nwp[0] -1 ), (Deg_nwp[0] + Deg_nwp[1] - 2));
-            for (counter=0; counter < (num_deg_stats-1); counter++) {
-              if (counter == (Deg_nwp[0]-1)) {
-                numerator = numerator * calcCNR(g_dmm[Deg_nwp[0]-1][counter]-1, (n_i[counter] + n_j[counter] - 2));
-              } else {
-                numerator = numerator * calcCNR(g_dmm[Deg_nwp[0]-1][counter], (n_i[counter] + n_j[counter]));
-              }
-            }
-            prob_g_g2 = prob_g_g2 * ((double)numerator / denominator);
-          } else {
-            //Step 4c: begin - ADD node 1 degrees
-            denominator = calcCNR( (deg_dist_nwp[Deg_nwp[0]] * Deg_nwp[0] - 1), (Deg_nwp[0] - 1));
-            numerator = 1;
-            for (counter=0; counter < (num_deg_stats-1); counter++) {
-              if (counter == (Deg_nwp[1]-1)) {
-                numerator = numerator * calcCNR(g_dmm[Deg_nwp[0]-1][counter]-1, (n_i[counter] - 1));
-              } else {
-                numerator = numerator * calcCNR(g_dmm[Deg_nwp[0]-1][counter], (n_i[counter]));
-              }
-            }
-            prob_g_g2 = prob_g_g2 * ((double)numerator / denominator);
-            //Step 4d: begin - ADD node 2 degrees
-            denominator = calcCNR( (deg_dist_nwp[Deg_nwp[1]] * Deg_nwp[1] - 1), (Deg_nwp[1] - 1));
-            numerator = 1;
-            for (counter=0; counter < (num_deg_stats-1); counter++) {
-              if (counter == (Deg_nwp[0]-1)) {
-                numerator = numerator * calcCNR(g_dmm[Deg_nwp[1]-1][counter]-1, (n_j[counter]-1));
-              } else {
-                numerator = numerator * calcCNR(g_dmm[Deg_nwp[1]-1][counter], (n_j[counter]));
-              }
-            }
-            prob_g_g2 = prob_g_g2 * ((double)numerator / denominator);
-            
           }
         }
         
-        ////g2 -> g
-        
-        int g2_dmm[num_deg_stats-1][num_deg_stats-1];
-        
-        counter = 1;
-        for (index1 = 0; index1 < (num_deg_stats-1); index1++) { //ignore number of edges
-          for (index2 = 0; index2 <= index1; index2++) { //ignore number of edges
-            g2_dmm[index1][index2] = networkstatistics[counter] + m->workspace[counter];  //Change from g -> g2
-            g2_dmm[index2][index1] = networkstatistics[counter] + m->workspace[counter];  //Change from g -> g2
-            counter++;
-          }
-        }
-        
-        int deg_dist_MHp[num_deg_stats];
-        num_deg_nodes = 0;
-        
-        for (index1 = 0; index1 < (num_deg_stats-1); index1++) { //ignore number of edges
-          sum_g_dmm = 0;
-          for (index2 = 0; index2 < (num_deg_stats-1); index2++) { //ignore number of edges
-            sum_g_dmm += g2_dmm[index1][index2];
-            if (index1 == index2){
-              sum_g_dmm += g2_dmm[index1][index2];
-            }
-          }
-          deg_dist_MHp[index1+1] = (int)sum_g_dmm/(index1+1);
-          num_deg_nodes += deg_dist_MHp[index1+1];
-        }
-        deg_dist_MHp[0] = nwp->nnodes - num_deg_nodes;
-        
-        
-        if (nwp->nedges < MHp_nedges) { //an edge was added
-          n_i[Deg_MHp[1]-1]++;
-          n_j[Deg_MHp[0]-1]++;
-        } else { //an edge was removed
-          n_i[Deg_nwp[1]-1]--;
-          n_j[Deg_nwp[0]-1]--;
-        }
-        
-        //Step 3a: begin - ADD
-        
-        if (nwp->nedges > MHp_nedges) {
-          if (Deg_nwp[0] == Deg_nwp[1]) {
-            prob_g2_g = deg_dist_MHp[Deg_MHp[0]] * (deg_dist_nwp[Deg_MHp[0]] - 1) * .5;
-          } else {
-            prob_g2_g = deg_dist_MHp[Deg_MHp[0]] * (deg_dist_nwp[Deg_MHp[1]]);
-          }
-          if (Deg_MHp[0] > 0 && Deg_MHp[1] > 0 ) {
-            prob_g2_g = prob_g2_g - g2_dmm[Deg_MHp[0]-1][Deg_MHp[1]-1];
-          }
-          
-          for (index1=0; index1 < ((num_deg_stats)-1); index1++){
-            g2_dmm[index1][index1] = 2 * g2_dmm[index1][index1];
-          }
-          
-          //Step 3b: begin - ADD identical degrees
-          
-          numerator = 1;
-          
-          if ((Deg_MHp[0] == Deg_MHp[1]) && (Deg_MHp[0] > 0)) {
-            denominator = calcCNR( (deg_dist_MHp[Deg_MHp[0]] * Deg_MHp[0]), (Deg_MHp[0] + Deg_MHp[1]));
-            for (counter=0; counter < (num_deg_stats-1); counter++) {
-              numerator = numerator * calcCNR(g2_dmm[Deg_MHp[0]-1][counter], (n_i[counter] + n_j[counter]));
-            }
-            prob_g2_g = prob_g2_g * ((double)numerator / denominator);
-          } else {
-            //Step 3c: begin - ADD degree Node 1
-            
-            if (Deg_MHp[0] > 0) {
-              denominator = calcCNR( (deg_dist_MHp[Deg_MHp[0]] * Deg_MHp[0]), (Deg_MHp[0]));
-              numerator = 1;
-              for (counter=0; counter < (num_deg_stats-1); counter++) {
-                numerator = numerator * calcCNR(g2_dmm[Deg_MHp[0]-1][counter], (n_i[counter]));
-              }
-              prob_g2_g = prob_g2_g * ((double)numerator / denominator);
-            }
-            //Step 3d: begin - ADD degree Node 2
-            if (Deg_MHp[1] > 0) {
-              denominator = calcCNR( (deg_dist_MHp[Deg_MHp[1]] * Deg_MHp[1]), (Deg_MHp[1]));
-              numerator = 1;
-              for (counter=0; counter < (num_deg_stats-1); counter++) {
-                numerator = numerator * calcCNR(g2_dmm[Deg_MHp[1]-1][counter], (n_j[counter]));
-              }
-              prob_g2_g = prob_g2_g * ((double)numerator / denominator);
-            }
-          }
-        } else {
-          //Step 4a: begin - Remove
-          prob_g2_g = g2_dmm[Deg_MHp[0]-1][Deg_MHp[1]-1];
-          //Step 4b: begin - ADD identical degrees
-          
-          for (index1=0; index1 < ((num_deg_stats)-1); index1++){
-            g2_dmm[index1][index1] = 2 * g2_dmm[index1][index1];
-          }
-          
-          numerator = 1;
-          
-          if (Deg_MHp[0] == Deg_MHp[1]) {
-            denominator = calcCNR( (deg_dist_MHp[Deg_MHp[0]] * Deg_MHp[0] -1 ), (Deg_MHp[0] + Deg_MHp[1] - 2));
-            for (counter=0; counter < (num_deg_stats-1); counter++) {
-              if (counter == (Deg_MHp[0]-1)) {
-                numerator = numerator * calcCNR(g2_dmm[Deg_MHp[0]-1][counter]-1, (n_i[counter] + n_j[counter] - 2));
-              } else {
-                numerator = numerator * calcCNR(g2_dmm[Deg_MHp[0]-1][counter], (n_i[counter] + n_j[counter]));
-              }
-            }
-            prob_g2_g = prob_g2_g * ((double)numerator / denominator);
-          } else {
-            //Step 4c: begin - ADD node 1 degrees
-            denominator = calcCNR( (deg_dist_MHp[Deg_MHp[0]] * Deg_MHp[0] - 1), (Deg_MHp[0] - 1));
-            numerator = 1;
-            for (counter=0; counter < (num_deg_stats-1); counter++) {
-              if (counter == (Deg_MHp[1]-1)) {
-                numerator = numerator * calcCNR(g2_dmm[Deg_MHp[0]-1][counter]-1, (n_i[counter] - 1));
-              } else {
-                numerator = numerator * calcCNR(g2_dmm[Deg_MHp[0]-1][counter], (n_i[counter]));
-              }
-            }
-            prob_g2_g = prob_g2_g * ((double)numerator / denominator);
-            //Step 4d: begin - ADD node 2 degrees
-            denominator = calcCNR( (deg_dist_MHp[Deg_MHp[1]] * Deg_MHp[1] - 1), (Deg_MHp[1] - 1));
-            numerator = 1;
-            for (counter=0; counter < (num_deg_stats-1); counter++) {
-              if (counter == (Deg_MHp[0]-1)) {
-                numerator = numerator * calcCNR(g2_dmm[Deg_MHp[1]-1][counter]-1, (n_j[counter]-1));
-              } else {
-                numerator = numerator * calcCNR(g2_dmm[Deg_MHp[1]-1][counter], (n_j[counter]));
-              }
-            }
-            prob_g2_g = prob_g2_g * ((double)numerator / denominator);
-          }
-        }
-        
-        for (index1=0; index1 < ((num_deg_stats)-1); index1++){ //Undo what was done for degree mixing
-          g_dmm[index1][index1] = .5 * g_dmm[index1][index1];
-          g2_dmm[index1][index1] = .5 * g2_dmm[index1][index1];
-        }
-        
-        calc_prob_degmixing(
-          m,                  // Pointer to the ModelStruct
-          networkstatistics,  // Current global network statistics array
-          meanvalues,         // Target mean values (from your input/model)
-          varvalues,          // Precision matrix (inverse of covariance)
-          &pdf_gaussian_nwp,  // Address of the current state's log-probability
-          &pdf_gaussian_MHp   // Address of the proposed state's log-probability
+        calc_f_degmixing_clustering(
+          num_deg_stats,          // The dimension calculated in calc_stat_degmixing
+          nwp,                    // Pointer to the current Network
+          m,                      // Pointer to the Model (contains workspace)
+          networkstatistics,       // The current stats array (used to get num_Tri)
+          deg_dist_nwp,           // Degree distribution of the current network
+          deg_dist_MHp,           // Degree distribution of the proposed network
+          g_dmm_flat,             // Current mixing matrix (flattened)
+          g2_dmm_flat,            // Proposed mixing matrix (flattened)
+          Deg_nwp,                // Current degrees of the toggle pair
+          Deg_MHp,                // Proposed degrees of the toggle pair
+          MHp_nedges,             // Proposed edge count (nwp->nedges + m->workspace[0])
+          &prob_g_g2,             // Pointer to forward proposal probability
+          &prob_g2_g              // Pointer to reverse proposal probability
         );
         
-        ///Calculate probs
+        double v_current_stat_TEMP2[1];
+        v_current_stat_TEMP2[0] = networkstatistics[m->n_stats-1]; //should be last statistic
         
+        double v_proposal_stat_TEMP2[1];
+        v_proposal_stat_TEMP2[0] = v_current_stat_TEMP2[0] + (m->workspace[m->n_stats-1]); //should be last statistic
         
+        double meanvalues_TEMP2[1];
+        meanvalues_TEMP2[0] = meanvalues[num_degmix_stats];
+        double varvalues_TEMP2[1];
+        varvalues_TEMP2[0] = varvalues[num_degmix_var];
         
-        //   if ((prob_type[0] == 0) && (prob_type[1] == 0) && (prob_type[2] == 1) && (prob_type[3] >= 0) && (prob_type[4] == 1)){
-        // 
-        //     double nwp_mu_diff[m->n_stats-1];
-        //     double MHp_mu_diff[m->n_stats-1];
-        // 
-        //     for (counter = 0; counter < m->n_stats-1; counter++) {
-        //         nwp_mu_diff[counter] = (double)(networkstatistics[counter+1]) - meanvalues[counter];
-        //         MHp_mu_diff[counter] = (double)(networkstatistics[counter+1] + m->workspace[counter+1]) - meanvalues[counter];
-        //     }
-        // 
-        //     double nwp_intermediate_mat[m->n_stats-1];
-        //     double MHp_intermediate_mat[m->n_stats-1];
-        // 
-        //     counter2 = -1;
-        //     for (counter = 0; counter < (m->n_stats-1) * (m->n_stats-1); counter++) {
-        //         counter1 = counter % (m->n_stats-1);
-        //         if (counter1 == 0) {
-        //             counter2 += 1;
-        //             nwp_intermediate_mat[counter2] = 0;
-        //             MHp_intermediate_mat[counter2] = 0;
-        //         }
-        //         nwp_intermediate_mat[counter2] += nwp_mu_diff[counter1]*varvalues[counter];
-        //         MHp_intermediate_mat[counter2] += MHp_mu_diff[counter1]*varvalues[counter];
-        //     }
-        // 
-        //     pdf_gaussian_nwp = 0;
-        //     pdf_gaussian_MHp = 0;
-        //     for (counter = 0; counter < (m->n_stats-1); counter++) {
-        //         pdf_gaussian_nwp += nwp_intermediate_mat[counter] * nwp_mu_diff[counter];
-        //         pdf_gaussian_MHp += MHp_intermediate_mat[counter] * MHp_mu_diff[counter];
-        //     }
-        //      pdf_gaussian_nwp =  -.5 * pdf_gaussian_nwp;
-        //      pdf_gaussian_MHp =  -.5 * pdf_gaussian_MHp;
-        // 
-        // }
+        double pdf_gaussian_nwp_TEMP2 = 0;
+        double pdf_gaussian_MHp_TEMP2 = log(0);
         
-        
-        /////CLUSTERING//////////////////////
-        
-        if ((prob_type[0] == 0) && (prob_type[1] == 0) && (prob_type[2] >= 1) && (prob_type[3] >= 1) && (prob_type[4] >= 1)){
-          
-          
-          //double num_Tri = networkstatistics[m->n_stats-1]; //should be last statistic
-          //double num_Tri_change = fabs(m->workspace[m->n_stats-1]); //should be last statistic
-          
-          int n_dim = num_deg_stats - 1;
-          
-          // Allocate flat arrays (or use a pre-allocated workspace)
-          int g_dmm_flat[n_dim * n_dim];
-          int g2_dmm_flat[n_dim * n_dim];
-          
-          // Flatten and undo the diagonal doubling simultaneously
-          for (int i = 0; i < n_dim; i++) {
-            for (int j = 0; j < n_dim; j++) {
-              int idx = i * n_dim + j;
-              if (i == j) {
-                g_dmm_flat[idx] = (int)(g_dmm[i][j]);
-                g2_dmm_flat[idx] = (int)(g2_dmm[i][j]);
-              } else {
-                g_dmm_flat[idx] = g_dmm[i][j];
-                g2_dmm_flat[idx] = g2_dmm[i][j];
-              }
-            }
-          }
-          
-          calc_f_degmixing_clustering(
-            num_deg_stats,          // The dimension calculated in calc_stat_degmixing
-            nwp,                    // Pointer to the current Network
-            m,                      // Pointer to the Model (contains workspace)
-            networkstatistics,       // The current stats array (used to get num_Tri)
-            deg_dist_nwp,           // Degree distribution of the current network
-            deg_dist_MHp,           // Degree distribution of the proposed network
-            g_dmm_flat,             // Current mixing matrix (flattened)
-            g2_dmm_flat,            // Proposed mixing matrix (flattened)
-            Deg_nwp,                // Current degrees of the toggle pair
-            Deg_MHp,                // Proposed degrees of the toggle pair
-            MHp_nedges,             // Proposed edge count (nwp->nedges + m->workspace[0])
-            &prob_g_g2,             // Pointer to forward proposal probability
-            &prob_g2_g              // Pointer to reverse proposal probability
-          );
+        int prob_type_TEMP2[6];
+        for (int index1 = 0; index1 < 6; index1++) { //ignore first edge term
+          prob_type_TEMP2[index1] = prob_type[index1];
         }
-        /////CLUSTERING//////////////////////
+        prob_type_TEMP2[5] = prob_type[8];
+        
+        //Rprintf("Triangles: %f %f %f %f\n", v_current_stat_TEMP2[0], v_proposal_stat_TEMP2[0], meanvalues_TEMP2[0], varvalues_TEMP2[0]);
+        
+        calc_prob_dist(v_current_stat_TEMP2,  v_proposal_stat_TEMP2, 1, prob_type_TEMP2,
+                       meanvalues_TEMP2, varvalues_TEMP2,
+                       &pdf_gaussian_nwp_TEMP2, &pdf_gaussian_MHp_TEMP2);
+        
+        pdf_gaussian_nwp = pdf_gaussian_nwp_TEMP2 + pdf_gaussian_nwp;
+        pdf_gaussian_MHp = pdf_gaussian_MHp_TEMP2 + pdf_gaussian_MHp;
       }
+      /////CLUSTERING//////////////////////
     }
-    /////DEGREE MIXING MATRIX//////////////////////
+  }
+  /////DEGREE MIXING MATRIX//////////////////////
+  
+  //Rprintf("Probs (before cutoff): %f %f %f %f\n", prob_g_g2, prob_g2_g, pdf_gaussian_nwp, pdf_gaussian_MHp);
+  
+  
+  if (!isfinite(pdf_gaussian_nwp)) {
+    prob_g2_g = 1;
+    pdf_gaussian_MHp = 0;
+    prob_g_g2 = 1;
+    pdf_gaussian_nwp = log(0);
     
-    //Rprintf("Probs (before cutoff): %f %f %f %f\n", prob_g_g2, prob_g2_g, pdf_gaussian_nwp, pdf_gaussian_MHp);
-    
-    
-    if (!isfinite(pdf_gaussian_nwp)) {
-      prob_g2_g = 1;
-      pdf_gaussian_MHp = 0;
-      prob_g_g2 = 1;
-      pdf_gaussian_nwp = log(0);
-      
-      if (print_info_MH == 1) {
-        Rprintf("NWP INVALID 1: %f %f %f %f\n", prob_g_g2, prob_g2_g, pdf_gaussian_nwp, pdf_gaussian_MHp);
-      }
-    }
-    
-    if (pdf_gaussian_nwp != pdf_gaussian_nwp) {
-      prob_g2_g = 1;
-      pdf_gaussian_MHp = 0;
-      prob_g_g2 = 1;
-      pdf_gaussian_nwp = log(0);
-      
-      if (print_info_MH == 1) {
-        Rprintf("NWP INVALID 2: %f %f %f %f\n", prob_g_g2, prob_g2_g, pdf_gaussian_nwp, pdf_gaussian_MHp);
-      }
-    }
-    
-    cutoff = (log(prob_g2_g) + pdf_gaussian_MHp) - (log(prob_g_g2) + pdf_gaussian_nwp) + MHp->logratio;
     if (print_info_MH == 1) {
-      Rprintf("CUTOFF: %f %f %f %f\n", prob_g_g2, prob_g2_g, pdf_gaussian_nwp, pdf_gaussian_MHp);
+      Rprintf("NWP INVALID 1: %f %f %f %f\n", prob_g_g2, prob_g2_g, pdf_gaussian_nwp, pdf_gaussian_MHp);
     }
-    //Bayesian: BEGIN//
+  }
+  
+  if (pdf_gaussian_nwp != pdf_gaussian_nwp) {
+    prob_g2_g = 1;
+    pdf_gaussian_MHp = 0;
+    prob_g_g2 = 1;
+    pdf_gaussian_nwp = log(0);
     
-    /* REMOVED*/
-    
-    //Bayesian: END//
+    if (print_info_MH == 1) {
+      Rprintf("NWP INVALID 2: %f %f %f %f\n", prob_g_g2, prob_g2_g, pdf_gaussian_nwp, pdf_gaussian_MHp);
+    }
+  }
+  
+  cutoff = (log(prob_g2_g) + pdf_gaussian_MHp) - (log(prob_g_g2) + pdf_gaussian_nwp) + MHp->logratio;
+  if (print_info_MH == 1) {
+    Rprintf("CUTOFF: %f %f %f %f\n", prob_g_g2, prob_g2_g, pdf_gaussian_nwp, pdf_gaussian_MHp);
+  }
+  //Bayesian: BEGIN//
+  
+  /* REMOVED*/
+  
+  //Bayesian: END//
   }
   
   /* CODE FROM ERGM Library
@@ -998,8 +668,8 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
     //Rprintf("\n");
     taken++;
   }
-  }
-  *staken = taken;
-  return MCMC_OK;
-  //END of CODE FROM ERGM Library
+}
+*staken = taken;
+return MCMC_OK;
+//END of CODE FROM ERGM Library
 }

@@ -34,8 +34,6 @@ CCMnet_constr_uni_verifyinput_degmixing <- function(Network_stats, Prob_Distr, P
     
     eta0 = rep(-999.5,1 + .5*((max_degree+1)*max_degree))
     
-    prob_type = c(0,0,1,0,1)
-    
     mean_vector = Prob_Distr_Params[[1]][[1]]
     
     if (remove_var_last_entry == TRUE) {
@@ -47,6 +45,9 @@ CCMnet_constr_uni_verifyinput_degmixing <- function(Network_stats, Prob_Distr, P
     }
     
     var_vector = c(inverse_var_x)
+    
+    prob_type = c(0,0,1,0,1,1,length(mean_vector), length(var_vector))
+    
   } else {
     stop("No such distribution for DEGREE MIXING currently implemented.")
     error = 1

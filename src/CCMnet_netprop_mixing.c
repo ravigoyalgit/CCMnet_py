@@ -41,28 +41,7 @@ void calc_stat_mixing(Network *nwp, Model *m, MHproposal *MHp, double *networkst
     // Proposal state
     MHp_mixing_matrix[i] = networkstatistics[i + 1] + m->workspace[i + 1];
   } 
-  
-  // /* 1. Get Covariate types for the toggled nodes */
-  // Cov_types[0] = (int)round(mtp2->inputparams[mtp2->ninputparams - nwp->nnodes + *(MHp->toggletail) - 1]);
-  // Cov_types[1] = (int)round(mtp2->inputparams[mtp2->ninputparams - nwp->nnodes + *(MHp->togglehead) - 1]);
-  // 
-  // /* 2. Count global distribution of covariate types */
-  // Num_Cov_type[0] = 0;
-  // Num_Cov_type[1] = 0;
-  // for (counter = 0; counter < nwp->nnodes; counter++) {
-  //   Cov_type = (int)round(mtp2->inputparams[mtp2->ninputparams - nwp->nnodes + counter]);
-  //   Num_Cov_type[Cov_type - 1]++;
-  // }
-  // 
-  // /* 3. Setup Mixing Matrices */
-  // nwp_mixing_matrix[0] = nwp->nedges - networkstatistics[1] - networkstatistics[2];
-  // nwp_mixing_matrix[1] = networkstatistics[1];
-  // nwp_mixing_matrix[2] = networkstatistics[2];
-  // 
-  // int MHp_nedges = nwp->nedges + (int)m->workspace[0];
-  // MHp_mixing_matrix[0] = MHp_nedges - networkstatistics[1] - networkstatistics[2] - m->workspace[1] - m->workspace[2];
-  // MHp_mixing_matrix[1] = networkstatistics[1] + m->workspace[1];
-  // MHp_mixing_matrix[2] = networkstatistics[2] + m->workspace[2];
+
 }
 
 void calc_f_mixing(Network *nwp, int *Cov_types, int *Num_Cov_type, 
@@ -136,56 +115,4 @@ void calc_f_mixing(Network *nwp, int *Cov_types, int *Num_Cov_type,
   }
   
   //Rprintf("Mixing Matrix g->g2 and g2->g: %f %f\n", *prob_g_g2, *prob_g2_g);
-}
-
-void calc_probs_mixing(Network *nwp, int num_mixing_terms, int *Cov_types, int *Num_Cov_type, 
-                       double *nwp_mixing_matrix, double *MHp_mixing_matrix, 
-                       double *meanvalues, double *varvalues,
-                       double *pdf_gaussian_nwp, double *pdf_gaussian_MHp,
-                       Model *m, MHproposal *MHp, double *networkstatistics,
-                       int *prob_type) {
-  
-  //int counter, Cov_type;
-  ModelTerm *mtp2 = m->termarray;
-  mtp2++; 
-  
-  /* 1. Get Covariate types for the toggled nodes */
-  Cov_types[0] = (int)round(mtp2->inputparams[mtp2->ninputparams - nwp->nnodes + *(MHp->toggletail) - 1]);
-  Cov_types[1] = (int)round(mtp2->inputparams[mtp2->ninputparams - nwp->nnodes + *(MHp->togglehead) - 1]);
-  
-  /* 2. Generalized Mixing Matrix Index Mapping */
-  int c1 = Cov_types[0];
-  int c2 = Cov_types[1];
-  
-  // Force row to be the larger level and col to be the smaller
-  int row = (c1 > c2) ? c1 : c2;
-  int col = (c1 > c2) ? c2 : c1;
-  
-  // (row*(row-1)/2) + col-1 maps (1,1)->0, (2,1)->1, (2,2)->2, etc.
-  int mixing_matrix_id = (row * (row - 1) / 2) + col - 1;
-
-  // Shift by 1 because networkstatistics[0] is 'edges'
-  mixing_matrix_id = mixing_matrix_id + 1;
-  
-  if (prob_type[1] == 1) {
-    double lambda = meanvalues[mixing_matrix_id - 1];
-    double x_old = networkstatistics[mixing_matrix_id];
-    double x_new = x_old + m->workspace[mixing_matrix_id];
-  
-    //Rprintf("Mixing Matrix Prob mixing_matrix_id, lambda, x_old and x_new: %d %f %f %f\n", mixing_matrix_id, lambda, x_old, x_new);
-  
-    // (x_new - x_old) * log(lambda) + log(x_old!) - log(x_new!)
-    if (x_new > x_old) {
-      *pdf_gaussian_MHp = log(lambda) - log((double)x_new);
-      *pdf_gaussian_nwp = 0; 
-    } else {
-      *pdf_gaussian_MHp = -log(lambda) + log((double)x_old);
-      *pdf_gaussian_nwp = 0; 
-    }
-    
-    //*pdf_gaussian_MHp = (x_new - x_old) * log(lambda) + (lgamma(x_old + 1) - lgamma(x_new + 1));
-    //*pdf_gaussian_nwp = 0; 
-  }
-
-
 }

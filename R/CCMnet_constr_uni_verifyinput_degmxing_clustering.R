@@ -46,8 +46,6 @@ CCMnet_constr_uni_verifyinput_degmixing_clustering <- function(Network_stats, Pr
     
     eta0 = rep(-999.5, 1 + .5*((max_degree+1)*max_degree) + 1)
     
-    prob_type = c(0,0,1,1,1)
-    
     mean_vector = c(Prob_Distr_Params[[1]][[1]], Prob_Distr_Params[[2]][[1]] )
     
     if (remove_var_last_entry == TRUE) {
@@ -58,11 +56,15 @@ CCMnet_constr_uni_verifyinput_degmixing_clustering <- function(Network_stats, Pr
       inverse_var_x = solve(Prob_Distr_Params[[1]][[2]])
     }
     
-    inverse_var_x = rbind(inverse_var_x,0)
-    inverse_var_x = cbind(inverse_var_x,0)
-    inverse_var_x[dim(inverse_var_x)[1], dim(inverse_var_x)[1]] = 1/Prob_Distr_Params[[2]][[2]]
+    #inverse_var_x = rbind(inverse_var_x,0)
+    #inverse_var_x = cbind(inverse_var_x,0)
+    #inverse_var_x[dim(inverse_var_x)[1], dim(inverse_var_x)[1]] = 1/Prob_Distr_Params[[2]][[2]]
     
-    var_vector = c(inverse_var_x)
+    #var_vector = c(inverse_var_x)
+    
+    var_vector = c(inverse_var_x, Prob_Distr_Params[[2]][[2]])
+    
+    prob_type = c(0,0,1,1,1,1,length(mean_vector)-1, length(var_vector)-1, 1, 1, 1)
   } else {
     stop("No such distribution for DEGREE MIXING + CLUSTERING currently implemented.")
     error = 1

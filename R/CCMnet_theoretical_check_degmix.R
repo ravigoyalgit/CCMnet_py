@@ -11,53 +11,57 @@
 CCM_theoretical_check_degmix <- function(fit,
                                          n_sim) {
   
-  if (fit$prob_distr[[1]] == "multinomial_poisson") {
-    
-    lambda <- fit$prob_distr_params[[1]][1]
-    probs  <- fit$prob_distr_params[[2]]
-    
-    # Simulate Poisson-Multinomial draws
-    simulated <- matrix(NA, nrow = n_sim, ncol = length(probs))
-    
-    for (i in seq_len(n_sim)) {
-      total_edges <- rpois(1, lambda)
-      simulated[i, ] <- rmultinom(1, size = total_edges, prob = probs)
-    }
-  } else if (fit$prob_distr[[1]] == "Multivariate_normal") {
-    
-    mean_vec <- fit$prob_distr_params[[1]]
-    invsigma_mat  <- fit$prob_distr_params[[2]]
-    sigma_mat = solve(invsigma_mat)
-    
-    simulated <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
-
-  } else if (fit$prob_distr[[1]] == "mvn") {
-    
-    mean_vec <- fit$prob_distr_params[[1]][[1]]
-    sigma_mat  <- fit$prob_distr_params[[1]][[2]]
-
-    simulated <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
-    
-  } else {
-    warning("Theoretical distribution not currently implemented. Returning NULL.")
-    fit$theoretical <- list(
-      theory_stats = NULL,
-      type = "degmix"
-    )
-    return(fit)
-  }
+  # if (fit$prob_distr[[1]] == "mvn") {
+  #   
+  #   mean_vec <- fit$prob_distr_params[[1]][[1]]
+  #   sigma_mat  <- fit$prob_distr_params[[1]][[2]]
+  # 
+  #   simulated <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
+  #   
+  # } 
+  # 
+  # simulated <- as.data.frame(simulated)
+  # 
+  # m <- (-1 + sqrt(1 + 8*ncol(simulated)))/2
+  # degmix_names <- c()
+  # for (i in (seq_len(m))) {
+  #   for (j in 1:(i)) {
+  #     degmix_names <- c(degmix_names, paste0("DM", j, i))
+  #   }
+  # }
+  # colnames(simulated) <- degmix_names 
+  #   
+  # fit$theoretical <- list(
+  #   theory_stats = simulated,
+  #   type = "degmix"
+  # )
+  # 
+  # return(fit)
   
-  simulated <- as.data.frame(simulated)
-
-  m <- (-1 + sqrt(1 + 8*ncol(simulated)))/2
+  settings <- .get_distr_settings(fit$prob_distr[[1]])
+  
+  # Generate the multivariate draws
+  simulated_mat <- settings$sampler(
+    p = fit$prob_distr_params[[1]], 
+    n = n_sim
+  )
+  
+  simulated <- as.data.frame(simulated_mat)
+  
+  # Calculate number of groups 'm' based on the triangular number formula
+  # Columns = m * (m + 1) / 2
+  m <- (-1 + sqrt(1 + 8 * ncol(simulated))) / 2
+  
+  # Apply naming logic: DM11, DM12, DM22, etc.
   degmix_names <- c()
-  for (i in (seq_len(m))) {
-    for (j in 1:(i)) {
+  for (i in seq_len(m)) {
+    for (j in 1:i) {
       degmix_names <- c(degmix_names, paste0("DM", j, i))
     }
   }
+  
   colnames(simulated) <- degmix_names 
-    
+  
   fit$theoretical <- list(
     theory_stats = simulated,
     type = "degmix"

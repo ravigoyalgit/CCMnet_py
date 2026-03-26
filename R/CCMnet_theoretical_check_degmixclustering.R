@@ -11,62 +11,82 @@
 CCM_theoretical_check_degmixclustering <- function(fit,
                                          n_sim) {
   
-  if (fit$prob_distr[[1]] == "multinomial_poisson" && fit$prob_distr[[2]] == "normal") {
+  # if (fit$prob_distr[[1]] == "mvn" && fit$prob_distr[[2]] == "normal") {
+  #   
+  #   mean_vec <- fit$prob_distr_params[[1]][[1]]
+  #   sigma_mat  <- fit$prob_distr_params[[1]][[2]]
+  # 
+  #   simulated_1 <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
+  #   
+  #   mean_scalar <- fit$prob_distr_params[[2]][[1]]
+  #   var_scalar  <- fit$prob_distr_params[[2]][[2]]
+  #   
+  #   simulated_2 <- rnorm(n_sim, mean = mean_scalar, sd = sqrt(var_scalar))
+  #   
+  # } 
+  # 
+  # simulated_1 <- as.data.frame(simulated_1)
+  # simulated_2 <- as.data.frame(simulated_2)
+  # 
+  # simulated = bind_cols(simulated_1, simulated_2)
+  # 
+  # m <- (-1 + sqrt(1 + 8*ncol(simulated_1)))/2
+  # degmix_clustering_names <- c()
+  # for (i in (seq_len(m))) {
+  #   for (j in 1:(i)) {
+  #     degmix_clustering_names <- c(degmix_clustering_names, paste0("DM", j, i))
+  #   }
+  # }
+  # degmix_clustering_names = c(degmix_clustering_names , "triangles")
+  # colnames(simulated) <- degmix_clustering_names 
+  #   
+  # fit$theoretical <- list(
+  #   theory_stats = simulated,
+  #   type = "degmix_clustering"
+  # )
+  # 
+  # return(fit)
+  
+  simulated_list <- list()
+  
+  # Loop through each statistic independently
+  for (i in seq_along(fit$prob_distr)) {
+    dist_name <- fit$prob_distr[i]
+    params    <- fit$prob_distr_params[[i]]
+    settings  <- .get_distr_settings(dist_name)
     
-    lambda <- fit$prob_distr_params[[1]][[1]][1]
-    probs  <- fit$prob_distr_params[[1]][[2]]
-    
-    # Simulate Poisson-Multinomial draws
-    simulated_1 <- matrix(NA, nrow = n_sim, ncol = length(probs))
-    
-    for (i in seq_len(n_sim)) {
-      total_edges <- rpois(1, lambda)
-      simulated_1[i, ] <- rmultinom(1, size = total_edges, prob = probs)
+    if (is.null(settings$sampler)) {
+      stop(sprintf("Sampler not implemented for distribution: %s", dist_name))
     }
-  } else if (fit$prob_distr[[1]] == "multivariate_normal" && fit$prob_distr[[2]] == "normal") {
     
-    mean_vec <- fit$prob_distr_params[[1]][[1]]
-    invsigma_mat  <- fit$prob_distr_params[[1]][[2]]
-    sigma_mat = solve(invsigma_mat)
-    
-    simulated_1 <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
-
-  } else if (fit$prob_distr[[1]] == "mvn" && fit$prob_distr[[2]] == "normal") {
-    
-    mean_vec <- fit$prob_distr_params[[1]][[1]]
-    sigma_mat  <- fit$prob_distr_params[[1]][[2]]
-
-    simulated_1 <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
-    
-    mean_scalar <- fit$prob_distr_params[[2]][[1]]
-    var_scalar  <- fit$prob_distr_params[[2]][[2]]
-    
-    simulated_2 <- rnorm(n_sim, mean = mean_scalar, sd = sqrt(var_scalar))
-    
-  } else {
-    warning("Theoretical distribution not currently implemented. Returning NULL.")
-    fit$theoretical <- list(
-      theory_stats = NULL,
-      type = "degmix"
+    # Each sampler returns its own matrix (n_sim x num_stats_for_this_dist)
+    # We pass population/max_val in case this specific stat needs it
+    simulated_list[[i]] <- settings$sampler(
+      p = params, 
+      n = n_sim, 
+      population = fit$population,
+      max_val = choose(fit$population, 2)
     )
-    return(fit)
   }
   
-  simulated_1 <- as.data.frame(simulated_1)
-  simulated_2 <- as.data.frame(simulated_2)
+  # Combine all independent blocks into one wide matrix
+  simulated <- as.data.frame(do.call(cbind, simulated_list))
   
-  simulated = bind_cols(simulated_1, simulated_2)
+  # --- Naming Logic ---
+  # Block 1: Degree Mixing (Everything except the last column)
+  mix_cols <- ncol(simulated) - 1
+  m <- (-1 + sqrt(1 + 8 * mix_cols)) / 2
   
-  m <- (-1 + sqrt(1 + 8*ncol(simulated_1)))/2
-  degmix_clustering_names <- c()
-  for (i in (seq_len(m))) {
-    for (j in 1:(i)) {
-      degmix_clustering_names <- c(degmix_clustering_names, paste0("DM", j, i))
+  degmix_names <- c()
+  for (row in seq_len(m)) {
+    for (col in 1:row) {
+      degmix_names <- c(degmix_names, paste0("DM", col, row))
     }
   }
-  degmix_clustering_names = c(degmix_clustering_names , "triangles")
-  colnames(simulated) <- degmix_clustering_names 
-    
+  
+  # Block 2: Clustering (The last column)
+  colnames(simulated) <- c(degmix_names, "triangles")
+  
   fit$theoretical <- list(
     theory_stats = simulated,
     type = "degmix_clustering"

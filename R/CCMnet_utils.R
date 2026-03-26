@@ -84,13 +84,22 @@ facet_labeller <- function(labels) {
                      var_bool = TRUE, 
                      use_solve_var = TRUE,
                      rules = list(p1 = c("is_numeric"), 
-                                  p2 = c("is_numeric", "is_square_mat", "match_matrix_dim"))),
+                                  p2 = c("is_numeric", "is_square_mat", "match_matrix_dim")),
+                     sampler = function(p, n, ...) {
+                       # p[[1]] = mean_vector, p[[2]] = sigma_matrix
+                       # Returning as a matrix (n_sim x length(mean_vector))
+                       mvtnorm::rmvnorm(n, mean = p[[1]], sigma = p[[2]])
+                     }),
     "normal"     = list(sub_code = 1, 
                      mean_bool = TRUE, 
                      var_bool = TRUE, 
                      use_solve_var = FALSE,
                      rules = list(p1 = c("is_numeric"), 
-                                  p2 = c("is_numeric", "all_positive", "match_length"))),
+                                  p2 = c("is_numeric", "all_positive", "match_length")),
+                     sampler = function(p, n, ...) {
+                       mu <- p[[1]]; sigma <- p[[2]]
+                       matrix(rnorm(n * length(mu), mean = mu, sd = sqrt(sigma)), nrow = n, byrow = TRUE)
+                     }),
     "lognormal" = list(sub_code = 2, 
                        mean_bool = TRUE, 
                        var_bool = FALSE, 
@@ -100,28 +109,52 @@ facet_labeller <- function(labels) {
                      mean_bool = TRUE, 
                      var_bool = FALSE, 
                      use_solve_var = FALSE,
-                     rules = list(p1 = c("is_numeric", "all_positive"))),
+                     rules = list(p1 = c("is_numeric", "all_positive")),
+                     sampler = function(p, n, ...) {
+                       lambda <- p[[1]]
+                       matrix(rpois(n * length(lambda), lambda), nrow = n, byrow = TRUE)
+                     }),
     "uniform" = list(sub_code = 4, 
                      mean_bool = FALSE, 
                      var_bool = FALSE, 
                      use_solve_var = FALSE,
-                     rules = list()),
+                     rules = list(),
+                     sampler = function(p, n, max_val, ...) {
+                       matrix(sample(0:max_val, size = n, replace = TRUE), ncol = 1)
+                     }),
     "beta"     = list(sub_code = 5, 
                         mean_bool = TRUE, 
                         var_bool = TRUE, 
                         use_solve_var = FALSE,
                       rules = list(p1 = c("is_numeric", "all_positive"), 
-                                   p2 = c("is_numeric", "all_positive", "match_length"))),
+                                   p2 = c("is_numeric", "all_positive", "match_length")),
+                      sampler = function(p, n, ...) {
+                        # p[[1]] is shape1 (alpha), p[[2]] is shape2 (beta)
+                        # Returning as a matrix with 1 column for consistency
+                        matrix(rbeta(n, shape1 = p[[1]], shape2 = p[[2]]), ncol = 1)
+                      }),
     "dirmult" = list(sub_code = 6, 
                      mean_bool = TRUE, 
                      var_bool = FALSE, 
                      use_solve_var = FALSE,
-                     rules = list(p1 = c("is_numeric", "all_positive"))),
+                     rules = list(p1 = c("is_numeric", "all_positive")),
+                     sampler = function(p, n, population, ...) {
+                       alpha <- p[[1]]
+                       # 1. Generate n samples from Dirichlet
+                       dir_draws <- gtools::rdirichlet(n, alpha = alpha)
+                       
+                       # 2. Generate Multinomial draws for each Dirichlet sample
+                       # Using a vectorized apply or a row-wise rmultinom
+                       t(apply(dir_draws, 1, function(probs) rmultinom(1, size = population, prob = probs)))
+                     }),
     "np" = list(sub_code = 99, 
                      mean_bool = TRUE, 
                      var_bool = FALSE, 
                      use_solve_var = FALSE,
-                rules = list(p1 = c("is_numeric", "non_negative", "sums_to_one")))
+                rules = list(p1 = c("is_numeric", "non_negative", "sums_to_one")),
+                sampler = function(p, n, max_val, ...) {
+                  matrix(sample(0:max_val, size = n, replace = TRUE, prob = p[[1]]), ncol = 1)
+                })
 
   )
   

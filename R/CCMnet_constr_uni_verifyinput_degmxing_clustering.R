@@ -3,35 +3,10 @@
 #' @noRd
 
 CCMnet_constr_uni_verifyinput_degmixing_clustering <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                                         population, covPattern, remove_var_last_entry) {
+                                                         population, covPattern, 
+                                                         mean_vector, var_vector, prob_type_sub_code,
+                                                         mean_vector_size, var_vector_size) {
   
-  error = 0
-  if (Network_stats[1] == "triangles") { #swap prob_distr_params
-    Prob_Distr_Params_temp = Prob_Distr_Params[[1]]
-    Prob_Distr_Params[[1]] = Prob_Distr_Params[[2]]
-    Prob_Distr_Params[[2]] = Prob_Distr_Params_temp
-  }
-  if (!inherits(Prob_Distr_Params[[1]][[1]], "numeric")) {
-    stop("Mean degree mixing should be a vector representing upper triangle of degree mixing matrix.")
-    error = 1
-  }
-  if (dim(Prob_Distr_Params[[1]][[2]])[1] != dim(Prob_Distr_Params[[1]][[2]])[2]) {
-    stop("Covariance matrix is not square.")
-    error = 1
-  }
-  if (length(Prob_Distr_Params[[1]][[1]]) != dim(Prob_Distr_Params[[1]][[2]])[2]) {
-    stop("mean vector and covariance matrix are not similar dimensions.")
-    error = 1
-  }
-  if (length(Prob_Distr_Params[[2]][[1]]) != 1) {
-    stop("Mean Triangles such be a single positive value.")
-    error = 1
-  }
-  if (length(Prob_Distr_Params[[2]][[2]]) != 1) {
-    stop("Variance of Triangles such be a single positive value.")
-    error = 1
-  }
-  if ((Prob_Distr[1] == "mvn") && (Prob_Distr[2] == "normal")) {
     
     max_degree = floor(sqrt(2*length(upper.tri(Prob_Distr_Params[[1]][[1]], diag = TRUE))))
     
@@ -46,15 +21,15 @@ CCMnet_constr_uni_verifyinput_degmixing_clustering <- function(Network_stats, Pr
     
     eta0 = rep(-999.5, 1 + .5*((max_degree+1)*max_degree) + 1)
     
-    mean_vector = c(Prob_Distr_Params[[1]][[1]], Prob_Distr_Params[[2]][[1]] )
-    
-    if (remove_var_last_entry == TRUE) {
-      inverse_var_x = solve(Prob_Distr_Params[[1]][[2]][-length(mean_vector[-1]),-length(mean_vector[-1])])
-      inverse_var_x = rbind(inverse_var_x,0)
-      inverse_var_x = cbind(inverse_var_x,0)
-    } else {
-      inverse_var_x = solve(Prob_Distr_Params[[1]][[2]])
-    }
+    # mean_vector = c(Prob_Distr_Params[[1]][[1]], Prob_Distr_Params[[2]][[1]] )
+    # 
+    # if (remove_var_last_entry == TRUE) {
+    #   inverse_var_x = solve(Prob_Distr_Params[[1]][[2]][-length(mean_vector[-1]),-length(mean_vector[-1])])
+    #   inverse_var_x = rbind(inverse_var_x,0)
+    #   inverse_var_x = cbind(inverse_var_x,0)
+    # } else {
+    #   inverse_var_x = solve(Prob_Distr_Params[[1]][[2]])
+    # }
     
     #inverse_var_x = rbind(inverse_var_x,0)
     #inverse_var_x = cbind(inverse_var_x,0)
@@ -62,32 +37,10 @@ CCMnet_constr_uni_verifyinput_degmixing_clustering <- function(Network_stats, Pr
     
     #var_vector = c(inverse_var_x)
     
-    var_vector = c(inverse_var_x, Prob_Distr_Params[[2]][[2]])
+    #var_vector = c(inverse_var_x, Prob_Distr_Params[[2]][[2]])
     
-    prob_type = c(0,0,1,1,1,1,length(mean_vector)-1, length(var_vector)-1, 1, 1, 1)
-  } else {
-    stop("No such distribution for DEGREE MIXING + CLUSTERING currently implemented.")
-    error = 1
-  }
-
-
-  if (error == 1) {
-    CCM_constr_info <- list(
-      error = 1,
-      prob_type = NULL,
-      mean_vector = NULL,
-      var_vector = NULL,
-      Clist_nterms = NULL,
-      Clist_fnamestring = NULL,
-      Clist_snamestring = NULL,
-      inputs =  NULL,
-      eta0 = NULL,
-      stats = NULL,
-      MHproposal_name = NULL,
-      MHproposal_package = NULL
-    )
-  }
-  if (error == 0) {
+    prob_type = c(0,0,1,1,1,prob_type_sub_code[1],mean_vector_size[1], var_vector_size[1], prob_type_sub_code[2], mean_vector_size[2], var_vector_size[2])
+    
     CCM_constr_info <- list(
       error = 0,
       prob_type = prob_type,
@@ -102,6 +55,5 @@ CCMnet_constr_uni_verifyinput_degmixing_clustering <- function(Network_stats, Pr
       MHproposal_name = "TNT",
       MHproposal_package = "CCMnet"
     )
-  }
 
 }

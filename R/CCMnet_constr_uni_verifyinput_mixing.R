@@ -3,7 +3,9 @@
 #' @noRd
 
 CCMnet_constr_uni_verifyinput_mixing <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                           population, covPattern, remove_var_last_entry) {
+                                           population, covPattern,
+                                           mean_vector, var_vector, prob_type_sub_code,
+                                           mean_vector_size, var_vector_size) {
   
   error = 0
   
@@ -30,30 +32,15 @@ CCMnet_constr_uni_verifyinput_mixing <- function(Network_stats, Prob_Distr, Prob
   eta0 = rep(-999.5,1 + num_params)
   
   
-  if (Prob_Distr[[1]] == 'poisson') {
-    mean_vector = Prob_Distr_Params[[1]][[1]]
-    var_vector = c(0,0)
+  # if (Prob_Distr[[1]] == 'poisson') {
+  #   mean_vector = Prob_Distr_Params[[1]][[1]]
+  #   var_vector = c(0,0)
+  # 
+  #   prob_type = c(0,1,0,0,1,3)
+  # }
   
-    prob_type = c(0,1,0,0,1,3)
-  }
+  prob_type <- c(0,1,0,0,1,prob_type_sub_code, mean_vector_size, var_vector_size)
   
-  if (error == 1) {
-    CCM_constr_info <- list(
-      error = 1,
-      prob_type = NULL,
-      mean_vector = NULL,
-      var_vector = NULL,
-      Clist_nterms = NULL,
-      Clist_fnamestring = NULL,
-      Clist_snamestring = NULL,
-      inputs =  NULL,
-      eta0 = NULL,
-      stats = NULL,
-      MHproposal_name = NULL,
-      MHproposal_package = NULL
-    )
-  }
-  if (error == 0) {
     CCM_constr_info <- list(
       error = 0,
       prob_type = prob_type,
@@ -68,6 +55,5 @@ CCMnet_constr_uni_verifyinput_mixing <- function(Network_stats, Prob_Distr, Prob
       MHproposal_name = "TNT",
       MHproposal_package = "CCMnet"
     )
-  }
   
 }

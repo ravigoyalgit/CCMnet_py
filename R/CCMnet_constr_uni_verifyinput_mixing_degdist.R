@@ -3,14 +3,10 @@
 #' @noRd
 
 CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                                   population, covPattern, remove_var_last_entry) {
+                                                   population, covPattern, 
+                                                   mean_vector, var_vector, prob_type_sub_code,
+                                                   mean_vector_size, var_vector_size) {
   
-  error = 0
-  if (Network_stats[1] == "mixing") { #swap prob_distr_params
-    Prob_Distr_Params_temp = Prob_Distr_Params[[1]]
-    Prob_Distr_Params[[1]] = Prob_Distr_Params[[2]]
-    Prob_Distr_Params[[2]] = Prob_Distr_Params_temp
-  }
   if (length(Prob_Distr_Params[[1]][[1]][[1]]) != length(Prob_Distr_Params[[1]][[1]][[2]])) {
     stop("Current limitation requires mean degree distributions to be of equal length.")
     error = 1
@@ -79,18 +75,9 @@ CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Dis
   
     mean_vector = c(Prob_Distr_Params[[1]][[1]][[1]], Prob_Distr_Params[[1]][[1]][[2]],  Prob_Distr_Params[[2]][[1]])
     
-    if (remove_var_last_entry == TRUE) {
-      inverse_var_x1 = solve(Prob_Distr_Params[[1]][[2]][[1]][-length(Prob_Distr_Params[[1]][[1]][[1]]),-length(Prob_Distr_Params[[1]][[1]][[1]])])
-      inverse_var_x1 = rbind(inverse_var_x1,0)
-      inverse_var_x1 = cbind(inverse_var_x1,0)
-      
-      inverse_var_x2 = solve(Prob_Distr_Params[[1]][[2]][[2]][-length(Prob_Distr_Params[[1]][[1]][[2]]),-length(Prob_Distr_Params[[1]][[1]][[2]])])
-      inverse_var_x2 = rbind(inverse_var_x2,0)
-      inverse_var_x2 = cbind(inverse_var_x2,0)
-    } else {
-      inverse_var_x1 = solve(Prob_Distr_Params[[1]][[2]][[1]])
-      inverse_var_x2 = solve(Prob_Distr_Params[[1]][[2]][[2]])
-    }
+
+    inverse_var_x1 = solve(Prob_Distr_Params[[1]][[2]][[1]])
+    inverse_var_x2 = solve(Prob_Distr_Params[[1]][[2]][[2]])
     
     var_vector = c(c(inverse_var_x1),c(inverse_var_x2), Prob_Distr_Params[[2]][[2]])
     
@@ -136,28 +123,8 @@ CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Dis
     
     prob_type = c(2,2,0,0,1)
     
-  } else {
-    stop("No such distribution for DEGREE DISTRIBUTION + MIXING currently implemented.")
-    error = 1
   }
   
-  if (error == 1) {
-    CCM_constr_info <- list(
-      error = 1,
-      prob_type = NULL,
-      mean_vector = NULL,
-      var_vector = NULL,
-      Clist_nterms = NULL,
-      Clist_fnamestring = NULL,
-      Clist_snamestring = NULL,
-      inputs =  NULL,
-      eta0 = NULL,
-      stats = NULL,
-      MHproposal_name = NULL,
-      MHproposal_package = NULL
-    )
-  }
-  if (error == 0) {
     CCM_constr_info <- list(
       error = 0,
       prob_type = prob_type,
@@ -172,5 +139,4 @@ CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Dis
       MHproposal_name = "TNT",
       MHproposal_package = "CCMnet"
     )
-  }
 }

@@ -5,67 +5,108 @@
 CCMnet_constr_uni_verifyinput <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                           population, covPattern, remove_var_last_entry) {
   
-  # 1. Basic Length & Type Validation
-  if (length(Network_stats) != length(Prob_Distr)) {
-    stop(paste0("Mismatched input: 'Network_stats' has length ", length(Network_stats), 
-                ", but 'Prob_Distr' has length ", length(Prob_Distr), "."))
-  }
+  # if (Network_stats[1] == "triangles") { #swap prob_distr_params
+  #   Prob_Distr_Params_temp = Prob_Distr_Params[[1]]
+  #   Prob_Distr_Params[[1]] = Prob_Distr_Params[[2]]
+  #   Prob_Distr_Params[[2]] = Prob_Distr_Params_temp
+  # }
+  # 
+  # if (Network_stats[1] == "mixing") { #swap prob_distr_params
+  #   Prob_Distr_Params_temp = Prob_Distr_Params[[1]]
+  #   Prob_Distr_Params[[1]] = Prob_Distr_Params[[2]]
+  #   Prob_Distr_Params[[2]] = Prob_Distr_Params_temp
+  # }
+
+  stat_key = paste(Network_stats, collapse = "+")
   
-  if (!is.numeric(population) || population <= 1) {
-    stop("population must be a positive integer greater than 1.")
-  }
+  mean_vector <- NULL
+  var_vector <- NULL
+  prob_type_sub_code <- NULL
+  mean_vector_size <- NULL
+  var_vector_size <- NULL
   
-  # 2. Key Standardization
-  stat_order <- order(Network_stats)
-  stat_key   <- paste(Network_stats[stat_order], collapse = "+")
-  distr_key  <- paste(Prob_Distr[stat_order], collapse = "+")
-  
-  # 3. Master Lookup Check
-  valid_distr_options <- .get_supported_distrs(stat_key)
-  
-  if (length(valid_distr_options) == 0) {
-    supported_stats <- paste(names(eval(body(.get_supported_distrs)[[2]])), collapse = ", ")
+  if (stat_key != "degreedist+mixing") {
+  for (i in c(1:length(Network_stats))) {
     
-    stop(paste0(
-      "The combination of statistics '", stat_key, "' is not implemented.\n",
-      "Currently supported network properties: ", supported_stats, "."
-    ))
+    mean_vector_TEMP <- NULL
+    var_vector_TEMP <- NULL
+    
+    # 1. Retrieve the config
+    prob_distr_config <- .get_distr_settings(Prob_Distr[[i]])
+    
+    # 2. Extract and transform parameters
+    if (prob_distr_config$mean_bool) {
+      mean_vector_TEMP <- Prob_Distr_Params[[i]][[1]]
+    } 
+    
+    if (prob_distr_config$var_bool) {
+      var_vector_TEMP  <- Prob_Distr_Params[[i]][[2]]
+    } 
+    
+    if (prob_distr_config$use_solve_var) {
+      var_vector_TEMP <- c(solve(var_vector_TEMP))
+    }
+    mean_vector = c(mean_vector, mean_vector_TEMP)
+    var_vector = c(var_vector, var_vector_TEMP)
+    prob_type_sub_code <- c(prob_type_sub_code, prob_distr_config$sub_code)
+    mean_vector_size <- c(mean_vector_size, length(mean_vector_TEMP))
+    var_vector_size <- c(var_vector_size, length(var_vector_TEMP))
   }
   
-  if (!(distr_key %in% valid_distr_options)) {
-    stop(paste0(
-      "The distribution '", distr_key, "' is not supported for '", stat_key, "'.\n",
-      "Supported options: ", paste(valid_distr_options, collapse = ", "), "."
-    ))
+  if (is.null(mean_vector)) {
+    mean_vector = c(0,0)
   }
   
-  # 4. Routing to Sub-functions
+  if (is.null(var_vector)) {
+    var_vector = c(0,0)
+  }
+  
+  if (length(mean_vector) == 1) {
+    mean_vector = c(mean_vector, mean_vector)
+  }
+  
+  if (length(var_vector) == 1) {
+    var_vector = c(var_vector, var_vector)
+  }
+  }
   
   # Logic for 1-statistic modes
   if (stat_key == "edges" || stat_key == "density") {
     CCM_info <- CCMnet_constr_uni_verifyinput_edges(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                                    population, covPattern, remove_var_last_entry)
+                                                    population, covPattern, 
+                                                    mean_vector, var_vector, prob_type_sub_code,
+                                                    mean_vector_size, var_vector_size)
     
   } else if (stat_key == "mixing") {
     CCM_info <- CCMnet_constr_uni_verifyinput_mixing(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                                     population, covPattern, remove_var_last_entry)
+                                                     population, covPattern,
+                                                     mean_vector, var_vector, prob_type_sub_code,
+                                                     mean_vector_size, var_vector_size)
     
   } else if (stat_key == "degreedist") {
     CCM_info <- CCMnet_constr_uni_verifyinput_degdist(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                                      population, covPattern, remove_var_last_entry)
+                                                      population, covPattern, 
+                                                      mean_vector, var_vector, prob_type_sub_code,
+                                                      mean_vector_size, var_vector_size)
     
   } else if (stat_key == "degmixing") {
     CCM_info <- CCMnet_constr_uni_verifyinput_degmixing(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                                        population, covPattern, remove_var_last_entry)
+                                                        population, covPattern, 
+                                                        mean_vector, var_vector, prob_type_sub_code,
+                                                        mean_vector_size, var_vector_size)
     
   # Logic for 2-statistic modes
   } else if (stat_key == "degreedist+mixing") {
     CCM_info <- CCMnet_constr_uni_verifyinput_mixing_degdist(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                                             population, covPattern, remove_var_last_entry)
+                                                             population, covPattern, 
+                                                             mean_vector, var_vector, prob_type_sub_code,
+                                                             mean_vector_size, var_vector_size)
     
   } else if (stat_key == "degmixing+triangles") {
     CCM_info <- CCMnet_constr_uni_verifyinput_degmixing_clustering(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                                                   population, covPattern, remove_var_last_entry)
+                                                                   population, covPattern, 
+                                                                   mean_vector, var_vector, prob_type_sub_code,
+                                                                   mean_vector_size, var_vector_size)
     
   } 
   

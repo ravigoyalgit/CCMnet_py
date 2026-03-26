@@ -478,8 +478,8 @@ ggplot2::ggplot(
 ```{r density-example-sampled_school-ensemble}
 
 ccm_sample <- sample_ccm(
-  network_stats = list("density"),
-  prob_distr = list("normal"),
+  network_stats = c("density"),
+  prob_distr = c("normal"),
   prob_distr_params = list(list(post_normal[2], (post_normal[3])^2)), 
   population = 100L,
   sample_size = 10000L,
@@ -487,8 +487,8 @@ ccm_sample <- sample_ccm(
 )
 
 school_ensemble <- sample_ccm(
-  network_stats = list("density"),
-  prob_distr = list("normal"),
+  network_stats = c("density"),
+  prob_distr = c("normal"),
   prob_distr_params = list(list(post_normal[2], (post_normal[3])^2)), 
   population = 100L,
   sample_size = 10L,

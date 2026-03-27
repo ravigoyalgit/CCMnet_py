@@ -257,195 +257,194 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
     /// Two Degree Distributions and Mixing: BEGIN ///
     if ((prob_type[0] >= 1) && (prob_type[1] >= 1) && (prob_type[2] == 0) && (prob_type[3] == 0) && (prob_type[4] >= 1)){
       
-      //int num_deg_stats = m->n_stats-1-(*NetworkForecast) - 3; //The four is for number of mixing - only coded for two node types
       int num_deg_stats = m->n_stats-1 - 3; //The four is for number of mixing - only coded for two node types
       int length_deg_dist = num_deg_stats / 2; //Currently both degree distributions have to be the same size
       int Deg_nwp[2];
       int Deg_MHp[2];
       int Cov_types[2]; //Node types for the endpoints of toggled edge
-      //               int Deg_Add_counter = 0;
-      //               int Deg_Delete_counter = 0;
+
       int MHp_Deg_Distr_1[length_deg_dist]; // Degree Distribution and Edges for Node 1 and Node 2
       int MHp_Deg_Distr_2[length_deg_dist]; // Node 1 and Node 2 are the nodes of the toggled edge
       int nwp_Deg_Distr_1[length_deg_dist];
       int nwp_Deg_Distr_2[length_deg_dist];
-      double MHp_Deg_Distr_Edges_1[length_deg_dist];
-      double MHp_Deg_Distr_Edges_2[length_deg_dist];
-      double nwp_Deg_Distr_Edges_1[length_deg_dist];
-      double nwp_Deg_Distr_Edges_2[length_deg_dist];
       double nwp_mixing_matrix[3];
       double MHp_mixing_matrix[3];
-      double nwp_prob_mixing[2];
-      double MHp_prob_mixing[2];
-      double nwp_exp_dmm;
-      double MHp_exp_dmm;
+      
+      ModelTerm *mtp2 = m->termarray;
+      
+      //Stage 1: Calculate Network Statistics
+      for (counter = 1; counter < (length_deg_dist + 1); counter++) {
+        MHp_Deg_Distr_1[counter - 1] = (int)networkstatistics[counter] + (int)(m->workspace[counter]);
+        nwp_Deg_Distr_1[counter - 1] = (int)networkstatistics[counter];
+      }
+      
+      for (counter = (length_deg_dist + 1); counter < (2 * length_deg_dist + 1); counter++) {
+        MHp_Deg_Distr_2[counter - (length_deg_dist + 1)] = (int)networkstatistics[counter] + (int)(m->workspace[counter]);
+        nwp_Deg_Distr_2[counter - (length_deg_dist + 1)] = (int)networkstatistics[counter];
+      }
+      
+      nwp_mixing_matrix[0] = networkstatistics[2*length_deg_dist + 1];
+      nwp_mixing_matrix[1] = networkstatistics[2*length_deg_dist + 2];
+      nwp_mixing_matrix[2] = networkstatistics[2*length_deg_dist + 3];
+      
+      MHp_mixing_matrix[0] = networkstatistics[2*length_deg_dist + 1] + m->workspace[2*length_deg_dist + 1];
+      MHp_mixing_matrix[1] = networkstatistics[2*length_deg_dist + 2] + m->workspace[2*length_deg_dist + 2];
+      MHp_mixing_matrix[2] = networkstatistics[2*length_deg_dist + 3] + m->workspace[2*length_deg_dist + 3];
+      
       int Proposal_prob_zero = 0;
       
-      /* Get Degree of tail and head*/
+      //Stage 2: Calculate Congruence Class Ratio
       
       Deg_nwp[0] = OUT_DEG[*(MHp->toggletail)] + IN_DEG[*(MHp->toggletail)];
       Deg_nwp[1] = OUT_DEG[*(MHp->togglehead)] + IN_DEG[*(MHp->togglehead)];
       
-      //Rprintf("Node ID 1 %d Node ID 2 %d\n",*(MHp->toggletail), *(MHp->togglehead));
-      //Rprintf("Degree 1 %d Degree 2 %d\n",Deg_nwp[0], Deg_nwp[1]);
-      
-      if (nwp->nedges > MHp_nedges) {
+      if (nwp->nedges > MHp_nedges) { // Removal
         Deg_MHp[0] = Deg_nwp[0] - 1;
         Deg_MHp[1] = Deg_nwp[1] - 1;
-      } else {
+      } else { // Addition
         Deg_MHp[0] = Deg_nwp[0] + 1;
         Deg_MHp[1] = Deg_nwp[1] + 1;
       }
       
-      if ((Deg_MHp[0] > (length_deg_dist-1)) || (Deg_MHp[1] > (length_deg_dist-1))) {
-        Proposal_prob_zero = 1;
-      }
+      calculate_congruence_ratio_degmix(
+        m, nwp, MHp, 
+        length_deg_dist, MHp_nedges, 
+        Deg_nwp, Deg_MHp, Cov_types,
+        networkstatistics, 
+        nwp_Deg_Distr_1, nwp_Deg_Distr_2, MHp_Deg_Distr_1, MHp_Deg_Distr_2,
+        nwp_mixing_matrix, MHp_mixing_matrix,
+        &prob_g_g2, &prob_g2_g,           // Pass by address
+        &pdf_gaussian_nwp, &pdf_gaussian_MHp, &Proposal_prob_zero
+      );
       
-      if (Proposal_prob_zero == 1) {
-        prob_g2_g = 1;
-        pdf_gaussian_MHp = log(0);
-        prob_g_g2 = 1;
-        pdf_gaussian_nwp = 0;
-        //Rprintf("Proposal Excesses Max Edges: %f\n", pdf_gaussian_MHp);
-      } else {
-        /* Construct Degree Distribution and number of edges associated with each degree*/
-        ModelTerm *mtp2 = m->termarray;
-        mtp2++;
+        if (Proposal_prob_zero == 0) {
+          
+          // calc_probs_mixing_degdist(length_deg_dist, m, nwp, mtp2, prob_type,
+          //                         networkstatistics, meanvalues, varvalues,
+          //                         nwp_mixing_matrix, MHp_mixing_matrix, MHp_nedges,
+          //                         &pdf_gaussian_nwp, &pdf_gaussian_MHp);
         
-        Cov_types[0] = (int)round(mtp2->inputparams[mtp2->ninputparams - nwp->nnodes + *(MHp->toggletail) - 1]); //Minus 1 since node ids are from 1 to nnodes
-        Cov_types[1] = (int)round(mtp2->inputparams[mtp2->ninputparams - nwp->nnodes + *(MHp->togglehead) - 1]);
-        
-        //nwp_mixing_matrix[0] = nwp->nedges - networkstatistics[2*length_deg_dist + 1] - networkstatistics[2*length_deg_dist + 2];
-        //nwp_mixing_matrix[1] = networkstatistics[2*length_deg_dist + 1];
-        //nwp_mixing_matrix[2] = networkstatistics[2*length_deg_dist + 2];
-        
-        nwp_mixing_matrix[0] = networkstatistics[2*length_deg_dist + 1];
-        nwp_mixing_matrix[1] = networkstatistics[2*length_deg_dist + 2];
-        nwp_mixing_matrix[2] = networkstatistics[2*length_deg_dist + 3];
-        
-        //MHp_mixing_matrix[0] = MHp_nedges - networkstatistics[2*length_deg_dist + 1] - networkstatistics[2*length_deg_dist + 2] - m->workspace[2*length_deg_dist + 1] - m->workspace[2*length_deg_dist + 2];
-        //MHp_mixing_matrix[1] = networkstatistics[2*length_deg_dist + 1] + m->workspace[2*length_deg_dist + 1];
-        //MHp_mixing_matrix[2] = networkstatistics[2*length_deg_dist + 2] + m->workspace[2*length_deg_dist + 2];
-        
-        MHp_mixing_matrix[0] = networkstatistics[2*length_deg_dist + 1] + m->workspace[2*length_deg_dist + 1];
-        MHp_mixing_matrix[1] = networkstatistics[2*length_deg_dist + 2] + m->workspace[2*length_deg_dist + 2];
-        MHp_mixing_matrix[2] = networkstatistics[2*length_deg_dist + 3] + m->workspace[2*length_deg_dist + 3];
-        
-        //Rprintf("nwp_mixing_matrix %f %f %f\n", nwp_mixing_matrix[0], nwp_mixing_matrix[1], nwp_mixing_matrix[2]);
-        //Rprintf("MHp_mixing_matrix %f %f %f\n", MHp_mixing_matrix[0], MHp_mixing_matrix[1], MHp_mixing_matrix[2]);
-        
-        if ((Cov_types[0] == 1) && (Cov_types[1] == 1)) {
-          nwp_prob_mixing[0] = (float)(2*nwp_mixing_matrix[0]) / (float)(2*nwp_mixing_matrix[0] + nwp_mixing_matrix[1]);
-          nwp_prob_mixing[1] = nwp_prob_mixing[0];
-          MHp_prob_mixing[0] = (float)(2*MHp_mixing_matrix[0]) / (float)(2*MHp_mixing_matrix[0] + MHp_mixing_matrix[1]);
-          MHp_prob_mixing[1] = MHp_prob_mixing[0];
-        } else if ((Cov_types[0] == 2) && (Cov_types[1] == 2)) {
-          nwp_prob_mixing[0] = (float)(2*nwp_mixing_matrix[2]) / (float)(2*nwp_mixing_matrix[2] + nwp_mixing_matrix[1]);
-          nwp_prob_mixing[1] = nwp_prob_mixing[0];
-          MHp_prob_mixing[0] = (float)(2*MHp_mixing_matrix[2]) / (float)(2*MHp_mixing_matrix[2] + MHp_mixing_matrix[1]);
-          MHp_prob_mixing[1] = MHp_prob_mixing[0];
-        } else {
-          nwp_prob_mixing[0] = (float)(nwp_mixing_matrix[1]) / (float)(2*nwp_mixing_matrix[0] + nwp_mixing_matrix[1]);
-          nwp_prob_mixing[1] = (float)(nwp_mixing_matrix[1]) / (float)(2*nwp_mixing_matrix[2] + nwp_mixing_matrix[1]);
-          MHp_prob_mixing[0] = (float)(MHp_mixing_matrix[1]) / (float)(2*MHp_mixing_matrix[0] + MHp_mixing_matrix[1]);
-          MHp_prob_mixing[1] = (float)(MHp_mixing_matrix[1]) / (float)(2*MHp_mixing_matrix[2] + MHp_mixing_matrix[1]);
-        }
-        
-        if (Cov_types[0] == 1) {
-          for (counter =1; counter < (length_deg_dist+1); counter++) {
-            MHp_Deg_Distr_1[counter-1] = (int)networkstatistics[counter] + (int)(m->workspace[counter]);
-            nwp_Deg_Distr_1[counter-1] = (int)networkstatistics[counter];
-            MHp_Deg_Distr_Edges_1[counter-1] = MHp_Deg_Distr_1[counter-1] * (counter-1) * MHp_prob_mixing[0];
-            nwp_Deg_Distr_Edges_1[counter-1] = nwp_Deg_Distr_1[counter-1] * (counter-1) * nwp_prob_mixing[0];
+        // --- BLOCK 1: First Degree Distribution ---
+        int num_degmix_stats = prob_type[6]; // length of first degree distribution
+          int num_degmix_var = prob_type[7];   // length of variance for first
+          
+          double v_current_stat[num_degmix_stats];
+          double v_proposal_stat[num_degmix_stats];
+          double meanvalues_TEMP[num_degmix_stats];
+          double varvalues_TEMP[num_degmix_var];
+          
+          counter = 1; 
+          for (int i = 0; i < num_degmix_stats; i++) {
+            v_current_stat[i] = (double)networkstatistics[counter];
+            v_proposal_stat[i] = (double)(networkstatistics[counter] + m->workspace[counter]);
+            meanvalues_TEMP[i] = (double)meanvalues[i];
+            counter++;
           }
-        } else {
-          for (counter =(length_deg_dist+1); counter < (2*length_deg_dist + 1); counter++) {
-            MHp_Deg_Distr_1[counter-(length_deg_dist+1)] = (int)networkstatistics[counter] + (int)(m->workspace[counter]);
-            nwp_Deg_Distr_1[counter-(length_deg_dist+1)] = (int)networkstatistics[counter];
-            MHp_Deg_Distr_Edges_1[counter-(length_deg_dist+1)] = MHp_Deg_Distr_1[counter-(length_deg_dist+1)] * (counter-(length_deg_dist+1)) * MHp_prob_mixing[0];
-            nwp_Deg_Distr_Edges_1[counter-(length_deg_dist+1)] = nwp_Deg_Distr_1[counter-(length_deg_dist+1)] * (counter-(length_deg_dist+1)) * nwp_prob_mixing[0];
+          for (int i = 0; i < num_degmix_var; i++) {
+            varvalues_TEMP[i] = (double)varvalues[i];
           }
-        }
-        
-        if (Cov_types[1] == 1) {
-          for (counter =1; counter < (length_deg_dist+1); counter++) {
-            MHp_Deg_Distr_2[counter-1] = (int)networkstatistics[counter] + (int)(m->workspace[counter]);
-            nwp_Deg_Distr_2[counter-1] = (int)networkstatistics[counter];
-            MHp_Deg_Distr_Edges_2[counter-1] = MHp_Deg_Distr_2[counter-1] * (counter-1) * MHp_prob_mixing[1];
-            nwp_Deg_Distr_Edges_2[counter-1] = nwp_Deg_Distr_2[counter-1] * (counter-1) * nwp_prob_mixing[1];
+          
+          //double pdf_gaussian_nwp = 0;
+          //double pdf_gaussian_MHp = 0;
+          
+          calc_prob_dist(v_current_stat, v_proposal_stat, num_degmix_stats, prob_type,
+                         meanvalues_TEMP, varvalues_TEMP,
+                         &pdf_gaussian_nwp, &pdf_gaussian_MHp);
+          
+          // --- BLOCK 2: Second Degree Distribution ---
+          int num_degmix_stats2 = prob_type[9];
+          int num_degmix_var2 = prob_type[10];
+          
+          double v_current_stat2[num_degmix_stats2];
+          double v_proposal_stat2[num_degmix_stats2];
+          double meanvalues_TEMP2[num_degmix_stats2];
+          double varvalues_TEMP2[num_degmix_var2];
+          
+          // Counter continues from where Block 1 left off
+          for (int i = 0; i < num_degmix_stats2; i++) {
+            v_current_stat2[i] = (double)networkstatistics[counter];
+            v_proposal_stat2[i] = (double)(networkstatistics[counter] + m->workspace[counter]);
+            // Meanvalues offset by Block 1 length (prob_type[6])
+            meanvalues_TEMP2[i] = (double)meanvalues[prob_type[6] + i];
+            counter++;
           }
-        } else {
-          for (counter =(length_deg_dist+1); counter < (2*length_deg_dist + 1); counter++) {
-            MHp_Deg_Distr_2[counter-(length_deg_dist+1)] = (int)networkstatistics[counter] + (int)(m->workspace[counter]);
-            nwp_Deg_Distr_2[counter-(length_deg_dist+1)] = (int)networkstatistics[counter];
-            MHp_Deg_Distr_Edges_2[counter-(length_deg_dist+1)] = MHp_Deg_Distr_2[counter-(length_deg_dist+1)] * (counter-(length_deg_dist+1)) * MHp_prob_mixing[1];
-            nwp_Deg_Distr_Edges_2[counter-(length_deg_dist+1)] = nwp_Deg_Distr_2[counter-(length_deg_dist+1)] * (counter-(length_deg_dist+1)) * nwp_prob_mixing[1];
+          for (int i = 0; i < num_degmix_var2; i++) {
+            // Varvalues offset by Block 1 variance length (prob_type[7])
+            varvalues_TEMP2[i] = (double)varvalues[prob_type[7] + i];
           }
+          
+          int prob_type_TEMP2[6];
+          for (int i = 0; i < 5; i++) prob_type_TEMP2[i] = prob_type[i];
+          prob_type_TEMP2[5] = prob_type[8]; // Distribution type for 2nd deg dist
+          
+          double pdf_gaussian_nwp_TEMP2 = 0;
+          double pdf_gaussian_MHp_TEMP2 = 0; // Avoid log(0) unless calc_prob_dist uses +=
+          
+          calc_prob_dist(v_current_stat2, v_proposal_stat2, num_degmix_stats2, prob_type_TEMP2,
+                         meanvalues_TEMP2, varvalues_TEMP2,
+                         &pdf_gaussian_nwp_TEMP2, &pdf_gaussian_MHp_TEMP2);
+          
+          // --- BLOCK 3: Mixing Statistics ---
+          // These are the 13th (mean length) and 14th (var length) items in prob_type
+          // int num_degmix_stats3 = prob_type[12]; 
+          // int num_degmix_var3 = prob_type[13];
+          // 
+          // double v_current_stat3[num_degmix_stats3];
+          // double v_proposal_stat3[num_degmix_stats3];
+          // double meanvalues_TEMP3[num_degmix_stats3];
+          // double varvalues_TEMP3[num_degmix_var3];
+          // 
+          // for (int i = 0; i < num_degmix_stats3; i++) {
+          //   v_current_stat3[i] = (double)networkstatistics[counter];
+          //   v_proposal_stat3[i] = (double)(networkstatistics[counter] + m->workspace[counter]);
+          //   // Offset by Block 1 + Block 2
+          //   meanvalues_TEMP3[i] = (double)meanvalues[prob_type[6] + prob_type[9] + i];
+          //   counter++;
+          // }
+          // for (int i = 0; i < num_degmix_var3; i++) {
+          //   varvalues_TEMP3[i] = (double)varvalues[prob_type[7] + prob_type[10] + i];
+          // }
+          
+          
+          double v_current_stat3[1];
+          double v_proposal_stat3[1];
+          double meanvalues_TEMP3[1];
+          double varvalues_TEMP3[1];
+          
+          counter = prob_type[6] + prob_type[9] + 2; //Need to skip M11
+          int counter2 = prob_type[6] + prob_type[9];
+          int counter3 = prob_type[7] + prob_type[10];
+          
+          v_current_stat3[0] = (double)networkstatistics[counter];
+          v_proposal_stat3[0] = (double)(networkstatistics[counter] + m->workspace[counter]);
+          meanvalues_TEMP3[0] = (double)meanvalues[counter2];
+          varvalues_TEMP3[0] = (double)varvalues[counter3];
+          
+          prob_type_TEMP2[5] = prob_type[11]; // Distribution type for Mixing
+          
+          double pdf_gaussian_nwp_TEMP3 = 0;
+          double pdf_gaussian_MHp_TEMP3 = 0; 
+          
+          //--- DIAGNOSTIC PRINT STATEMENTS ---
+          // Rprintf("\n--- DEBUG BLOCK 3 (Mixing) ---\n");
+          // Rprintf("Global Mean Index used: %d | Value: %f\n", prob_type[6] + prob_type[9], meanvalues[prob_type[6] + prob_type[9]]);
+          // Rprintf("Global Var Index used: %d  | Value: %f\n", prob_type[7] + prob_type[10], varvalues[prob_type[7] + prob_type[10]]);
+          // Rprintf("TEMP3 Mean: %f | TEMP3 Var: %f\n", meanvalues_TEMP3[0], varvalues_TEMP3[0]);
+          // Rprintf("Distribution Type (PT_TEMP2[5]): %d\n", prob_type_TEMP2[5]);
+          // Rprintf("Full prob_type_TEMP2: [%d, %d, %d, %d, %d, %d]\n",
+          //         prob_type_TEMP2[0], prob_type_TEMP2[1], prob_type_TEMP2[2],
+          //                                                                prob_type_TEMP2[3], prob_type_TEMP2[4], prob_type_TEMP2[5]);
+          // Rprintf("------------------------------\n");
+          
+          calc_prob_dist(v_current_stat3, v_proposal_stat3, 1, prob_type_TEMP2,
+                         meanvalues_TEMP3, varvalues_TEMP3,
+                         &pdf_gaussian_nwp_TEMP3, &pdf_gaussian_MHp_TEMP3);
+          
+          // --- FINAL SUMMATION ---
+          pdf_gaussian_nwp += pdf_gaussian_nwp_TEMP2 + pdf_gaussian_nwp_TEMP3;
+          pdf_gaussian_MHp += pdf_gaussian_MHp_TEMP2 + pdf_gaussian_MHp_TEMP3;
         }
-        
-        //Rprintf("nwp_Deg_Distr_1 %d %d %d %d\n", nwp_Deg_Distr_1[0], nwp_Deg_Distr_1[1], nwp_Deg_Distr_1[2], nwp_Deg_Distr_1[3]);
-        //Rprintf("nwp_Deg_Distr_2 %d %d %d %d\n", nwp_Deg_Distr_2[0], nwp_Deg_Distr_2[1], nwp_Deg_Distr_2[2], nwp_Deg_Distr_2[3]);
-        //Rprintf("MHp_Deg_Distr_1 %d %d %d %d\n", MHp_Deg_Distr_1[0], MHp_Deg_Distr_1[1], MHp_Deg_Distr_1[2], MHp_Deg_Distr_1[3]);
-        //Rprintf("MHp_Deg_Distr_2 %d %d %d %d\n", MHp_Deg_Distr_2[0], MHp_Deg_Distr_2[1], MHp_Deg_Distr_2[2], MHp_Deg_Distr_2[3]);        
-        
-        /* Now we have the margins for the the expected degree mixing matix*/
-        
-        /* Construct expected degree distribution */
-        double nwp_dmm_norm;
-        double MHp_dmm_norm;
-        
-        if ((Cov_types[0] == 1) && (Cov_types[1] == 1)) {
-          nwp_dmm_norm = (2*nwp_mixing_matrix[0]);
-          MHp_dmm_norm = (2*MHp_mixing_matrix[0]);
-        } else if ((Cov_types[0] == 2) && (Cov_types[1] == 2)) {
-          nwp_dmm_norm = (2*nwp_mixing_matrix[2]);
-          MHp_dmm_norm = (2*MHp_mixing_matrix[2]);
-        } else {
-          nwp_dmm_norm = (nwp_mixing_matrix[1]);
-          MHp_dmm_norm = (MHp_mixing_matrix[1]);
-        }
-        
-        
-        nwp_exp_dmm = (nwp_Deg_Distr_Edges_1[Deg_nwp[0]] * nwp_Deg_Distr_Edges_2[Deg_nwp[1]])/ (float)nwp_dmm_norm;
-        if ((Deg_nwp[0] == Deg_nwp[1]) && (Cov_types[0] == Cov_types[1])){
-          nwp_exp_dmm = nwp_exp_dmm * .5;
-        }
-        MHp_exp_dmm = (MHp_Deg_Distr_Edges_1[Deg_MHp[0]] * MHp_Deg_Distr_Edges_2[Deg_MHp[1]])/ (float)MHp_dmm_norm;
-        if ((Deg_MHp[0] == Deg_MHp[1]) && (Cov_types[0] == Cov_types[1])){
-          MHp_exp_dmm = MHp_exp_dmm * .5;
-        }
-        
-        
-        if (nwp->nedges > MHp_nedges) {  //Edge Removed nwp -> MHp
-          prob_g_g2 = nwp_exp_dmm;
-        } else {  //Edge Added nwp -> MHp
-          if ((Deg_nwp[0] == Deg_nwp[1])  && (Cov_types[0] == Cov_types[1])) {
-            prob_g_g2 = (nwp_Deg_Distr_1[Deg_nwp[0]]* (nwp_Deg_Distr_2[Deg_nwp[1]]-1)*.5) - nwp_exp_dmm; /*nwp_Exp_Deg_Mixing[Deg_Delete[0]][Deg_Delete[1]];*/
-          } else {
-            prob_g_g2 = nwp_Deg_Distr_1[Deg_nwp[0]]* nwp_Deg_Distr_2[Deg_nwp[1]] - nwp_exp_dmm; /*nwp_Exp_Deg_Mixing[Deg_Delete[0]][Deg_Delete[1]];*/
-          }
-        }
-        
-        if (nwp->nedges < MHp_nedges) { //Edge Removed MHp -> nwp
-          prob_g2_g = MHp_exp_dmm;
-        } else { //Edge Added MHp -> nwp
-          if ((Deg_MHp[0] == Deg_MHp[1])  && (Cov_types[0] == Cov_types[1])) {
-            prob_g2_g = (MHp_Deg_Distr_1[Deg_MHp[0]]* (MHp_Deg_Distr_2[Deg_MHp[1]]-1)*.5) - MHp_exp_dmm; /*MHp_Exp_Deg_Mixing[Deg_Add[0]][Deg_Add[1]]; */
-          } else {
-            prob_g2_g = MHp_Deg_Distr_1[Deg_MHp[0]]* MHp_Deg_Distr_2[Deg_MHp[1]] - MHp_exp_dmm; /*MHp_Exp_Deg_Mixing[Deg_Add[0]][Deg_Add[1]]; */
-          }
-        }
-        
-        
-        /* Calculate Probability for Prob_g and Prob_g2*/
-        calc_probs_mixing_degdist(length_deg_dist, m, nwp, mtp2, prob_type,
-                                  networkstatistics, meanvalues, varvalues,
-                                  nwp_mixing_matrix, MHp_mixing_matrix, MHp_nedges,
-                                  &pdf_gaussian_nwp, &pdf_gaussian_MHp);
-        
       }
-      
-    }
     /// Two Degree Distributions and Mixing: END ///
     
     /////DEGREE MIXING MATRIX//////////////////////

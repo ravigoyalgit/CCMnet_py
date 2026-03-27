@@ -212,7 +212,7 @@ sample_ccm <- function(
       return(c(degmix_names, "triangles"))
     }
     
-    if (s == "degreedist_mixing") {
+    if (s == "degreedist_degreedist_mixing") {
       len_deg = (ncol(stats) - 3) / 2
       cov0_names = paste(paste0("deg", 0:(len_deg-1)), "_1", sep = "")
       cov1_names = paste(paste0("deg", 0:(len_deg-1)), "_2", sep = "")

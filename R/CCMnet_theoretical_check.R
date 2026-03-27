@@ -83,7 +83,7 @@ sample_theoretical <- function(
                                                   n_sim))
   }
   
-  if ((length(stat) == 2 && stat[1] == "degreedist" && stat[2] == "mixing")) {
+  if ((length(stat) == 3 && stat[1] == "degreedist" && stat[2] == "degreedist" && stat[3] == "mixing")) {
     return(CCM_theoretical_check_degree_mixing(object,
                                                   n_sim))
   }

@@ -7,40 +7,6 @@ CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Dis
                                                    mean_vector, var_vector, prob_type_sub_code,
                                                    mean_vector_size, var_vector_size) {
   
-  if (length(Prob_Distr_Params[[1]][[1]][[1]]) != length(Prob_Distr_Params[[1]][[1]][[2]])) {
-    stop("Current limitation requires mean degree distributions to be of equal length.")
-    error = 1
-  }
-  # if (dim(Prob_Distr_Params[[1]][[2]][[1]])[1] != dim(Prob_Distr_Params[[1]][[2]][[2]])[1]) {
-  #   print("Error: Current limitation requires covariance matrices to be of equal dimensions.")
-  #   error = 1
-  # }
-  # if (dim(Prob_Distr_Params[[1]][[2]][[1]])[1] != dim(Prob_Distr_Params[[1]][[2]][[1]])[2]) {
-  #   print("Error: Covariance matrix is not square.")
-  #   error = 1
-  # }
-  # if (dim(Prob_Distr_Params[[1]][[2]][[2]])[1] != dim(Prob_Distr_Params[[1]][[2]][[2]])[2]) {
-  #   print("Error: Covariance matrix is not square.")
-  #   error = 1
-  # }
-  
-  if ((Prob_Distr[1] == "poisson") && ((Prob_Distr[2] == "poisson"))) {
-    covariate_list = covPattern
-    
-    inputs1 = c(rbind(c(0:(length(Prob_Distr_Params[[1]][[1]][[1]])-1)), rep(1,length(Prob_Distr_Params[[1]][[1]][[1]]))))
-    inputs2 = c(rbind(c(0:(length(Prob_Distr_Params[[1]][[1]][[2]])-1)), rep(2,length(Prob_Distr_Params[[1]][[1]][[2]]))))
-    
-    inputs = c(c(0,1,0,0), length(Prob_Distr_Params[[1]][[1]][[1]]) + length(Prob_Distr_Params[[1]][[1]][[2]]),
-               2*(length(Prob_Distr_Params[[1]][[1]][[1]])+length(Prob_Distr_Params[[1]][[1]][[2]])) + population, inputs1, inputs2, covariate_list, c(6,3,6 + population), c(1,2,2,2), covariate_list)
-    eta0 = rep(-999.5,length(c(1, Prob_Distr_Params[[1]][[1]][[1]],Prob_Distr_Params[[1]][[1]][[2]],1,1)))
-    
-    mean_vector = c(Prob_Distr_Params[[1]][[1]][[1]], Prob_Distr_Params[[1]][[1]][[2]],  Prob_Distr_Params[[2]][[1]])
-    
-    var_vector = c(c(0,0),c(0,0), 0,0)
-    
-    prob_type = c(1,1,0,0,1)
-    
-  } else if ((Prob_Distr[1] == "mvn") && ((Prob_Distr[2] == "normal"))) {
     covariate_list = covPattern
     
     # 1. Degree Metadata (16 values)
@@ -65,65 +31,17 @@ CCMnet_constr_uni_verifyinput_mixing_degdist <- function(Network_stats, Prob_Dis
       covariate_list # 100 attributes
     )
     
-    inputs1 = c(rbind(c(0:(length(Prob_Distr_Params[[1]][[1]][[1]])-1)), rep(1,length(Prob_Distr_Params[[1]][[1]][[1]]))))
-    inputs2 = c(rbind(c(0:(length(Prob_Distr_Params[[1]][[1]][[2]])-1)), rep(2,length(Prob_Distr_Params[[1]][[1]][[2]]))))
+    inputs1 = c(rbind(c(0:(length(Prob_Distr_Params[[1]][[1]])-1)), rep(1,length(Prob_Distr_Params[[1]][[1]]))))
+    inputs2 = c(rbind(c(0:(length(Prob_Distr_Params[[2]][[1]])-1)), rep(2,length(Prob_Distr_Params[[2]][[1]]))))
     
-    inputs = c(c(0,1,0,0), length(Prob_Distr_Params[[1]][[1]][[1]]) + length(Prob_Distr_Params[[1]][[1]][[2]]),
-               2*(length(Prob_Distr_Params[[1]][[1]][[1]])+length(Prob_Distr_Params[[1]][[1]][[2]])) + population, inputs1, inputs2, covariate_list, c(6,3,6 + population), c(1, 1, 2, 1, 2, 2), covariate_list)
-    eta0 = rep(-999.5,length(c(1, Prob_Distr_Params[[1]][[1]][[1]],Prob_Distr_Params[[1]][[1]][[2]],1,1,1)))
-    
-  
-    mean_vector = c(Prob_Distr_Params[[1]][[1]][[1]], Prob_Distr_Params[[1]][[1]][[2]],  Prob_Distr_Params[[2]][[1]])
-    
+    inputs = c(c(0,1,0,0), length(Prob_Distr_Params[[1]][[1]]) + length(Prob_Distr_Params[[2]][[1]]),
+               2*(length(Prob_Distr_Params[[1]][[1]])+length(Prob_Distr_Params[[2]][[1]])) + population, inputs1, inputs2, covariate_list, c(6,3,6 + population), c(1, 1, 2, 1, 2, 2), covariate_list)
+    eta0 = rep(-999.5,length(c(1, Prob_Distr_Params[[1]][[1]],Prob_Distr_Params[[2]][[1]],1,1,1)))
 
-    inverse_var_x1 = solve(Prob_Distr_Params[[1]][[2]][[1]])
-    inverse_var_x2 = solve(Prob_Distr_Params[[1]][[2]][[2]])
-    
-    var_vector = c(c(inverse_var_x1),c(inverse_var_x2), Prob_Distr_Params[[2]][[2]])
-    
-    prob_type = c(1,1,0,0,1)
-    
-  } else if ((Prob_Distr[1] == "Tdist") && ((Prob_Distr[2] == "Tdist"))) {
-    if (length(Prob_Distr_Params[[1]]) != 3) {
-      
-    }
-    if (dim(Prob_Distr_Params[[1]][[3]][1]) > 0) {
-      stop("Degrees of freedom are not greater than 0.")
-      error = 1
-    }
-    if (dim(Prob_Distr_Params[[1]][[3]][2]) > 0) {
-      stop("Degrees of freedom are not greater than 0.")
-      error = 1
-    }
-    covariate_list = covPattern
-    
-    inputs1 = c(rbind(c(0:(length(Prob_Distr_Params[[1]][[1]][[1]])-1)), rep(1,length(Prob_Distr_Params[[1]][[1]][[1]]))))
-    inputs2 = c(rbind(c(0:(length(Prob_Distr_Params[[1]][[1]][[2]])-1)), rep(2,length(Prob_Distr_Params[[1]][[1]][[2]]))))
-    
-    inputs = c(c(0,1,0,0), length(Prob_Distr_Params[[1]][[1]][[1]]) + length(Prob_Distr_Params[[1]][[1]][[2]]),
-               2*(length(Prob_Distr_Params[[1]][[1]][[1]])+length(Prob_Distr_Params[[1]][[1]][[2]])) + population, inputs1, inputs2, covariate_list, c(4,2,4 + population), c(1,2,2,2), covariate_list)
-    eta0 = rep(-999.5,length(c(1, Prob_Distr_Params[[1]][[1]][[1]],Prob_Distr_Params[[1]][[1]][[2]],1,1)))
-    
-    mean_vector = c(Prob_Distr_Params[[1]][[1]][[1]], Prob_Distr_Params[[1]][[1]][[2]],  Prob_Distr_Params[[2]][[1]], Prob_Distr_Params[[1]][[3]][1], Prob_Distr_Params[[1]][[3]][2], Prob_Distr_Params[[2]][[3]])
-    
-    if (remove_var_last_entry == TRUE) {
-      inverse_var_x1 = solve(Prob_Distr_Params[[1]][[2]][[1]][-length(Prob_Distr_Params[[1]][[1]][[1]]),-length(Prob_Distr_Params[[1]][[1]][[1]])])
-      inverse_var_x1 = rbind(inverse_var_x1,0)
-      inverse_var_x1 = cbind(inverse_var_x1,0)
-      
-      inverse_var_x2 = solve(Prob_Distr_Params[[1]][[2]][[2]][-length(Prob_Distr_Params[[1]][[1]][[2]]),-length(Prob_Distr_Params[[1]][[1]][[2]])])
-      inverse_var_x2 = rbind(inverse_var_x2,0)
-      inverse_var_x2 = cbind(inverse_var_x2,0)
-    } else {
-      inverse_var_x1 = solve(Prob_Distr_Params[[1]][[2]][[1]])
-      inverse_var_x2 = solve(Prob_Distr_Params[[1]][[2]][[2]])
-    }
-    
-    var_vector = c(c(inverse_var_x1),c(inverse_var_x2), Prob_Distr_Params[[2]][[2]])
-    
-    prob_type = c(2,2,0,0,1)
-    
-  }
+  
+  prob_type = c(1,1,0,0,1,prob_type_sub_code[1],mean_vector_size[1], var_vector_size[1], 
+                prob_type_sub_code[2], mean_vector_size[2], var_vector_size[2], 
+                prob_type_sub_code[3], mean_vector_size[3], var_vector_size[3])
   
     CCM_constr_info <- list(
       error = 0,

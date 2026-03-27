@@ -28,8 +28,7 @@ CCMnet_constr_uni_initalstat <- function(Network_stats, Prob_Distr, Prob_Distr_P
                                                            population, covPattern, remove_var_last_entry,
                                                            CCM_constr_info)
     
-  } else if (((length(Network_stats) == 2) && (Network_stats[1] == "mixing") && (Network_stats[2] == "degreedist")) ||
-             ((length(Network_stats) == 2) && (Network_stats[1] == "degreedist") && (Network_stats[2] == "mixing"))) {
+  } else if ((length(Network_stats) == 3) && (Network_stats[1] == "degreedist") && (Network_stats[2] == "degreedist") && (Network_stats[3] == "mixing")) {
     
     CCM_constr_info = CCMnet_constr_uni_initalstat_mixing_degdist(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                                   nedges, g, max_degree,

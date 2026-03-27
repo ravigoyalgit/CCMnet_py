@@ -53,14 +53,9 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
     if (Prob_Distr == "np") {
       ER_prob = (max(which(Prob_Distr_Params[[1]][[1]] > 0))-1)/choose(population,2) * .8
     }
-  } else if ((length(Network_stats) == 2) && (Network_stats[1] == "degreedist") && (Network_stats[2] == "mixing")) {
-    max_degree_1 = length(Prob_Distr_Params[[1]][[1]][[1]])-1
-    max_degree_2 = length(Prob_Distr_Params[[1]][[1]][[2]])-1
-    max_degree = min(max_degree_1, max_degree_2)
-    max_degree_f = max(max_degree_1, max_degree_2)
-  } else if ((length(Network_stats) == 2) && (Network_stats[1] == "mixing") && (Network_stats[2] == "degreedist")) {
-    max_degree_1 = length(Prob_Distr_Params[[2]][[1]][[1]])-1
-    max_degree_2 = length(Prob_Distr_Params[[2]][[1]][[2]])-1
+  } else if ((length(Network_stats) == 3) && (Network_stats[1] == "degreedist") && (Network_stats[2] == "degreedist") && (Network_stats[3] == "mixing")) {
+    max_degree_1 = length(Prob_Distr_Params[[1]][[1]])-1
+    max_degree_2 = length(Prob_Distr_Params[[2]][[1]])-1
     max_degree = min(max_degree_1, max_degree_2)
     max_degree_f = max(max_degree_1, max_degree_2)
   } else if ((length(Network_stats) == 1) && (Network_stats == "degmixing")) {
@@ -255,9 +250,7 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
         statsmatrix = statsmatrix[,1]
       } else if ((length(Network_stats) == 1)  && (Network_stats == "density")) {
         statsmatrix = statsmatrix[,1] / choose(population, 2)
-      } else if ((length(Network_stats) == 2) && (Network_stats[1] == "degreedist") && (Network_stats[2] == "mixing")) {
-        statsmatrix = statsmatrix[,-1]
-      } else if ((length(Network_stats) == 2) && (Network_stats[1] == "mixing") && (Network_stats[2] == "degreedist")) {
+      } else if ((length(Network_stats) == 3) && (Network_stats[1] == "degreedist") && (Network_stats[2] == "degreedist") && (Network_stats[3] == "mixing")) {
         statsmatrix = statsmatrix[,-1]
       } else if ((length(Network_stats) == 1) && (Network_stats == "degmixing")) {
         statsmatrix = statsmatrix[,-1]

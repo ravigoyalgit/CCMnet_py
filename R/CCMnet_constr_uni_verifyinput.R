@@ -25,7 +25,6 @@ CCMnet_constr_uni_verifyinput <- function(Network_stats, Prob_Distr, Prob_Distr_
   mean_vector_size <- NULL
   var_vector_size <- NULL
   
-  if (stat_key != "degreedist+mixing") {
   for (i in c(1:length(Network_stats))) {
     
     mean_vector_TEMP <- NULL
@@ -68,8 +67,7 @@ CCMnet_constr_uni_verifyinput <- function(Network_stats, Prob_Distr, Prob_Distr_
   if (length(var_vector) == 1) {
     var_vector = c(var_vector, var_vector)
   }
-  }
-  
+
   # Logic for 1-statistic modes
   if (stat_key == "edges" || stat_key == "density") {
     CCM_info <- CCMnet_constr_uni_verifyinput_edges(Network_stats, Prob_Distr, Prob_Distr_Params,
@@ -96,7 +94,7 @@ CCMnet_constr_uni_verifyinput <- function(Network_stats, Prob_Distr, Prob_Distr_
                                                         mean_vector_size, var_vector_size)
     
   # Logic for 2-statistic modes
-  } else if (stat_key == "degreedist+mixing") {
+  } else if (stat_key == "degreedist+degreedist+mixing") {
     CCM_info <- CCMnet_constr_uni_verifyinput_mixing_degdist(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                              population, covPattern, 
                                                              mean_vector, var_vector, prob_type_sub_code,

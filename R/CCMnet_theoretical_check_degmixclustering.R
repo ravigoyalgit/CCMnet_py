@@ -55,10 +55,6 @@ CCM_theoretical_check_degmixclustering <- function(fit,
     params    <- fit$prob_distr_params[[i]]
     settings  <- .get_distr_settings(dist_name)
     
-    if (is.null(settings$sampler)) {
-      stop(sprintf("Sampler not implemented for distribution: %s", dist_name))
-    }
-    
     # Each sampler returns its own matrix (n_sim x num_stats_for_this_dist)
     # We pass population/max_val in case this specific stat needs it
     simulated_list[[i]] <- settings$sampler(

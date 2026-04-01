@@ -67,22 +67,11 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
   }
   //END of CODE FROM ERGM Library
   
-  // if (print_info_MH == 1) {
-  //   Rprintf("MH: Before ChangeStats Code \n");
-  //   Rprintf("nwp info: %d \n", nwp->nnodes);
-  //   Rprintf("WorkSpace: ");
-  //   for (int counter_print=0; counter_print < ((m->n_stats)-1); counter_print++){
-  //     Rprintf(" %f ",m->workspace[counter_print]);
-  //   }
-  //   Rprintf("\n");
-  //   Rprintf("Toggle Info: %d %d %d \n",MHp->ntoggles, *(MHp->toggletail), *(MHp->togglehead));
-  // }
-  
   /* Calculate change statistics,
    remembering that tail -> head */
   ChangeStats(MHp->ntoggles, MHp->toggletail, MHp->togglehead, nwp, m);
   
-  if (print_info_MH == 1) {
+  if (fVerbose == 2) {
     Rprintf("MH: After ChangeStats Code \n");
     Rprintf("\n");
     Rprintf("Node ID 1 %d Node ID 2 %d\n",*(MHp->toggletail), *(MHp->togglehead));
@@ -106,19 +95,14 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
   double prob_g_g2 = 1;
   int total_max_edges = (nwp->nnodes * (nwp->nnodes-1) * .5) + .5;
   int counter;
-  //int counter1;
-  //int counter2;
   
   double pdf_gaussian_nwp = 0;
   double pdf_gaussian_MHp = log(0);
   
   MHp_nedges = networkstatistics[0] + m->workspace[0];
   
-  
-  //Rprintf("Before ergm vs GUF: MH Code \n");
   if ((theta[0] < -999) && (theta[0] > -1000)) {
-    //Rprintf("Entered GUF: MH Code \n");
-    
+
     ///EDGES: BEGIN///
     if ((prob_type[0] == 0) && (prob_type[1] == 0) && (prob_type[2] == 0) && (prob_type[3] == 0) && (prob_type[4] >= 1)) {
       
@@ -152,9 +136,6 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
       int L = m->n_stats; // Or however your C struct tracks total stats
       int num_params = L - 1; 
       int k = (int)((sqrt(8.0 * num_params + 1.0) - 1.0) / 2.0 + 0.1);
-      
-      // Now your DEBUG will finally show:
-      //Rprintf("--- DEBUG: L=%d, num_params=%d, k=%d ---\n", L, num_params, k);
       
       // 2. Dynamic Allocation
       int *Cov_types = (int *)R_alloc(2, sizeof(int)); 
@@ -288,11 +269,6 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
       
       if (Proposal_prob_zero == 0) {
         
-        // calc_probs_mixing_degdist(length_deg_dist, m, nwp, mtp2, prob_type,
-        //                         networkstatistics, meanvalues, varvalues,
-        //                         nwp_mixing_matrix, MHp_mixing_matrix, MHp_nedges,
-        //                         &pdf_gaussian_nwp, &pdf_gaussian_MHp);
-        
         // --- BLOCK 1: First Degree Distribution ---
         int num_degmix_stats = prob_type[6]; // length of first degree distribution
         int num_degmix_var = prob_type[7];   // length of variance for first
@@ -312,9 +288,6 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
         for (int i = 0; i < num_degmix_var; i++) {
           varvalues_TEMP[i] = (double)varvalues[i];
         }
-        
-        //double pdf_gaussian_nwp = 0;
-        //double pdf_gaussian_MHp = 0;
         
         calc_prob_dist(v_current_stat, v_proposal_stat, num_degmix_stats, prob_type,
                        meanvalues_TEMP, varvalues_TEMP,
@@ -353,28 +326,6 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
                        meanvalues_TEMP2, varvalues_TEMP2,
                        &pdf_gaussian_nwp_TEMP2, &pdf_gaussian_MHp_TEMP2);
         
-        // --- BLOCK 3: Mixing Statistics ---
-        // These are the 13th (mean length) and 14th (var length) items in prob_type
-        // int num_degmix_stats3 = prob_type[12]; 
-        // int num_degmix_var3 = prob_type[13];
-        // 
-        // double v_current_stat3[num_degmix_stats3];
-        // double v_proposal_stat3[num_degmix_stats3];
-        // double meanvalues_TEMP3[num_degmix_stats3];
-        // double varvalues_TEMP3[num_degmix_var3];
-        // 
-        // for (int i = 0; i < num_degmix_stats3; i++) {
-        //   v_current_stat3[i] = (double)networkstatistics[counter];
-        //   v_proposal_stat3[i] = (double)(networkstatistics[counter] + m->workspace[counter]);
-        //   // Offset by Block 1 + Block 2
-        //   meanvalues_TEMP3[i] = (double)meanvalues[prob_type[6] + prob_type[9] + i];
-        //   counter++;
-        // }
-        // for (int i = 0; i < num_degmix_var3; i++) {
-        //   varvalues_TEMP3[i] = (double)varvalues[prob_type[7] + prob_type[10] + i];
-        // }
-        
-        
         double v_current_stat3[1];
         double v_proposal_stat3[1];
         double meanvalues_TEMP3[1];
@@ -393,17 +344,6 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
         
         double pdf_gaussian_nwp_TEMP3 = 0;
         double pdf_gaussian_MHp_TEMP3 = 0; 
-        
-        //--- DIAGNOSTIC PRINT STATEMENTS ---
-        // Rprintf("\n--- DEBUG BLOCK 3 (Mixing) ---\n");
-        // Rprintf("Global Mean Index used: %d | Value: %f\n", prob_type[6] + prob_type[9], meanvalues[prob_type[6] + prob_type[9]]);
-        // Rprintf("Global Var Index used: %d  | Value: %f\n", prob_type[7] + prob_type[10], varvalues[prob_type[7] + prob_type[10]]);
-        // Rprintf("TEMP3 Mean: %f | TEMP3 Var: %f\n", meanvalues_TEMP3[0], varvalues_TEMP3[0]);
-        // Rprintf("Distribution Type (PT_TEMP2[5]): %d\n", prob_type_TEMP2[5]);
-        // Rprintf("Full prob_type_TEMP2: [%d, %d, %d, %d, %d, %d]\n",
-        //         prob_type_TEMP2[0], prob_type_TEMP2[1], prob_type_TEMP2[2],
-        //                                                                prob_type_TEMP2[3], prob_type_TEMP2[4], prob_type_TEMP2[5]);
-        // Rprintf("------------------------------\n");
         
         calc_prob_dist(v_current_stat3, v_proposal_stat3, 1, prob_type_TEMP2,
                        meanvalues_TEMP3, varvalues_TEMP3,
@@ -496,10 +436,6 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
         
         if ((prob_type[0] == 0) && (prob_type[1] == 0) && (prob_type[2] >= 1) && (prob_type[3] >= 1) && (prob_type[4] >= 1)){
           
-          
-          //double num_Tri = networkstatistics[m->n_stats-1]; //should be last statistic
-          //double num_Tri_change = fabs(m->workspace[m->n_stats-1]); //should be last statistic
-          
           int n_dim = num_deg_stats - 1;
           
           // Allocate flat arrays (or use a pre-allocated workspace)
@@ -556,8 +492,6 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
           }
           prob_type_TEMP2[5] = prob_type[8];
           
-          //Rprintf("Triangles: %f %f %f %f\n", v_current_stat_TEMP2[0], v_proposal_stat_TEMP2[0], meanvalues_TEMP2[0], varvalues_TEMP2[0]);
-          
           calc_prob_dist(v_current_stat_TEMP2,  v_proposal_stat_TEMP2, 1, prob_type_TEMP2,
                          meanvalues_TEMP2, varvalues_TEMP2,
                          &pdf_gaussian_nwp_TEMP2, &pdf_gaussian_MHp_TEMP2);
@@ -569,9 +503,6 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
       }
     }
     /////DEGREE MIXING MATRIX//////////////////////
-    
-    //Rprintf("Probs (before cutoff): %f %f %f %f\n", prob_g_g2, prob_g2_g, pdf_gaussian_nwp, pdf_gaussian_MHp);
-    
     
     if (!isfinite(pdf_gaussian_nwp)) {
       prob_g2_g = 1;
@@ -590,13 +521,13 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
       prob_g_g2 = 1;
       pdf_gaussian_nwp = log(0);
       
-      if (print_info_MH == 1) {
+      if (fVerbose == 2) {
         Rprintf("NWP INVALID 2: %f %f %f %f\n", prob_g_g2, prob_g2_g, pdf_gaussian_nwp, pdf_gaussian_MHp);
       }
     }
     
     cutoff = (log(prob_g2_g) + pdf_gaussian_MHp) - (log(prob_g_g2) + pdf_gaussian_nwp) + MHp->logratio;
-    if (print_info_MH == 1) {
+    if (fVerbose == 2) {
       Rprintf("CUTOFF: %f %f %f %f\n", prob_g_g2, prob_g2_g, pdf_gaussian_nwp, pdf_gaussian_MHp);
     }
     //Bayesian: BEGIN//
@@ -628,12 +559,9 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
         }
     }
     /* record network statistics for posterity */
-    //Rprintf("END - Network Statistic: ");
     for (unsigned int i = 0; i < m->n_stats; i++){
       networkstatistics[i] += m->workspace[i];
-      //Rprintf(" %f ",networkstatistics[i]);
     }
-    //Rprintf("\n");
     taken++;
   }
   }

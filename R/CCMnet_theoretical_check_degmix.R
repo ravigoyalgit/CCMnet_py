@@ -11,33 +11,6 @@
 CCM_theoretical_check_degmix <- function(fit,
                                          n_sim) {
   
-  # if (fit$prob_distr[[1]] == "mvn") {
-  #   
-  #   mean_vec <- fit$prob_distr_params[[1]][[1]]
-  #   sigma_mat  <- fit$prob_distr_params[[1]][[2]]
-  # 
-  #   simulated <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
-  #   
-  # } 
-  # 
-  # simulated <- as.data.frame(simulated)
-  # 
-  # m <- (-1 + sqrt(1 + 8*ncol(simulated)))/2
-  # degmix_names <- c()
-  # for (i in (seq_len(m))) {
-  #   for (j in 1:(i)) {
-  #     degmix_names <- c(degmix_names, paste0("DM", j, i))
-  #   }
-  # }
-  # colnames(simulated) <- degmix_names 
-  #   
-  # fit$theoretical <- list(
-  #   theory_stats = simulated,
-  #   type = "degmix"
-  # )
-  # 
-  # return(fit)
-  
   settings <- .get_distr_settings(fit$prob_distr[[1]])
   
   # Generate the multivariate draws
@@ -62,8 +35,8 @@ CCM_theoretical_check_degmix <- function(fit,
   
   colnames(simulated) <- degmix_names 
   
-  fit$theoretical <- list(
-    theory_stats = simulated,
+  fit$target_distr <- list(
+    target_stats = simulated,
     type = "degmix"
   )
   

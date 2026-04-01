@@ -8,13 +8,13 @@
 #'   all targeted statistics are plotted.
 #' @param type Character string specifying the plot type: \code{"density"}, 
 #'   \code{"hist"}, or \code{"trace"}.
-#' @param include_theoretical Logical. If \code{TRUE}, overlays the theoretical 
-#'   target distribution (requires running \code{sample_theoretical} first).
+#' @param target_distr Logical. If \code{TRUE}, overlays the  
+#'   target distribution (requires running \code{sample_target_distr} first).
 #' @param ... Additional arguments passed to methods.
 #'
 #' @details 
-#' For \code{type = "trace"}, setting \code{include_theoretical = TRUE} adds a 
-#' red dashed line for the theoretical mean and red dotted lines for the 
+#' For \code{type = "trace"}, setting \code{target_distr = TRUE} adds a 
+#' red dashed line for the target mean and red dotted lines for the 
 #' 2.5\% and 97.5\% quantiles.
 #'
 #' @name plot.ccm_sample
@@ -29,7 +29,7 @@ NULL
 plot.ccm_sample <- function(x,
                             stats = NULL,
                             type = c("density", "hist", "trace"),
-                            include_theoretical = FALSE,
+                            target_distr = FALSE,
                             ...) {
   
   type <- match.arg(type)
@@ -55,13 +55,13 @@ plot.ccm_sample <- function(x,
       theme_bw() + 
       theme_ccm_plot() # Using a helper for consistency
     
-    # Overlay Theoretical H-Lines (Mean + Quantiles)
-    if (include_theoretical) {
-      if (is.null(fit$theoretical$theory_stats)) {
-        warning("No theoretical distribution available for traceplot lines.")
+    # Overlay Target H-Lines (Mean + Quantiles)
+    if (target_distr) {
+      if (is.null(fit$target_distr$target_stats)) {
+        warning("No target distribution available for traceplot lines.")
       } else {
-        # Calculate summary stats from theory
-        df_theory_lines <- fit$theoretical$theory_stats %>%
+        # Calculate summary stats from target
+        df_target_lines <- fit$target_distr$target_stats %>%
           as.data.frame() %>%
           select(all_of(stats)) %>%
           pivot_longer(cols = everything(), names_to = "stat", values_to = "val") %>%
@@ -74,11 +74,11 @@ plot.ccm_sample <- function(x,
           )
         
         p <- p + 
-          geom_hline(data = df_theory_lines, aes(yintercept = .data$mean_val), 
+          geom_hline(data = df_target_lines, aes(yintercept = .data$mean_val), 
                      color = "red", linetype = "dashed", linewidth = 0.8) +
-          geom_hline(data = df_theory_lines, aes(yintercept = .data$lwr), 
+          geom_hline(data = df_target_lines, aes(yintercept = .data$lwr), 
                      color = "red", linetype = "dotted", alpha = 0.8) +
-          geom_hline(data = df_theory_lines, aes(yintercept = .data$upr), 
+          geom_hline(data = df_target_lines, aes(yintercept = .data$upr), 
                      color = "red", linetype = "dotted", alpha = 0.8)
       }
     }
@@ -94,12 +94,12 @@ plot.ccm_sample <- function(x,
   
   df_plot <- df_mcmc
   
-  if (include_theoretical && !is.null(fit$theoretical$theory_stats)) {
-    df_theory <- fit$theoretical$theory_stats %>%
+  if (target_distr && !is.null(fit$target_distr$target_stats)) {
+    df_target <- fit$target_distr$target_stats %>%
       as.data.frame() %>%
       pivot_longer(cols = all_of(stats), names_to = "stat", values_to = "count") %>%
-      mutate(source = "Theoretical")
-    df_plot <- bind_rows(df_mcmc, df_theory)
+      mutate(source = "Target")
+    df_plot <- bind_rows(df_mcmc, df_target)
   }
   
   p <- ggplot(df_plot, aes(x = count, color = source, fill = source)) +

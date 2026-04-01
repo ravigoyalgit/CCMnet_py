@@ -11,42 +11,6 @@
 CCM_theoretical_check_degmixclustering <- function(fit,
                                          n_sim) {
   
-  # if (fit$prob_distr[[1]] == "mvn" && fit$prob_distr[[2]] == "normal") {
-  #   
-  #   mean_vec <- fit$prob_distr_params[[1]][[1]]
-  #   sigma_mat  <- fit$prob_distr_params[[1]][[2]]
-  # 
-  #   simulated_1 <- rmvnorm(n_sim, mean = mean_vec, sigma = sigma_mat)
-  #   
-  #   mean_scalar <- fit$prob_distr_params[[2]][[1]]
-  #   var_scalar  <- fit$prob_distr_params[[2]][[2]]
-  #   
-  #   simulated_2 <- rnorm(n_sim, mean = mean_scalar, sd = sqrt(var_scalar))
-  #   
-  # } 
-  # 
-  # simulated_1 <- as.data.frame(simulated_1)
-  # simulated_2 <- as.data.frame(simulated_2)
-  # 
-  # simulated = bind_cols(simulated_1, simulated_2)
-  # 
-  # m <- (-1 + sqrt(1 + 8*ncol(simulated_1)))/2
-  # degmix_clustering_names <- c()
-  # for (i in (seq_len(m))) {
-  #   for (j in 1:(i)) {
-  #     degmix_clustering_names <- c(degmix_clustering_names, paste0("DM", j, i))
-  #   }
-  # }
-  # degmix_clustering_names = c(degmix_clustering_names , "triangles")
-  # colnames(simulated) <- degmix_clustering_names 
-  #   
-  # fit$theoretical <- list(
-  #   theory_stats = simulated,
-  #   type = "degmix_clustering"
-  # )
-  # 
-  # return(fit)
-  
   simulated_list <- list()
   
   # Loop through each statistic independently
@@ -83,9 +47,9 @@ CCM_theoretical_check_degmixclustering <- function(fit,
   # Block 2: Clustering (The last column)
   colnames(simulated) <- c(degmix_names, "triangles")
   
-  fit$theoretical <- list(
-    theory_stats = simulated,
-    type = "degmix_clustering"
+  fit$target_distr <- list(
+    target_stats = simulated,
+    type = "degmixing_triangles"
   )
   
   return(fit)

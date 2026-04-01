@@ -4,7 +4,7 @@
 
 CCMnet_constr_uni_initalstat_degmixing <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                               nedges, g, max_degree,
-                                              population, covPattern, remove_var_last_entry,
+                                              population, covPattern,
                                               CCM_constr_info) {
   
   g_dmm = matrix(0,  nrow = max_degree, ncol = max_degree)

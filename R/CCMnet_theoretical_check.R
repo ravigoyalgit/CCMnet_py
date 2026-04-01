@@ -8,7 +8,7 @@
 #' @param n_sim Integer. The number of independent samples to draw from the 
 #'   theoretical target distributions. Default is equal to the number of CCM samples.
 #'
-#' @return The input \code{ccm_sample} object with the \code{theoretical} slot 
+#' @return The input \code{ccm_sample} object with the \code{target_distr} slot 
 #'   populated. This slot contains a data frame of statistics sampled directly 
 #'   from the target distributions.
 #'
@@ -28,14 +28,14 @@
 #' )
 #' 
 #' # 2. Generate theoretical samples for comparison
-#' ccm_sample <- sample_theoretical(ccm_sample, n_sim = 1000)
+#' ccm_sample <- sample_target_distr(ccm_sample, n_sim = 1000)
 #' 
 #' # 3. Compare MCMC to theoretical target
-#' plot(ccm_sample, stats = "edges", type = "hist", include_theoretical = TRUE)
+#' plot(ccm_sample, stats = "edges", type = "hist", target_distr = TRUE)
 #'
 #' @export
 
-sample_theoretical <- function(
+sample_target_distr <- function(
     object,
     n_sim = nrow(object$mcmc_stats)
 ) {

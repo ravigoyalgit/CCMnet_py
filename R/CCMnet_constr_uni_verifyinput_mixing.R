@@ -27,17 +27,7 @@ CCMnet_constr_uni_verifyinput_mixing <- function(Network_stats, Prob_Distr, Prob
     covPattern                    # The data (starts at index 6 + total_pair_indices)
   )
   
-  #inputs <- c(c(0, 1, 0), c(6,3,6 + population), c(1,1,2,1,2,2), covPattern)
-  
   eta0 = rep(-999.5,1 + num_params)
-  
-  
-  # if (Prob_Distr[[1]] == 'poisson') {
-  #   mean_vector = Prob_Distr_Params[[1]][[1]]
-  #   var_vector = c(0,0)
-  # 
-  #   prob_type = c(0,1,0,0,1,3)
-  # }
   
   prob_type <- c(0,1,0,0,1,prob_type_sub_code, mean_vector_size, var_vector_size)
   

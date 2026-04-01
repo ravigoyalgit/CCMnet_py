@@ -4,7 +4,7 @@
 
 CCMnet_constr_uni_initalstat_mixing_degdist <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                    nedges, g, max_degree,
-                                                   population, covPattern, remove_var_last_entry,
+                                                   population, covPattern,
                                              CCM_constr_info) {
   
   covariate_list = covPattern

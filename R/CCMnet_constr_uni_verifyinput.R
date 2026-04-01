@@ -3,20 +3,8 @@
 #' @noRd
 
 CCMnet_constr_uni_verifyinput <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                          population, covPattern, remove_var_last_entry) {
+                                          population, covPattern) {
   
-  # if (Network_stats[1] == "triangles") { #swap prob_distr_params
-  #   Prob_Distr_Params_temp = Prob_Distr_Params[[1]]
-  #   Prob_Distr_Params[[1]] = Prob_Distr_Params[[2]]
-  #   Prob_Distr_Params[[2]] = Prob_Distr_Params_temp
-  # }
-  # 
-  # if (Network_stats[1] == "mixing") { #swap prob_distr_params
-  #   Prob_Distr_Params_temp = Prob_Distr_Params[[1]]
-  #   Prob_Distr_Params[[1]] = Prob_Distr_Params[[2]]
-  #   Prob_Distr_Params[[2]] = Prob_Distr_Params_temp
-  # }
-
   stat_key = paste(Network_stats, collapse = "+")
   
   mean_vector <- NULL

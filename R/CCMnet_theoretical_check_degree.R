@@ -11,24 +11,7 @@
 
 CCM_theoretical_check_degree <- function(fit,
                                         n_sim) {
-  
-  # if (fit$prob_distr[[1]] == "dirmult") {
-  #   degrees.df = matrix(NA, nrow = n_sim, ncol = length(fit$prob_distr_params[[1]][[1]]))
-  #   for (i in c(1:n_sim)) {
-  #     degrees.df[i,] <- rmultinom(1, fit$population, prob = rdirichlet(1, alpha = fit$prob_distr_params[[1]][[1]]))
-  #   }
-  # } 
-  # 
-  # # Convert to data.frame and store in fit$theoretical
-  # df <- as.data.frame(degrees.df)
-  # colnames(df) <- paste0("deg", 0:(ncol(df)-1))
-  # 
-  # fit$theoretical <- list(
-  #   theory_stats = df,
-  #   type = "Degree"
-  # )
-  # 
-  # return(fit)
+
   
   settings <- .get_distr_settings(fit$prob_distr[[1]])
   
@@ -43,8 +26,8 @@ CCM_theoretical_check_degree <- function(fit,
   df <- as.data.frame(simulated)
   colnames(df) <- paste0("deg", 0:(ncol(df)-1))
   
-  fit$theoretical <- list(
-    theory_stats = df,
+  fit$target_distr <- list(
+    target_stats = df,
     type = "Degree"
   )
   

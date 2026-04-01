@@ -4,7 +4,7 @@
 #'
 #' @param Network_stats Character vector. Supported values include "degreedist", 
 #'   "edges", "mixing", "degmixing", and "triangles".
-#' @param Prob_Distr Character string. The distribution type (e.g., "normal", "dirmult", "np", "tdist").
+#' @param Prob_Distr Character string. The distribution type (e.g., "normal", "dirmult", "np").
 #' @param Prob_Distr_Params List. Distribution parameters (means, covariances, etc.).
 #' @param samplesize Integer. Number of network samples to collect.
 #' @param burnin Integer. Number of initial MCMC iterations to discard.
@@ -13,7 +13,6 @@
 #' @param G An initial \code{igraph} object. If \code{NULL}, a random graph is generated.
 #' @param population Integer. The number of nodes in the network.
 #' @param covPattern Vector. Categorical nodal attributes for mixing statistics.
-#' @param remove_var_last_entry Logical. If \code{TRUE}, the last entry of the variance matrix is dropped for inversion.
 #'
 #' @return A list containing:
 #' \itemize{
@@ -28,17 +27,16 @@
 uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                              samplesize, burnin, interval,
                              statsonly, G,
-                             population, covPattern, remove_var_last_entry,
-                             Obs_stats) {
+                             population, covPattern,
+                             Obs_stats, verbose = 0) {
   
   #Verify the inputs for Network_stats, Prob_Distr, and Prob_Distr_Params
   CCM_constr_info = CCMnet_constr_uni_verifyinput(Network_stats, Prob_Distr, Prob_Distr_Params,
-                                                  population, covPattern, remove_var_last_entry)
+                                                  population, covPattern)
   
-  error = CCM_constr_info[["error"]]
-  
-  if (error == 1) {
-    return(list(NULL, NULL))
+  if (verbose >= 1) {
+    message("--> Initializing CCM sampler parameters...")
+    print(CCM_constr_info)
   }
   
   if(is_empty(covPattern)) {
@@ -98,14 +96,14 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   #Calculate the initial network statistics for g
   CCM_constr_info = CCMnet_constr_uni_initalstat(Network_stats, Prob_Distr, Prob_Distr_Params,
                                                  nedges, g, max_degree,
-                                                 population, covPattern, remove_var_last_entry,
+                                                 population, covPattern,
                                                  CCM_constr_info)
   
   if (!(is.null(Obs_stats))) {
     CCM_constr_info = CCMnet_constr_uni_obs_stats(CCM_constr_info, Network_stats, Prob_Distr, Prob_Distr_Params,
                                                   samplesize, burnin, interval,
                                                   statsonly, nedges, g, max_degree,
-                                                  population, covPattern, remove_var_last_entry,
+                                                  population, covPattern,
                                                   Obs_stats)
   }
   
@@ -128,7 +126,7 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
     Clist_dir = FALSE
     Clist_bipartite = FALSE
     maxedges = 200001
-    verbose = FALSE
+    verbose = verbose
     
     BayesInference = 0 #Required for Bayesian Inference
     TranNet = NULL
@@ -240,7 +238,6 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       dim(statsmatrix) = c(1,len_statsmatrix)
     }
     
-    ###NEED TO UPDATE######
     if (!(is.null(Obs_stats))) {
         statsmatrix = statsmatrix
     } else {

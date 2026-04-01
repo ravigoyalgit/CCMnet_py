@@ -25,7 +25,6 @@
 #' @param obs_nodes A vector of indices for observed nodes.
 #' @param MH_proposal_type Character. The Metropolis-Hastings proposal mechanism (e.g., "TNT" for Tie-No-Tie).
 #' @param Obs_stats The observed statistics to match or use as constraints.
-#' @param remove_var_last_entry Logical. Internal flag for variance calculation adjustments.
 #'
 #' @return Depending on \code{statsonly}, returns either a matrix of network statistics 
 #' or a list of network objects produced by the underlying \code{uni_modal_constr} 
@@ -56,7 +55,7 @@ CCMnet_constr <- function(Network_stats,
                           obs_nodes = NULL,
                           MH_proposal_type = "TNT",
                           Obs_stats = Obs_stats,
-                          remove_var_last_entry = FALSE) {
+                          verbose = 0) {
 
   if (length(population) == 1) {
     return(uni_modal_constr(Network_stats = Network_stats, 
@@ -69,14 +68,14 @@ CCMnet_constr <- function(Network_stats,
                             G = G,
                             population = population, 
                             covPattern = covPattern, 
-                            remove_var_last_entry = remove_var_last_entry,
-                            Obs_stats = Obs_stats)
+                            Obs_stats = Obs_stats,
+                            verbose = verbose)
            )
   } else if (length(population) == 2) {
     return(bi_modal_constr(Network_stats, Prob_Distr, Prob_Distr_Params,
                            samplesize, burnin, interval,
                            statsonly, G,
-                           population, covPattern, remove_var_last_entry,
+                           population, covPattern,
                            Obs_stats)
            )
   }

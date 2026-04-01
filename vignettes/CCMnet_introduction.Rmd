@@ -64,10 +64,10 @@ summary(ccm_sample)
 print(ccm_sample)
 
 # Compare MCMC samples to theoretical Poisson distribution
-ccm_sample<- sample_theoretical(ccm_sample, n_sim = 1000)
+ccm_sample<- sample_target_distr(ccm_sample, n_sim = 1000)
 
 # Plot density with theoretical distribution
-plot(ccm_sample, stats = "edges", type = "hist", include_theoretical = TRUE)
+plot(ccm_sample, stats = "edges", type = "hist", target_distr = TRUE)
 ```
 
 > **Explanation:** The density plot shows the CCM MCMC samples (blue) and the theoretical Poisson distribution (red). Close overlap verifies correct sampling.
@@ -88,8 +88,8 @@ ccm_sample <- sample_ccm(
   interval = 1000L,
 )
 
-ccm_sample<- sample_theoretical(ccm_sample, n_sim = 10000)
-plot(ccm_sample, stats = "edges", type = "hist", include_theoretical = TRUE)
+ccm_sample<- sample_target_distr(ccm_sample, n_sim = 10000)
+plot(ccm_sample, stats = "edges", type = "hist", target_distr = TRUE)
 ```
 
 > **Explanation:** The density plot verifies that CCM samples uniformly reproduce all possible edge counts.
@@ -113,8 +113,8 @@ ccm_sample <- sample_ccm(
   burnin = 100000L
 )
 
-ccm_sample<- sample_theoretical(ccm_sample, n_sim = 50000)
-plot(ccm_sample, stats = "edges", type = "hist", include_theoretical = TRUE)
+ccm_sample<- sample_target_distr(ccm_sample, n_sim = 50000)
+plot(ccm_sample, stats = "edges", type = "hist", target_distr = TRUE)
 ```
 
 > **Explanation:** The density plot verifies that CCM samples uniformly reproduce all possible edge counts.
@@ -133,11 +133,11 @@ ccm_sample<- sample_ccm(network_stats=c('degreedist'),
                         burnin=100000L, 
                         interval=1000L) 
 
-ccm_sample <- sample_theoretical(ccm_sample, n_sim = 1000)
+ccm_sample <- sample_target_distr(ccm_sample, n_sim = 1000)
 plot(ccm_sample, 
      stats = paste0("deg", 0:3), 
      type = "hist", 
-     include_theoretical = TRUE
+     target_distr = TRUE
 )    
 ```
 
@@ -166,17 +166,17 @@ ccm_sample <- sample_ccm(network_stats=c('degmixing', 'triangles'),
                          interval=1000L,
                          population=500L) 
 
-ccm_sample <- sample_theoretical(ccm_sample, n_sim = 1000)
+ccm_sample <- sample_target_distr(ccm_sample, n_sim = 1000)
 
 plot(ccm_sample, 
      stats = c("DM11", "DM12", "DM13", "DM22", "DM23", "DM33", "triangles"), 
      type = "hist", 
-     include_theoretical = TRUE)
+     target_distr = TRUE)
 
 plot(ccm_sample, 
      stats = c("triangles"), 
      type = "trace", 
-     include_theoretical = TRUE)
+     target_distr = TRUE)
 ```
 
 > **Explanation:** The density plots show sampled degrees (blue) versus theoretical probabilities (red). Close match verifies correct MCMC sampling.

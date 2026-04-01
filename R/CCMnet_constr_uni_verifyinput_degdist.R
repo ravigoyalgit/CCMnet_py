@@ -7,21 +7,7 @@ CCMnet_constr_uni_verifyinput_degdist <- function(Network_stats, Prob_Distr, Pro
                                                   mean_vector, var_vector, prob_type_sub_code,
                                                   mean_vector_size, var_vector_size) {
   
-  # if (Prob_Distr == "mvn") {
-  #   mean_vector = Prob_Distr_Params[[1]][[1]]
-  #   var_vector = Prob_Distr_Params[[1]][[2]]
-  # 
-  #   prob_type = c(1,0,0,0,1,1)
-  #   
-  #   var_vector = solve(var_vector)
-  #   
-  # } else if (Prob_Distr == "dirmult") {
-  #   
-  #   mean_vector = Prob_Distr_Params[[1]][[1]]
-  #   var_vector  <- c(0, 0)
-  #   prob_type   <- c(1, 0, 0, 0, 1, 6)
-  # }
-  
+
   prob_type = c(1, 0, 0, 0, 1,prob_type_sub_code, mean_vector_size, var_vector_size)
   
   CCM_constr_info <- list(

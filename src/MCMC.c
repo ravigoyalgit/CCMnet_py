@@ -95,15 +95,6 @@ if (print_info_MCMCwrapper == 1) {
         Rprintf("Created Network - NW: MCMCWrapper\n");
 }
 
-/*MOD ADDED Ravi */
-
-//Rprintf("BayesInference Flag - NW: MCMCWrapper %d\n", BayesInference);
-//Rprintf("BayesInference Flag - NW: MCMCWrapper %d\n", *BayesInference);
-//Rprintf("BayesInference Flag - NW: MCMCWrapper %d\n", BayesInference[0]);
-//Rprintf("BayesInference Flag - NW: MCMCWrapper %d\n", *BayesInference[0]);
-
-//Rprintf("MCMC_Wrapper - theta0[0]: %f\n", theta0[0]);
-
   if ((theta0[0] < -999) && (theta0[0] > -1000)) {
         TransNW[0]=NetworkInitialize(Trans_networktails, Trans_networkheads, Trans_nedges[0],
                           n_nodes, directed_flag, bip, 0, 0, NULL);
@@ -112,20 +103,12 @@ if (print_info_MCMCwrapper == 1) {
                           n_nodes, directed_flag, bip, 0, 0, NULL);
   }
 
-if (print_info_MCMCwrapper == 1) {
-        Rprintf("Created Networks: MCMCWrapper\n");
-}
-
   MH_init(&MH,
 	  *MHproposaltype, *MHproposalpackage,
 	  inputs,
 	  *fVerbose,
 	  nw, attribs, maxout, maxin, minout, minin,
 	  *condAllDegExact, *attriblength);
-
-if (print_info_MCMCwrapper == 1) {
-        Rprintf("Created MH Proposal: MCMCWrapper\n");
-}
 
   *status = MCMCSample(&MH,
 		       theta0, sample, *samplesize,
@@ -149,7 +132,6 @@ if (print_info_MCMCwrapper == 1) {
 
   MH_free(&MH);
 
-//Rprintf("Back! %d %d\n",nw[0].nedges, nmax);
 
   /* record new generated network to pass back to R */
   if(*status == MCMC_OK && *maxedges>0 && newnetworktails && newnetworkheads)

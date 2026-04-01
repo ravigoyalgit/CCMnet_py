@@ -20,25 +20,7 @@ CCMnet_constr_uni_verifyinput_degmixing_clustering <- function(Network_stats, Pr
     inputs = c(inputs, m1, m2, max_degree, c(0,1,0))
     
     eta0 = rep(-999.5, 1 + .5*((max_degree+1)*max_degree) + 1)
-    
-    # mean_vector = c(Prob_Distr_Params[[1]][[1]], Prob_Distr_Params[[2]][[1]] )
-    # 
-    # if (remove_var_last_entry == TRUE) {
-    #   inverse_var_x = solve(Prob_Distr_Params[[1]][[2]][-length(mean_vector[-1]),-length(mean_vector[-1])])
-    #   inverse_var_x = rbind(inverse_var_x,0)
-    #   inverse_var_x = cbind(inverse_var_x,0)
-    # } else {
-    #   inverse_var_x = solve(Prob_Distr_Params[[1]][[2]])
-    # }
-    
-    #inverse_var_x = rbind(inverse_var_x,0)
-    #inverse_var_x = cbind(inverse_var_x,0)
-    #inverse_var_x[dim(inverse_var_x)[1], dim(inverse_var_x)[1]] = 1/Prob_Distr_Params[[2]][[2]]
-    
-    #var_vector = c(inverse_var_x)
-    
-    #var_vector = c(inverse_var_x, Prob_Distr_Params[[2]][[2]])
-    
+
     prob_type = c(0,0,1,1,1,prob_type_sub_code[1],mean_vector_size[1], var_vector_size[1], prob_type_sub_code[2], mean_vector_size[2], var_vector_size[2])
     
     CCM_constr_info <- list(

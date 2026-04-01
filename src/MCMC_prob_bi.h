@@ -1,7 +1,7 @@
 /* 
  *  File CCMnet/src/MCMC_prob.h
  *
- *  Sections of this code are derived from the ergm library
+ *  Sections of this code are derived from the ergm package
  *  All such sections are noted and attributed to the statnet development team. 
  */
 

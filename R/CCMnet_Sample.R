@@ -1,63 +1,59 @@
 #' Sample from a Congruence Class Model (CCM)
 #'
 #' \code{sample_ccm} generates networks from a Congruence Class Model using a 
-#' Metropolis-Hastings MCMC framework. Unlike traditional models that fit parameters 
-#' to a single observed graph, CCM samples from the space of all possible networks 
+#' Metropolis-Hastings MCMC framework. CCM samples networks 
 #' where topological properties follow specified target probability distributions.
 #'
-#' \subsection{Target Distributions}{
-#' The model treats network statistics as random variables following a target 
-#' distribution. The following table summarizes the implemented network 
-#' statistics and their compatible distributions:
-#' \tabular{ll}{
-#'   \strong{Network Statistic} \tab \strong{Compatible Target Distributions} \cr
-#'   \code{"edges"} \tab \code{"poisson"}, \code{"uniform"}, \code{"np"} \cr
-#'   \code{"density"} \tab \code{"normal"}, \code{"beta"} \cr
-#'   \code{"degreedist"} \tab \code{"dirmult"} \cr
-#'   \code{"degmixing"} \tab \code{"mvn"} \cr
-#'   \code{"mixing"} \tab \code{"poisson"} \cr
-#'   \code{c("degmixing", "triangles")} \tab \code{c("mvn", "normal")} \cr
-#'   \code{c("degreedist", "mixing")} \tab \code{c("mvn", "normal")} \cr
-#' }
-#' }
-#'
 #' @param network_stats Character vector of statistic names to be targeted. 
-#'   For joint targets, use vectors like \code{c("degmixing", "triangles")}.
+#'    See \code{\link{ccm_properties}} for the full list of available network properties.
 #' @param prob_distr Character vector of probability distribution names 
-#'   corresponding to each statistic.
+#'    corresponding to each statistic. See \code{\link{ccm_distributions}} for 
+#'    details on implemented probability distributions and parameter requirements.
 #' @param prob_distr_params List of parameter sets for each specified distribution.
+#'    Each element must be a list containing the parameters required by the 
+#'    chosen distribution (e.g., \code{list(shape, rate)} for \code{"gamma"}).
 #' @param population Integer. The number of nodes in the network.
 #' @param sample_size Integer. Number of MCMC samples to return. Default is 1000.
-#' @param burnin Integer. Number of MCMC iterations to discard before sampling begins. Default is 200,000.
-#' @param interval Integer. Thinning interval (number of iterations between samples). Default is 1000.
+#' @param burnin Integer. Number of MCMC iterations to discard before sampling begins. 
+#'    Default is 200,000.
+#' @param interval Integer. Thinning interval (number of iterations between samples). 
+#'    Default is 1000.
 #' @param cov_pattern Integer vector. Optional nodal attributes (group IDs) 
-#'   required for mixing or degree-mixing targets.
+#'    required for mixing or degree-mixing targets.
 #' @param initial_g An \code{igraph} object. The starting graph for the MCMC chain.
 #' @param use_initial_g Logical. If TRUE, the MCMC chain starts from \code{initial_g}.
 #' @param partial_network Integer. Reserved for future use.
 #' @param obs_nodes Integer vector. Reserved for future use in specifying observed nodes.
 #' @param Obs_stats Character vector of additional network statistics to 
-#'   monitor (but not target) during sampling. Reserved for future use.
-#' @param remove_var_last_entry Logical. If TRUE, the last entry of the variance 
-#'   matrix is dropped to ensure invertibility for certain distributions.
+#'    monitor (but not target) during sampling. Reserved for future use.
 #' @param stats_only Logical. If TRUE, only sufficient statistics are returned; 
-#'   if FALSE, the list of sampled \code{igraph} objects is included.
+#'    if FALSE, the list of sampled \code{igraph} objects is included.
+#' @param verbose Integer. Level of output logging (0 = silent, 1 = basic, 2 = detailed).
 #'
 #' @return An object of class \code{ccm_sample} containing:
 #' \itemize{
-#'   \item \code{mcmc_stats}: A data frame of sampled network statistics.
-#'   \item \code{population}: The number of nodes in the network.
-#'   \item \code{prob_distr}: The names of the target distributions used.
-#'   \item \code{prob_distr_params}: The parameter values used for the target distributions.
-#'   \item \code{network_stats}: The names of the network statistics targeted.
-#'   \item \code{cov_pattern}: The nodal covariate pattern used (if any).
-#'   \item \code{theoretical}: A list containing theoretical samples, populated by calling \code{sample_theoretical()}.
-#'   \item \code{g}: A list of sampled \code{igraph} objects (last network if \code{stats_only = TRUE}).
+#'    \item \code{mcmc_stats}: A data frame of sampled network statistics.
+#'    \item \code{population}: The number of nodes in the network.
+#'    \item \code{prob_distr}: The names of the target distributions used.
+#'    \item \code{prob_distr_params}: The parameter values used for the target distributions.
+#'    \item \code{network_stats}: The names of the network statistics targeted.
+#'    \item \code{cov_pattern}: The nodal covariate pattern used (if any).
+#'    \item \code{target_distr}: A list containing target distribution samples, populated by calling \code{sample_target_distr()}.
+#'    \item \code{g}: A list of sampled \code{igraph} objects (or the last network if \code{stats_only = TRUE}).
 #' }
 #'
 #' @details 
+#' The CCM framework allows generation of networks under flexible specifications 
+#' for network structures. The framework decouples network properties from their 
+#' probability distributions, enabling users can model a range of probability distributions
+#' for network properties (e.g., a Gamma or Multivariate-Normal distributions for degree mixing).
+#'
+#' For specific mathematical details on how distributions like \code{"dirmult"} 
+#' and \code{"gamma"} are implemented in the underlying C engine, refer to 
+#' \code{\link{ccm_distributions}}.
+#' 
 #' The returned \code{ccm_sample} object has associated \code{plot} and 
-#' \code{sample_theoretical} methods for diagnostic and comparative analysis.
+#' \code{sample_target_distr} methods for diagnostic and comparative analysis.
 #'
 #' @examples
 #' # 1. Define target distributions and sample from the CCM
@@ -69,12 +65,14 @@
 #' )
 #' 
 #' # 2. Generate theoretical samples for the same target
-#' ccm_sample <- sample_theoretical(ccm_sample)
+#' ccm_sample <- sample_target_distr(ccm_sample)
 #' 
 #' # 3. Visualize MCMC samples against theoretical target
-#' plot(ccm_sample, type = "hist", include_theoretical = TRUE)
+#' plot(ccm_sample, type = "hist", target_distr = TRUE)
 #' 
-#' @seealso \code{\link{sample_theoretical}}, \code{\link{plot.ccm_sample}}
+#' @family ccm_core
+#' @seealso \code{\link{ccm_properties}}, \code{\link{ccm_distributions}}, 
+#'    \code{\link{sample_target_distr}}, \code{\link{plot.ccm_sample}}
 #' @export
 
 sample_ccm <- function(
@@ -91,8 +89,8 @@ sample_ccm <- function(
     partial_network = as.integer(0),
     obs_nodes = NULL,
     Obs_stats = NULL,
-    remove_var_last_entry = FALSE,
-    stats_only = TRUE
+    stats_only = TRUE,
+    verbose = 0
 ) {
   
   # Perform all input checks
@@ -126,7 +124,7 @@ sample_ccm <- function(
     obs_nodes = obs_nodes,
     MH_proposal_type = "TNT",
     Obs_stats = Obs_stats,
-    remove_var_last_entry = remove_var_last_entry
+    verbose = verbose
   )
   
   # Extract MCMC statistics
@@ -175,17 +173,6 @@ sample_ccm <- function(
       return(mixing_names)
     }
     
-    if (s == "degmix" ) {
-      m <- (-1 + sqrt(1 + 8*ncol(stats)))/2
-      degmix_names <- c()
-      for (i in (seq_len(m))) {
-        for (j in i:(m)) {
-          degmix_names <- c(degmix_names, paste0("DM", j, i))
-        }
-      }
-      return(degmix_names)
-    }
-
     if (s == "degmixing") {
       m <- (-1 + sqrt(1 + 8*ncol(stats)))/2
       degmix_names <- c()
@@ -195,10 +182,6 @@ sample_ccm <- function(
         }
       }
       return(degmix_names)
-    }
-    
-    if (s == "triangles") {
-      return(c("triangles")) 
     }
     
     if (s == "degmixing_triangles") {
@@ -218,18 +201,6 @@ sample_ccm <- function(
       cov1_names = paste(paste0("deg", 0:(len_deg-1)), "_2", sep = "")
       mix_names = c("M11", "M21", "M22")
       return(c(cov0_names, cov1_names, mix_names))
-    }
-    
-    if (s == "degmix_clustering") {
-      m <- population - 1
-      degmix_clustering_names <- c()
-      for (i in (seq_len(m))) {
-        for (j in i:(m)) {
-          degmix_clustering_names <- c(degmix_clustering_names, paste0("DM", j, i))
-        }
-      }
-      degmix_clustering_names <- c(degmix_clustering_names, "triangles")
-      return(degmix_clustering_names)
     }
     
     stop(paste("Unknown Network_stats:", s))

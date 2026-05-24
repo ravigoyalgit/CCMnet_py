@@ -17,9 +17,5 @@ void calc_f_degdist(int num_deg_stats, Model *m, double *networkstatistics,
                     double *prob_g_g2, double *prob_g2_g, 
                     int *nwp_Deg_Distr, int *MHp_Deg_Distr);
 
-void calc_probs_degdist(int num_deg_stats, Network *nwp, int *prob_type, 
-                        double *meanvalues, double *varvalues, 
-                        int *nwp_Deg_Distr, int *MHp_Deg_Distr, 
-                        double *pdf_gaussian_nwp, double *pdf_gaussian_MHp);
 
 #endif

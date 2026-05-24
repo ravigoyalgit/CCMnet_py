@@ -17,7 +17,8 @@ CCM_theoretical_check_density <- function(fit,
   # but they are passed via ... if you use a universal caller.
   draws <- settings$sampler(
     p = fit$prob_distr_params[[1]], 
-    n = n_sim
+    n = n_sim,
+    max_val = 1
   )
   
   fit$target_distr <- list(

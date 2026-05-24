@@ -127,7 +127,8 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
       // Stage 3: Statistical logic uses the transformed values (density or raw)
       calc_prob_dist(v_current_stat, v_proposal_stat, 1, prob_type, 
                      meanvalues, varvalues, 
-                     &pdf_gaussian_nwp, &pdf_gaussian_MHp);
+                     &pdf_gaussian_nwp, &pdf_gaussian_MHp,
+                     fVerbose);
     }
     ///EDGES: END ///
     
@@ -154,7 +155,8 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
       //calc_probs_mixing(nwp, 3, Cov_types, Num_Cov_type, nwp_mix, MHp_mix, meanvalues, varvalues, &pdf_gaussian_nwp, &pdf_gaussian_MHp, m, MHp, networkstatistics, prob_type);
       calc_prob_dist(nwp_mix, MHp_mix, num_params, prob_type, 
                      meanvalues, varvalues, 
-                     &pdf_gaussian_nwp, &pdf_gaussian_MHp);
+                     &pdf_gaussian_nwp, &pdf_gaussian_MHp,
+                     fVerbose);
     }
     ///MIXING MATRIX: END///
     
@@ -198,7 +200,8 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
         
         calc_prob_dist(v_current, v_proposal, num_deg_stats, prob_type, 
                        meanvalues, varvalues, 
-                       &pdf_gaussian_nwp, &pdf_gaussian_MHp);
+                       &pdf_gaussian_nwp, &pdf_gaussian_MHp,
+                       fVerbose);
       }
     }
     /// DEGREE DISTRIBUTION: END ///
@@ -291,7 +294,8 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
         
         calc_prob_dist(v_current_stat, v_proposal_stat, num_degmix_stats, prob_type,
                        meanvalues_TEMP, varvalues_TEMP,
-                       &pdf_gaussian_nwp, &pdf_gaussian_MHp);
+                       &pdf_gaussian_nwp, &pdf_gaussian_MHp,
+                       fVerbose);
         
         // --- BLOCK 2: Second Degree Distribution ---
         int num_degmix_stats2 = prob_type[9];
@@ -324,7 +328,8 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
         
         calc_prob_dist(v_current_stat2, v_proposal_stat2, num_degmix_stats2, prob_type_TEMP2,
                        meanvalues_TEMP2, varvalues_TEMP2,
-                       &pdf_gaussian_nwp_TEMP2, &pdf_gaussian_MHp_TEMP2);
+                       &pdf_gaussian_nwp_TEMP2, &pdf_gaussian_MHp_TEMP2,
+                       fVerbose);
         
         double v_current_stat3[1];
         double v_proposal_stat3[1];
@@ -347,7 +352,8 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
         
         calc_prob_dist(v_current_stat3, v_proposal_stat3, 1, prob_type_TEMP2,
                        meanvalues_TEMP3, varvalues_TEMP3,
-                       &pdf_gaussian_nwp_TEMP3, &pdf_gaussian_MHp_TEMP3);
+                       &pdf_gaussian_nwp_TEMP3, &pdf_gaussian_MHp_TEMP3,
+                       fVerbose);
         
         // --- FINAL SUMMATION ---
         pdf_gaussian_nwp += pdf_gaussian_nwp_TEMP2 + pdf_gaussian_nwp_TEMP3;
@@ -430,7 +436,8 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
         
         calc_prob_dist(v_current_stat,  v_proposal_stat, num_degmix_stats, prob_type,
                        meanvalues_TEMP, varvalues_TEMP,
-                       &pdf_gaussian_nwp, &pdf_gaussian_MHp);
+                       &pdf_gaussian_nwp, &pdf_gaussian_MHp,
+                       fVerbose);
         
         /////CLUSTERING//////////////////////
         
@@ -494,7 +501,8 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
           
           calc_prob_dist(v_current_stat_TEMP2,  v_proposal_stat_TEMP2, 1, prob_type_TEMP2,
                          meanvalues_TEMP2, varvalues_TEMP2,
-                         &pdf_gaussian_nwp_TEMP2, &pdf_gaussian_MHp_TEMP2);
+                         &pdf_gaussian_nwp_TEMP2, &pdf_gaussian_MHp_TEMP2,
+                         fVerbose);
           
           pdf_gaussian_nwp = pdf_gaussian_nwp_TEMP2 + pdf_gaussian_nwp;
           pdf_gaussian_MHp = pdf_gaussian_MHp_TEMP2 + pdf_gaussian_MHp;

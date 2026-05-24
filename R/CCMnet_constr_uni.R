@@ -45,7 +45,11 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   ER_prob = .05
   
   if ((length(Network_stats) == 1) && (Network_stats == "degreedist")){
-    max_degree_f = max_degree = length(Prob_Distr_Params[[1]][[1]])-1
+    if (length(Prob_Distr_Params[[1]][[1]]) > 1) {
+      max_degree_f = max_degree = length(Prob_Distr_Params[[1]][[1]])-1
+    } else {
+      max_degree_f = max_degree = population - 1
+    }
   } else if  ((length(Network_stats) == 1) && (Network_stats == "edges" || Network_stats == "density")) {
     max_degree_f = max_degree = population - 1
     if (Prob_Distr == "np") {

@@ -16,7 +16,8 @@ double quadratic_form(double *V, double *mu, double *inv_sigma, int distr_dim) {
 
 void calc_prob_dist(double *g_stats, double *gp_stats, int distr_dim, int *prob_type,
                     double *p1, double *p2,
-                    double *g_pdf, double *gp_pdf) {
+                    double *g_pdf, double *gp_pdf,
+                    int fVerbose) {
   
   int dist_selector = prob_type[5];
   *g_pdf = 0.0;
@@ -28,6 +29,15 @@ void calc_prob_dist(double *g_stats, double *gp_stats, int distr_dim, int *prob_
     // result = (V - mu)^T * Precision * (V - mu)
     *g_pdf = -0.5 * quadratic_form(g_stats, p1, p2, distr_dim);
     *gp_pdf = -0.5 * quadratic_form(gp_stats, p1, p2, distr_dim);
+    
+    if (fVerbose == 2) {
+      for (int i = 0; i < distr_dim; i++) {
+        Rprintf("[DEBUG mvn] Dim: %d | p1: %f | p2: %f | stat g: %f | stat gp: %f\n",
+                i, p1[i], p2[i], g_stats[i], gp_stats[i]);
+      }
+      Rprintf("[DEBUG mvn] Prob: g: %f | gp: %f\n",
+              *g_pdf,*gp_pdf);
+    }
   } 
   
   // --- Normal (1) ---
@@ -38,11 +48,27 @@ void calc_prob_dist(double *g_stats, double *gp_stats, int distr_dim, int *prob_
     }
   }
   
-  // --- Log Normal (2) ---
+  
+  // --- Log Normal (2) Corrected ---
+  
   else if (dist_selector == 2) {
     for (int i = 0; i < distr_dim; i++) {
-      *g_pdf += -0.5 * pow((log(g_stats[i]) - p1[i]), 2.0) / p2[i];
-      *gp_pdf += -0.5 * pow((log(gp_stats[i]) - p1[i]), 2.0) / p2[i];
+      
+
+      
+      double val_g  = (g_stats[i]  > 0) ? g_stats[i]  : 1e-10;
+      double val_gp = (gp_stats[i] > 0) ? gp_stats[i] : 1e-10;
+    
+      *g_pdf  += (-0.5 * pow((log(val_g)  - p1[i]), 2.0) / p2[i]) - log(val_g);
+      *gp_pdf += (-0.5 * pow((log(val_gp) - p1[i]), 2.0) / p2[i]) - log(val_gp);
+    
+      if (fVerbose == 2) {
+        Rprintf("[DEBUG LogNormal] Dim: %d | p1: %f | p2: %f | stat g: %f | stat gp: %f\n",
+                i, p1[i], p2[i], g_stats[i], gp_stats[i]);
+        Rprintf("[DEBUG LogNormal] Prob: g: %f | gp: %f\n",
+                (-0.5 * pow((log(val_g)  - p1[i]), 2.0) / p2[i]) - log(val_g),
+                (-0.5 * pow((log(val_gp) - p1[i]), 2.0) / p2[i]) - log(val_gp));
+      }
     }
   }
   
@@ -92,9 +118,6 @@ void calc_prob_dist(double *g_stats, double *gp_stats, int distr_dim, int *prob_
       double a = p1[i];
       if (a <= 0) a = 1e-6; 
       
-      // We only calculate bin-specific 'rewards'.
-      // This is mathematically equivalent to a Multinomial 
-      // with an implicit uniform prior on the total sum N.
       *g_pdf += lgammafn(g_stats[i] + a) - lgammafn(g_stats[i] + 1.0) - lgammafn(a);
       *gp_pdf += lgammafn(gp_stats[i] + a) - lgammafn(gp_stats[i] + 1.0) - lgammafn(a);
     }

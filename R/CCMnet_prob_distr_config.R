@@ -28,11 +28,11 @@
                           mu <- p[[1]]; sigma <- p[[2]]
                           matrix(rnorm(n * length(mu), mean = mu, sd = sqrt(sigma)), nrow = n, byrow = TRUE)
                         },
-                        valid_network_prop = c("edges", "density", "triangles", "mixing")
+                        valid_network_prop = c("edges", "density", "degreedist", "degmixing", "triangles", "mixing")
     ),
     "lognormal" = list(sub_code = 2, 
                        mean_bool = TRUE, 
-                       var_bool = FALSE, 
+                       var_bool = TRUE, 
                        use_solve_var = FALSE,
                        rules = list(p1 = c("is_numeric"), 
                                     p2 = c("is_numeric", "all_positive", "match_length")),
@@ -46,7 +46,7 @@
                            byrow = TRUE
                          )
                        },
-                       valid_network_prop = c("edges", "density", "degreedist", "degmixing", "triangles", "mixing")
+                       valid_network_prop = c("edges", "density", "mixing")
     ),
     "poisson" = list(sub_code = 3, 
                      mean_bool = TRUE, 
@@ -67,7 +67,7 @@
                      sampler = function(p, n, max_val, ...) {
                        matrix(sample(0:max_val, size = n, replace = TRUE), ncol = 1)
                      },
-                     valid_network_prop = c("edges", "density", "degreedist", "degmixing", "triangles", "mixing")
+                     valid_network_prop = c("edges")
     ),
     "beta"     = list(sub_code = 5, 
                       mean_bool = TRUE, 

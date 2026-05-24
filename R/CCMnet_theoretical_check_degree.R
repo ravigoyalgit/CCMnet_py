@@ -19,7 +19,8 @@ CCM_theoretical_check_degree <- function(fit,
   simulated <- settings$sampler(
     p = fit$prob_distr_params[[1]], 
     n = n_sim, 
-    population = fit$population
+    population = fit$population,
+    max_val = fit$population
   )
   
   # Convert to data.frame and apply naming logic

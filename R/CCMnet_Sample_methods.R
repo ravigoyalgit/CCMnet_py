@@ -109,11 +109,19 @@ plot.ccm_sample <- function(x,
     theme_ccm_plot()
   
   if (type == "hist") {
-    p <- p + geom_histogram(aes(y = after_stat(density)), 
-                            alpha = 0.5, 
-                            position = "identity", 
-                            binwidth = 1,
-                            color = NA)
+    if ("density" %in% stats) {
+      # Use default dynamic binning for continuous statistics
+      p <- p + geom_histogram(aes(y = after_stat(density)), 
+                              alpha = 0.5, 
+                              position = "identity", 
+                              color = NA)
+    } else {
+      p <- p + geom_histogram(aes(y = after_stat(density)), 
+                              alpha = 0.5, 
+                              position = "identity", 
+                              binwidth = 1,
+                              color = NA)
+    }
   } else {
     p <- p + geom_density(alpha = 0.5)
   }

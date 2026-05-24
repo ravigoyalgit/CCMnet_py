@@ -11,5 +11,6 @@ double quadratic_form(double *V, double *mu, double *inv_sigma, int dim);
 
 void calc_prob_dist(double *g_stats, double *gp_stats, int distr_dim, int *prob_type,
                     double *p1, double *p2,
-                    double *g_pdf, double *gp_pdf);
+                    double *g_pdf, double *gp_pdf,
+                    int fVerbose);
 #endif

@@ -9,7 +9,7 @@ Authors@R: c(person("Ravi", "Goyal", email = "ravi.j.goyal@gmail.com",
 Description: Provides an implementation of Congruence Class Models (CCMs) for 
     generating  networks. For additional details on CCMs see Goyal, Blitzstein, 
     and De Gruttola (2014) <doi:10.1017/nws.2014.2> and 
-    Goyal, De Gruttola, Martin, Rennert, and Onnela <doi:10.48550/arXiv:2603.02467>.
+    Goyal, De Gruttola, Martin, Rennert, and Onnela <doi:10.48550/arXiv.2603.02467>.
     'ccmnet' facilitates sampling networks based on specific topological properties
     and attribute mixing patterns using a Markov Chain Monte Carlo framework. 
     The implementation builds upon code from the 'ergm' package; 

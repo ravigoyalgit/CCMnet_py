@@ -1,5 +1,6 @@
 #' Probability Distribution Config
 #'
+#' @importFrom stats rlnorm
 #' @noRd
 
 .get_distr_settings <- function(distr_name) {

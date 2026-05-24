@@ -6,6 +6,8 @@
 #' @param n_sim Number of theoretical samples
 #'
 #' @return Updated fit object with theoretical mixing distribution
+#' 
+#' @importFrom stats na.omit
 #' @noRd
 
 CCM_theoretical_check_mixing <- function(fit,

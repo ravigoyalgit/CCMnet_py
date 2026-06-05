@@ -32,7 +32,9 @@ details on implemented probability distributions and parameter requirements.}
 
 \item{prob_distr_params}{List of parameter sets for each specified distribution.
 Each element must be a list containing the parameters required by the 
-chosen distribution (e.g., \code{list(shape, rate)} for \code{"gamma"}).}
+chosen distribution (e.g., \code{list(shape, rate)} for \code{"gamma"}). 
+See \code{\link{ccm_distributions}} for details on implemented probability 
+distributions and parameter requirements.}
 
 \item{population}{Integer. The number of nodes in the network.}
 
@@ -88,7 +90,7 @@ probability distributions, enabling users can model a range of probability distr
 for network properties (e.g., a Gamma or Multivariate-Normal distributions for degree mixing).
 
 For specific mathematical details on how distributions like \code{"dirmult"} 
-and \code{"gamma"} are implemented in the underlying C engine, refer to 
+and \code{"gamma"} are implemented, refer to 
 \code{\link{ccm_distributions}}.
 
 The returned \code{ccm_sample} object has associated \code{plot} and 

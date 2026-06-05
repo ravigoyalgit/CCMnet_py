@@ -5,7 +5,7 @@
 \title{Probability Distributions in CCMnet}
 \description{
 Details on the probability distributions implemented in the 
-\pkg{CCMnet} C engine. These distributions define the "soft constraints" 
+\pkg{CCMnet}. These distributions define the target distribution 
 placed on network properties during the MCMC sampling process.
 }
 \details{
@@ -28,6 +28,8 @@ while allowing the total edge count to follow a wide \code{"gamma"} distribution
   the total count (e.g., total edges) is variable.}
   \item{\code{"normal"}}{Requires \code{list(mean, sd)}. Standard Gaussian 
   constraint.}
+  \item{\code{"lognormal"}}{Requires \code{list(log mean, log sd)}. Log-scale 
+  of standard Gaussian constraint.}
   \item{\code{"beta"}}{Requires \code{list(shape1, shape2)}. Restricted to 
   properties bounded in the interval [0,1], such as \code{"density"}.}
   \item{\code{"uniform"}}{A flat distribution where the MCMC explores the 

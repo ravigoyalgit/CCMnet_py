@@ -26,19 +26,21 @@ library(ggplot2)
 set.seed(1)
 ```
 
-#Introduction
+# Introduction 
+
 The CCMnet package is designed for generating network ensembles that reflect structural uncertainty in network properties. While traditional statistical models often place probability distributions directly on graphs, Congruence Class Models (CCMs) define distributions over specific network statistics—such as edge counts, degree sequences, or mixing patterns.
 
-##Analysis Workflow
+## Analysis Workflow 
+
 Using CCMnet for network analysis typically follows a four-step process:
 
-> **Model Specification**: Defining the network properties of interest and their corresponding probability distributions.
+    1. **Model Specification**: Defining the network properties of interest and their corresponding probability distributions.
 
-> **MCMC Sampling**: Generate a representative ensemble of networks, but only return the network statistics (not entire networks).
+    2. **MCMC Sampling**: Generate a representative ensemble of networks, but only return the network statistics (not entire networks).
 
-> **Verification and Diagnostics**: Assessing the sampler's performance and validating that the generated network statistics align with the specified theoretical targets.
+    3. **Verification and Diagnostics**: Assessing the sampler's performance and validating that the generated network statistics align with the specified theoretical targets.
 
-> **Create Network Ensemble for Analysis** : Once the sampler is validated, one can generate an emsemble of networks for analysis.
+    4. **Create Network Ensemble for Analysis** : Once the sampler is validated, one can generate an ensemble of networks for analysis.
 
 # Section 1: Edge Count Sampler Verification
 
@@ -46,9 +48,9 @@ This section verifies that the CCM sampler correctly reproduces networks accordi
 
 ## Example 1.1: Poisson Edge Count
 
-We fit a CCM where the **number of edges** follows a Poisson distribution with \(\lambda = 350\). The probability of sampling a network with k edges is given by the Poisson mass function:
+We fit a CCM where the **number of edges** follows a Poisson distribution with $\lambda = 350$. The probability of sampling a network with k edges is given by the Poisson mass function:
 
-\[ P(K=k) = \frac{\lambda^k e^{-\lambda}}{k!} \]
+$$ P(K=k) = \frac{\lambda^k e^{-\lambda}}{k!} $$
 
 ```{r edge-example-poisson}
 
@@ -70,9 +72,9 @@ ccm_sample<- sample_target_distr(ccm_sample, n_sim = 1000)
 plot(ccm_sample, stats = "edges", type = "hist", target_distr = TRUE)
 ```
 
-> **Explanation:** The density plot shows the CCM MCMC samples (blue) and the theoretical Poisson distribution (red). Close overlap verifies correct sampling.
+**Explanation:** The density plot shows the CCM MCMC samples (blue) and the theoretical Poisson distribution (red). Close overlap verifies correct sampling.
 
-## Example 1.2: Uniforn
+## Example 1.2: Uniform
 
 We fit a CCM where the **number of edges** follows a uniform distribution.
 
@@ -85,14 +87,14 @@ ccm_sample <- sample_ccm(
   population = 20,
   sample_size = 20000L,
   burnin = 100000L,
-  interval = 1000L,
+  interval = 1000L
 )
 
 ccm_sample<- sample_target_distr(ccm_sample, n_sim = 10000)
 plot(ccm_sample, stats = "edges", type = "hist", target_distr = TRUE)
 ```
 
-> **Explanation:** The density plot verifies that CCM samples uniformly reproduce all possible edge counts.
+**Explanation:** The density plot verifies that CCM samples uniformly reproduce all possible edge counts.
 
 ## Example 1.3: Non-Parametric
 
@@ -117,7 +119,7 @@ ccm_sample<- sample_target_distr(ccm_sample, n_sim = 50000)
 plot(ccm_sample, stats = "edges", type = "hist", target_distr = TRUE)
 ```
 
-> **Explanation:** The density plot verifies that CCM samples uniformly reproduce all possible edge counts.
+**Explanation:** The density plot verifies that CCM samples uniformly reproduce all possible edge counts.
 
 # Section 2: Degree Distribution Sampler Verification
 
@@ -141,7 +143,7 @@ plot(ccm_sample,
 )    
 ```
 
-> **Explanation:** The density plot verifies that CCM samples reproduce the correct degre distribution.
+**Explanation:** The density plot verifies that CCM samples reproduce the correct degree distribution.
 
 # Section 3: Degree Mixing and Triangle
 
@@ -179,15 +181,15 @@ plot(ccm_sample,
      target_distr = TRUE)
 ```
 
-> **Explanation:** The density plots show sampled degrees (blue) versus theoretical probabilities (red). Close match verifies correct MCMC sampling.
+**Explanation:** The density plots show sampled degrees (blue) versus theoretical probabilities (red). Close match verifies correct MCMC sampling.
 
 # Section 4: Illustration
 
 A primary use case for CCMnet is generating network ensembles that reflect the uncertainty in properties estimated from empirical data. These examples demonstrate how uncertainty induced by different sampling designs is explicitly propagated into the predictive network ensembles.
 
-> **Posterior Predictive for a New School**: This illustrates whole-network sampling, where uncertainty arises from heterogeneity across multiple distinct populations (e.g., different high schools).
+**Posterior Predictive for a New School**: This illustrates whole-network sampling, where uncertainty arises from heterogeneity across multiple distinct populations (e.g., different high schools).
 
-> **Posterior Predictive for a Sampled School**: This demonstrates individual-level sampling, where uncertainty arises from the partial observation of nodes and edges within a single population.
+**Posterior Predictive for a Sampled School**: This demonstrates individual-level sampling, where uncertainty arises from the partial observation of nodes and edges within a single population.
 
 By comparing CCMnet to standard benchmarks like ERGMs, we can evaluate how well the model captures both population-level heterogeneity and sampling-induced uncertainty.
 
@@ -473,7 +475,6 @@ ggplot2::ggplot(
 ```
 
 ## 4.3.2 Generation of Network Ensembles for Sampled School for CCM, ERGM, and G(n,m)
-
 
 ```{r density-example-sampled_school-ensemble}
 

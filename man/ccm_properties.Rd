@@ -5,23 +5,23 @@
 \title{Network Properties in CCMnet}
 \description{
 \pkg{CCMnet} implements a systematic hierarchy of network properties 
-motivated by the $dk$-series framework (Mahadevan et al., 2006; Orsini et al., 2015). 
+motivated by the dk-series framework (Mahadevan et al., 2006; Orsini et al., 2015). 
 These properties can be targeted using soft constraints governed by 
 user-specified probability distributions.
 }
-\section{Topological-based Properties ($dk$-series)}{
+\section{Topological-based Properties (dk-series)}{
 
-The following properties follow the $dk$-series framework, which defines 
+The following properties follow the dk-series framework, which defines 
 increasingly constrained random graph ensembles:
 \describe{
   \item{\code{"edges"} (0k)}{The total number of edges within the graph. This 
   is the simplest topological constraint.}
-  \item{\code{"degreedist"} (1k)}{A vector where the $j$-th entry represents 
-  the number of nodes having degree $j$.}
+  \item{\code{"degreedist"} (1k)}{A vector where the j-th entry represents 
+  the number of nodes having degree j.}
   \item{\code{"degmixing"} (2k)}{The joint degree distribution, represented 
-  as a degree mixing matrix. The $(i,j) entry represents the number of edges 
-  between nodes with degree $i$ and degree $j$, capturing degree-degree 
-  correlations (assortativity).}
+  as a degree mixing matrix. The (i,j) entry represents the number of edges 
+  between nodes with degree i and degree j, capturing degree-degree 
+  correlations (degree assortativity).}
   \item{\code{"degmixing" + "triangles"} (2.1k)}{Extends the 2k distribution by including 
   the total number of closed triads (triangles) in the network, allowing for 
   clustering constraints.}
@@ -34,7 +34,7 @@ increasingly constrained random graph ensembles:
 based on categorical or discretized covariates (e.g., homophily or social 
 stratification). 
 \describe{
-  \item{\code{"mixing"}}{The attribute mixing matrix. The $(i,j)$ entry 
+  \item{\code{"mixing"}}{The attribute mixing matrix. The (i,j) entry 
   represents the number of edges between nodes belonging to covariate groups 
   $i$ and $j$. Requires \code{cov_pattern}.}
   \item{\code{"degreedist+degreedist+mixing"}}{A combination property that includes the 

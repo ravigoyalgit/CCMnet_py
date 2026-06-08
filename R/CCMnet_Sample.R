@@ -82,17 +82,17 @@ sample_ccm <- function(
     prob_distr,
     prob_distr_params,
     population,
+    cov_pattern = NULL,
     sample_size = 1000L,
     burnin = 200000L,
     interval = 1000L,
-    cov_pattern = NULL,
     initial_g = NULL,
     use_initial_g = FALSE,
+    stats_only = TRUE,
+    verbose = 0,
     partial_network = as.integer(0),
     obs_nodes = NULL,
-    Obs_stats = NULL,
-    stats_only = TRUE,
-    verbose = 0
+    Obs_stats = NULL
 ) {
   
   # Perform all input checks

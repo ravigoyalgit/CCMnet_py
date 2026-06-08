@@ -9,17 +9,17 @@ sample_ccm(
   prob_distr,
   prob_distr_params,
   population,
+  cov_pattern = NULL,
   sample_size = 1000L,
   burnin = 200000L,
   interval = 1000L,
-  cov_pattern = NULL,
   initial_g = NULL,
   use_initial_g = FALSE,
+  stats_only = TRUE,
+  verbose = 0,
   partial_network = as.integer(0),
   obs_nodes = NULL,
-  Obs_stats = NULL,
-  stats_only = TRUE,
-  verbose = 0
+  Obs_stats = NULL
 )
 }
 \arguments{
@@ -38,6 +38,9 @@ distributions and parameter requirements.}
 
 \item{population}{Integer. The number of nodes in the network.}
 
+\item{cov_pattern}{Integer vector. Optional nodal attributes (group IDs) 
+required for mixing or degree-mixing targets.}
+
 \item{sample_size}{Integer. Number of MCMC samples to return. Default is 1000.}
 
 \item{burnin}{Integer. Number of MCMC iterations to discard before sampling begins. 
@@ -46,12 +49,14 @@ Default is 200,000.}
 \item{interval}{Integer. Thinning interval (number of iterations between samples). 
 Default is 1000.}
 
-\item{cov_pattern}{Integer vector. Optional nodal attributes (group IDs) 
-required for mixing or degree-mixing targets.}
-
 \item{initial_g}{An \code{igraph} object. The starting graph for the MCMC chain.}
 
 \item{use_initial_g}{Logical. If TRUE, the MCMC chain starts from \code{initial_g}.}
+
+\item{stats_only}{Logical. If TRUE, only sufficient statistics are returned; 
+if FALSE, the list of sampled \code{igraph} objects is included.}
+
+\item{verbose}{Integer. Level of output logging (0 = silent, 1 = basic, 2 = detailed).}
 
 \item{partial_network}{Integer. Reserved for future use.}
 
@@ -59,11 +64,6 @@ required for mixing or degree-mixing targets.}
 
 \item{Obs_stats}{Character vector of additional network statistics to 
 monitor (but not target) during sampling. Reserved for future use.}
-
-\item{stats_only}{Logical. If TRUE, only sufficient statistics are returned; 
-if FALSE, the list of sampled \code{igraph} objects is included.}
-
-\item{verbose}{Integer. Level of output logging (0 = silent, 1 = basic, 2 = detailed).}
 }
 \value{
 An object of class \code{ccm_sample} containing:

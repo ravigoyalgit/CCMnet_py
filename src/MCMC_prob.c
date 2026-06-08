@@ -223,8 +223,6 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
       double nwp_mixing_matrix[3];
       double MHp_mixing_matrix[3];
       
-      ModelTerm *mtp2 = m->termarray;
-      
       //Stage 1: Calculate Network Statistics
       for (counter = 1; counter < (length_deg_dist + 1); counter++) {
         MHp_Deg_Distr_1[counter - 1] = (int)networkstatistics[counter] + (int)(m->workspace[counter]);

@@ -1,56 +1,83 @@
+#' This function serves as a wrapper to perform MCMC-based network simulation 
+#' under specific constraints, supporting both uni-modal and bi-modal populations.
+#'
+#' @param Network_stats A character vector specifying the network statistics to be used.
+#' @param Prob_Distr A character string specifying the probability distribution.
+#' @param Prob_Distr_Params A list or vector of parameters for the chosen \code{Prob_Distr}.
+#' @param samplesize Integer. The number of network samples to draw from the MCMC. Default is 5000.
+#' @param burnin Integer. The number of initial MCMC steps to discard. Default is 1000.
+#' @param interval Integer. The number of steps between successive samples (thinning). Default is 1000.
+#' @param statsonly Logical. If \code{TRUE}, returns only the network statistics; 
+#' if \code{FALSE}, returns the network objects. Default is \code{TRUE}.
+#' @param G An optional initial graph object.
+#' @param P An optional graph object or matrix representing the population or constraints.
+#' @param population Integer or vector of length 2. The size of the population. 
+#' A single value triggers \code{uni_modal_constr}, while two values trigger \code{bi_modal_constr}.
+#' @param covPattern A vector or data frame containing nodal attributes/covariates.
+#' @param bayesian_inference Logical. Whether to perform Bayesian inference. Default is \code{FALSE}.
+#' @param Ia,Il,R Optional parameters for epidemiological model states (Infectious asymptomatic, 
+#' Infectious latent, Recovered).
+#' @param epi_params A list of parameters for epidemiological simulations.
+#' @param print_calculations Logical. If \code{TRUE}, prints progress and intermediate steps to the console.
+#' @param use_G Logical. Whether to use the provided graph \code{G} as the starting state.
+#' @param outfile Character string. Path to a file where results should be saved.
+#' @param partial_network Logical. Whether the input network is partially observed.
+#' @param obs_nodes A vector of indices for observed nodes.
+#' @param MH_proposal_type Character. The Metropolis-Hastings proposal mechanism (e.g., "TNT" for Tie-No-Tie).
+#' @param Obs_stats The observed statistics to match or use as constraints.
+#'
+#' @return Depending on \code{statsonly}, returns either a matrix of network statistics 
+#' or a list of network objects produced by the underlying \code{uni_modal_constr} 
+#' or \code{bi_modal_constr} functions.
+#'
+#' @noRd
 
-CCMnet_constr <- function(Network_stats,
-                          Prob_Distr,
-                          Prob_Distr_Params, 
-                          samplesize,
-                          burnin, 
-                          interval,
-                          statsonly,
-                          G,
-                          P,
+CCMnet_constr <- function(Network_stats, 
+                          Prob_Distr, 
+                          Prob_Distr_Params,
+                          samplesize = 5000, 
+                          burnin=1000, 
+                          interval=1000,
+                          statsonly=TRUE,
+                          G=NULL,
+                          P=NULL,
                           population, 
-                          covPattern,
-                          bayesian_inference,
-                          Ia, 
-                          Il, 
-                          R, 
-                          epi_params,
-                          print_calculations,
+                          covPattern = NULL,
+                          bayesian_inference = FALSE,
+                          Ia = NULL, 
+                          Il = NULL, 
+                          R = NULL, 
+                          epi_params = NULL,
+                          print_calculations = FALSE,
                           use_G = FALSE,
-                          outfile = "none") {
-  
-  samplesize = as.integer(samplesize)
-  burnin = as.integer(burnin)
-  interval = as.integer(interval)
-  population = as.integer(population)
-  covPattern = as.integer(covPattern)
-  
-  results = CCMnet_constr_py(Network_stats,
-                   Prob_Distr,
-                   Prob_Distr_Params, 
-                   samplesize,
-                   burnin, 
-                   interval,
-                   statsonly,
-                   G,
-                   P,
-                   population, 
-                   covPattern,
-                   bayesian_inference,
-                   Ia, 
-                   Il, 
-                   R, 
-                   epi_params,
-                   print_calculations,
-                   use_G,
-                   outfile)
-  
-  nodes_attr_df = data.frame(name = c(0:(population-1)), 
-                             covPattern = covPattern)
-  g = graph_from_data_frame(results[[1]], directed=FALSE, vertices = nodes_attr_df)
+                          outfile = NULL,
+                          partial_network = FALSE,
+                          obs_nodes = NULL,
+                          MH_proposal_type = "TNT",
+                          Obs_stats = Obs_stats,
+                          verbose = 0) {
 
-  return(list(g, results[[2]]))
+  if (length(population) == 1) {
+    return(uni_modal_constr(Network_stats = Network_stats, 
+                            Prob_Distr = Prob_Distr, 
+                            Prob_Distr_Params = Prob_Distr_Params,
+                            samplesize = samplesize, 
+                            burnin = burnin, 
+                            interval = interval,
+                            statsonly = statsonly, 
+                            G = G,
+                            population = population, 
+                            covPattern = covPattern, 
+                            Obs_stats = Obs_stats,
+                            verbose = verbose)
+           )
+  } else if (length(population) == 2) {
+    return(bi_modal_constr(Network_stats, Prob_Distr, Prob_Distr_Params,
+                           samplesize, burnin, interval,
+                           statsonly, G,
+                           population, covPattern,
+                           Obs_stats)
+           )
+  }
 }
-  
-  
-  
+

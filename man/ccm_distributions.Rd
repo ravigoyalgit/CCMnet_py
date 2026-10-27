@@ -40,8 +40,8 @@ while allowing the total edge count to follow a wide \code{"gamma"} distribution
 \seealso{
 \code{\link{ccm_properties}}, \code{\link{sample_ccm}}
 
-Other ccm_core: 
+Other ccm_core:
 \code{\link{ccm_properties}},
-\code{\link{sample_ccm}()}
+\code{\link[=sample_ccm]{sample_ccm()}}
 }
 \concept{ccm_core}

@@ -14,11 +14,11 @@ sample_ccm(
   burnin = 200000L,
   interval = 1000L,
   initial_g = NULL,
+  partial_g = NULL,
   use_initial_g = FALSE,
   stats_only = TRUE,
   verbose = 0,
   partial_network = as.integer(0),
-  obs_nodes = NULL,
   Obs_stats = NULL
 )
 }
@@ -51,6 +51,8 @@ Default is 1000.}
 
 \item{initial_g}{An \code{igraph} object. The starting graph for the MCMC chain.}
 
+\item{partial_g}{An \code{igraph} object. The observed dyads for partially observed networks.}
+
 \item{use_initial_g}{Logical. If TRUE, the MCMC chain starts from \code{initial_g}.}
 
 \item{stats_only}{Logical. If TRUE, only sufficient statistics are returned; 
@@ -58,9 +60,7 @@ if FALSE, the list of sampled \code{igraph} objects is included.}
 
 \item{verbose}{Integer. Level of output logging (0 = silent, 1 = basic, 2 = detailed).}
 
-\item{partial_network}{Integer. Reserved for future use.}
-
-\item{obs_nodes}{Integer vector. Reserved for future use in specifying observed nodes.}
+\item{partial_network}{Integer.}
 
 \item{Obs_stats}{Character vector of additional network statistics to 
 monitor (but not target) during sampling. Reserved for future use.}
@@ -116,7 +116,7 @@ plot(ccm_sample, type = "hist", target_distr = TRUE)
 \code{\link{ccm_properties}}, \code{\link{ccm_distributions}}, 
    \code{\link{sample_target_distr}}, \code{\link{plot.ccm_sample}}
 
-Other ccm_core: 
+Other ccm_core:
 \code{\link{ccm_distributions}},
 \code{\link{ccm_properties}}
 }

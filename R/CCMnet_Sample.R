@@ -23,9 +23,9 @@
 #' @param cov_pattern Integer vector. Optional nodal attributes (group IDs) 
 #'    required for mixing or degree-mixing targets.
 #' @param initial_g An \code{igraph} object. The starting graph for the MCMC chain.
+#' @param partial_g An \code{igraph} object. The observed dyads for partially observed networks.
 #' @param use_initial_g Logical. If TRUE, the MCMC chain starts from \code{initial_g}.
-#' @param partial_network Integer. Reserved for future use.
-#' @param obs_nodes Integer vector. Reserved for future use in specifying observed nodes.
+#' @param partial_network Integer. 
 #' @param Obs_stats Character vector of additional network statistics to 
 #'    monitor (but not target) during sampling. Reserved for future use.
 #' @param stats_only Logical. If TRUE, only sufficient statistics are returned; 
@@ -87,11 +87,11 @@ sample_ccm <- function(
     burnin = 200000L,
     interval = 1000L,
     initial_g = NULL,
+    partial_g = NULL,
     use_initial_g = FALSE,
     stats_only = TRUE,
     verbose = 0,
     partial_network = as.integer(0),
-    obs_nodes = NULL,
     Obs_stats = NULL
 ) {
   
@@ -111,7 +111,7 @@ sample_ccm <- function(
     interval = as.integer(interval),
     statsonly = stats_only,
     G = initial_g,
-    P = NULL,
+    P = partial_g,
     population = as.integer(population),
     covPattern = as.integer(cov_pattern),
     bayesian_inference = FALSE,
@@ -123,7 +123,6 @@ sample_ccm <- function(
     use_G = use_initial_g,
     outfile = "none",
     partial_network = as.integer(partial_network),
-    obs_nodes = obs_nodes,
     MH_proposal_type = "TNT",
     Obs_stats = Obs_stats,
     verbose = verbose

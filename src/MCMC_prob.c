@@ -67,6 +67,19 @@ MCMCStatus MetropolisHastings(MHproposal *MHp,
   }
   //END of CODE FROM ERGM Library
   
+  /* Partially observed network: the edges of TransNW are the fixed (known) dyads.
+   A proposal that would toggle one is rejected; the chain stays put for this step. */
+  if (*BayesInference == 1) {
+    int toggles_fixed = 0;
+    for (unsigned int i = 0; i < MHp->ntoggles; i++) {
+      if (EdgetreeSearch(MHp->toggletail[i], MHp->togglehead[i], TransNW->outedges) != 0) {
+        toggles_fixed = 1;
+        break;
+      }
+    }
+    if (toggles_fixed) continue;
+  }
+  
   /* Calculate change statistics,
    remembering that tail -> head */
   ChangeStats(MHp->ntoggles, MHp->toggletail, MHp->togglehead, nwp, m);

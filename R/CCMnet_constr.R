@@ -22,7 +22,6 @@
 #' @param use_G Logical. Whether to use the provided graph \code{G} as the starting state.
 #' @param outfile Character string. Path to a file where results should be saved.
 #' @param partial_network Logical. Whether the input network is partially observed.
-#' @param obs_nodes A vector of indices for observed nodes.
 #' @param MH_proposal_type Character. The Metropolis-Hastings proposal mechanism (e.g., "TNT" for Tie-No-Tie).
 #' @param Obs_stats The observed statistics to match or use as constraints.
 #'
@@ -52,7 +51,6 @@ CCMnet_constr <- function(Network_stats,
                           use_G = FALSE,
                           outfile = NULL,
                           partial_network = FALSE,
-                          obs_nodes = NULL,
                           MH_proposal_type = "TNT",
                           Obs_stats = Obs_stats,
                           verbose = 0) {
@@ -66,8 +64,10 @@ CCMnet_constr <- function(Network_stats,
                             interval = interval,
                             statsonly = statsonly, 
                             G = G,
+                            P = P,
                             population = population, 
-                            covPattern = covPattern, 
+                            covPattern = covPattern,
+                            partial_network = partial_network,
                             Obs_stats = Obs_stats,
                             verbose = verbose)
            )

@@ -30,6 +30,10 @@
                    length(cov_pattern), population))
     }
     if (any(is.na(cov_pattern))) stop("cov_pattern cannot contain NAs.")
+    labs <- sort(unique(cov_pattern))
+    if (!identical(as.numeric(labs), as.numeric(seq_along(labs)))) {
+      stop("cov_pattern must use group labels 1, 2, ..., k (e.g. not 0-based).")
+    }
   }
   
   # 3. Initial Graph

@@ -11,8 +11,10 @@
 #' @param interval Integer. Thinning interval between samples.
 #' @param statsonly Logical. If \code{TRUE}, returns statistics; if \code{FALSE}, returns graph objects.
 #' @param G An initial \code{igraph} object. If \code{NULL}, a random graph is generated.
+#' @param P An optional graph object or matrix representing the population or constraints.
 #' @param population Integer. The number of nodes in the network.
 #' @param covPattern Vector. Categorical nodal attributes for mixing statistics.
+#' @param partial_network Logical. Whether the input network is partially observed.
 #'
 #' @return A list containing:
 #' \itemize{
@@ -26,8 +28,9 @@
 
 uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
                              samplesize, burnin, interval,
-                             statsonly, G,
+                             statsonly, G, P,
                              population, covPattern,
+                             partial_network,
                              Obs_stats, verbose = 0) {
   
   #Verify the inputs for Network_stats, Prob_Distr, and Prob_Distr_Params
@@ -73,7 +76,11 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
   max_degree = max_degree_f
   
   generate_graphs = generate_initial_graph_CCMnet(G, max_degree, ER_prob, covPattern, population)
-  P = generate_graphs[[1]]
+  if (partial_network) { 
+    P = P 
+  } else {
+    P = generate_graphs[[1]]
+  }
   g = generate_graphs[[2]]
   
   # --- For network P ---
@@ -133,6 +140,10 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
     verbose = verbose
     
     BayesInference = 0 #Required for Bayesian Inference
+    if (partial_network == 1) {
+      BayesInference = 1
+    }
+    
     TranNet = NULL
     P = P
     Ia = NULL
@@ -232,7 +243,7 @@ uni_modal_constr <- function(Network_stats, Prob_Distr, Prob_Distr_Params,
       stats <- statsmatrix[samplesize, ]
       
       # Clean up
-      gc()
+      #gc()
       
     }
     

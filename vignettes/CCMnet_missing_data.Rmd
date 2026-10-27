@@ -1,0 +1,266 @@
+---
+title: "CCMnet: Bayesian Inference for Partially Observed Networks"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CCMnet: Bayesian Inference for Partially Observed Networks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+# Set global chunk options
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 6,
+  fig.height = 4
+)
+
+# Load libraries
+library(CCMnet)
+library(igraph)
+
+set.seed(100)
+```
+
+# Introduction
+
+In many applications only part of a network is observed. In molecular HIV surveillance, for example, a person appears in the viral genetic linkage network only if their virus was sequenced: links between two sequenced people are known, while every link involving an unsequenced person is missing. Treating the observed network as complete (a *complete case* analysis) underestimates degrees and overstates the number of isolated nodes.
+
+CCMnet performs Bayesian inference on the full network's properties from a partially observed network. Dyads (pairs of nodes) are either
+
+* **fixed**: their value (edge or no edge) is known and held constant, or
+* **missing**: their value is unknown and imputed by MCMC under a Congruence Class Model (CCM).
+
+`CCM_MissingInference()` uses a Gibbs sampler. Each iteration (1) imputes the missing dyads given the current CCM parameters, and (2) draws the CCM parameters given the imputed network from their full conditional distribution under a conjugate prior.
+
+## Analysis Workflow
+
+Inference for a partially observed network typically follows a four-step process:
+
+    1. **Observed Data**: A network on all nodes containing the observed edges (`g_obs`), and a graph whose edges mark the fixed dyads (`partial_g`).
+
+    2. **Model Specification**: The network properties and their probability distributions (`network_stats`, `prob_distr`, `prob_distr_params`), plus a prior on the distribution's parameters (`prior_distr`, `prior_params`).
+
+    3. **MCMC Sampling**: Run `CCM_MissingInference()` to draw from the joint posterior of the missing dyads and the parameters.
+
+    4. **Diagnostics and Summaries**: Check MCMC with trace plots and summarize the posterior of the network properties. 
+
+# Section 1: A Partially Observed Network
+
+We simulate a complete network of 200 nodes whose degree distribution follows a multinomial distribution with negative binomial probabilities (degrees 0 to 12). Each node also belongs to one of two groups. We then observe a random 60% of the nodes. Two nodes are linked in the observed network only if both are observed and linked in the complete network. The same observed network is used in all of the examples below.
+
+```{r simulate-network}
+
+population <- 200
+K <- 12                                  
+theta_true <- dnbinom(0:K, size = 2, mu = 4)
+theta_true <- theta_true / sum(theta_true)
+
+truth_fit <- sample_ccm(
+  network_stats = c("degreedist"),
+  prob_distr = c("poisson"),
+  prob_distr_params = list(list(theta_true)),
+  population = population,
+  sample_size = 2L,
+  burnin = 200000L
+)
+g_truth <- truth_fit$g[[length(truth_fit$g)]]
+
+# Observe 60% of the nodes
+obs_nodes <- sort(sample.int(population, round(0.6 * population)))
+
+# Observed network: all nodes, but only edges between two observed nodes
+el <- igraph::ends(g_truth, igraph::E(g_truth), names = FALSE)
+g_obs <- igraph::delete_edges(g_truth, which(!(el[, 1] %in% obs_nodes & el[, 2] %in% obs_nodes)))
+
+# Fixed dyads: every pair of observed nodes
+partial_g <- make_partial_g(population, obs_nodes)
+
+# Node groups
+groups <- rep(1:2, each = population / 2)
+
+# Properties of the complete network, used as the truth in the plots below
+truth_edges <- igraph::gsize(g_truth)
+truth_deg <- tabulate(igraph::degree(g_truth) + 1, nbins = K + 1)
+g_hi <- pmax(groups[el[, 1]], groups[el[, 2]])
+g_lo <- pmin(groups[el[, 1]], groups[el[, 2]])
+truth_mix <- c(M11 = sum(g_hi == 1 & g_lo == 1),
+               M21 = sum(g_hi == 2 & g_lo == 1),
+               M22 = sum(g_hi == 2 & g_lo == 2))
+```
+
+`g_obs` keeps every node, including the unobserved ones, so node indices match the complete network. The true edge count, degree counts and mixing counts of the complete network are stored for comparison with the posterior. `make_partial_g()` returns a graph whose edges are all pairs of observed nodes; these dyads are held fixed during sampling. Every other dyad (about 64% of them here) is missing.
+
+# Section 2: Edge Count
+
+## Example 2.1: Poisson Edge Count with a Gamma Prior
+
+We model the **number of edges** $m$ as Poisson with rate $\lambda$, and place a Gamma prior on $\lambda$:
+
+$$ m \mid \lambda \sim \text{Poisson}(\lambda), \qquad \lambda \sim \text{Gamma}(a, b). $$
+
+```{r edges-gamma}
+
+fit_edges <- CCM_MissingInference(
+  g_obs = g_obs,
+  partial_g = partial_g,
+  network_stats = c("edges"),
+  prob_distr = c("poisson"),
+  prob_distr_params = list(list(300)),              # starting value of lambda
+  prior_distr = c("gamma"),
+  prior_params = list(list(shape = 4, rate = 0.01)), # prior mean 400 edges
+  n_mcmc_trials = 3000L,
+  burnin_trials = 200L,
+  ccm_steps = 1000L
+)
+
+print(fit_edges)
+
+plot(fit_edges, stats = "edges", type = "hist", truth = truth_edges)
+```
+
+The histogram shows the posterior draws of the total edge count, and the red line marks the edge count of the complete network. The complete-case edge count (`r igraph::gsize(g_obs)`) lies far below the posterior.
+
+# Section 3: Degree Distribution
+
+## Example 3.1: Multinomial Degree Distribution with a Dirichlet Prior
+
+We model the **degree distribution** $D(g) = (D_0, \ldots, D_K)$ as multinomial with probabilities $\theta$, and place a Dirichlet prior on $\theta$:
+
+$$ D(g) \mid \theta \sim \text{Multinomial}(n, \theta), \qquad \theta \sim \text{Dirichlet}(\alpha). $$
+
+In CCMnet the multinomial is specified with `prob_distr = "poisson"` and $\lambda = \theta$; because the degree counts always sum to $n$, the two are equivalent. The full conditional of $\theta$ is $\text{Dirichlet}(\alpha + D(g))$.
+
+```{r degree-dirichlet}
+
+fit_deg <- CCM_MissingInference(
+  g_obs = g_obs,
+  partial_g = partial_g,
+  network_stats = c("degreedist"),
+  prob_distr = c("poisson"),
+  prob_distr_params = list(list(rep(1 / (K + 1), K + 1))),   # starting value of theta
+  prior_distr = c("dirichlet"),
+  prior_params = list(list(alpha = 1)),
+  n_mcmc_trials = 2000L,
+  burnin_trials = 200L,
+  ccm_steps = 2000L
+)
+
+plot(fit_deg, stats = paste0("deg", 0:3), type = "density", truth = truth_deg)
+
+plot(fit_deg, stats = paste0("deg", 0:3), type = "trace", truth = truth_deg)
+```
+
+Each panel shows the posterior distribution (density plot) and the chain (trace plot) for the number of nodes with a given degree; the red lines mark the complete network. In the observed network, `r sum(igraph::degree(g_obs) == 0)` nodes have degree 0, compared with `r truth_deg[1]` in the complete network.
+
+# Section 4: Mixing Matrix
+
+## Example 4.1: Poisson Mixing Counts with Gamma Priors
+
+Nodes often belong to groups (for example, race/ethnicity or transmission risk group), and the property of interest is the number of links within and between groups, which can be summarized as a **mixing matrix**. We model each entry as Poisson with its own rate and place independent Gamma priors on the rates. 
+
+```{r mixing-gamma}
+
+fit_mix <- CCM_MissingInference(
+  g_obs = g_obs,
+  partial_g = partial_g,
+  network_stats = c("mixing"),
+  prob_distr = c("poisson"),
+  prob_distr_params = list(list(c(100, 100, 100))),   # starting values of lambda
+  prior_distr = c("gamma"),
+  prior_params = list(list(shape = 2, rate = 0.01)), # prior mean 200 per cell
+  cov_pattern = groups,
+  n_mcmc_trials = 2000L,
+  burnin_trials = 200L,
+  ccm_steps = 2000L
+)
+
+summary(fit_mix)
+
+plot(fit_mix, type = "hist", truth = truth_mix)
+
+plot(fit_mix, type = "trace", truth = truth_mix)
+```
+
+The histograms show the posterior of the number of links within group 1 (M11), between groups (M21), and within group 2 (M22); the red lines mark the complete network.
+
+# Section 5: Model Specification Options
+
+## 5.1 Built-in Conjugate Priors
+
+The prior for each network property is chosen with `prior_distr`, and its parameters are given in `prior_params`. Scalars are recycled to the length of the statistic.
+
+| `prob_distr` | `prior_distr` | `prior_params` | Parameter updated |
+|---|---|---|---|
+| `poisson` | `gamma` | `list(shape, rate)` | Poisson rates |
+| `poisson` (`degreedist` only) | `dirichlet` | `list(alpha)` | multinomial probabilities |
+| `normal` | `normal` | `list(mean, var)` | mean (variance known) |
+| `lognormal` | `normal` | `list(mean, var)` | meanlog (varlog known) |
+| `mvn` | `normal` | `list(mean, cov)` | mean vector (covariance known) |
+| `gamma` | `gamma` | `list(shape, rate)` | rate (shape known) |
+
+Components of `prob_distr_params` that a prior does not update (for example, the variance of a `"normal"` distribution) stay fixed at their starting values.
+
+## 5.2 Multiple Network Properties
+
+Several properties can be modeled together, with one prior per property. For example, a degree mixing matrix with a normal likelihood and a triangle count with a Poisson likelihood:
+
+```{r multiple-properties, eval=FALSE}
+
+fit <- CCM_MissingInference(
+  g_obs = g_obs,
+  partial_g = partial_g,
+  network_stats = c("degmixing", "triangles"),
+  prob_distr = c("normal", "poisson"),
+  prob_distr_params = list(list(rep(5, 10), rep(25, 10)),   # means and variances
+                           list(5)),                        # Poisson rate
+  prior_distr = c("normal", "gamma"),
+  prior_params = list(list(mean = 5, var = 100),
+                      list(shape = 1, rate = 0.1))
+)
+```
+
+## 5.3 Custom Priors
+
+An element of `prior_distr` may also be a function `function(params, h, prior_params)` that returns updated parameters. Here `params` is the property's current parameter list, `h` is its statistic in the current network, and `prior_params` is passed through unchanged. For example, a Poisson-Gamma update written by hand:
+
+```{r custom-prior, eval=FALSE}
+
+my_update <- function(params, h, prior_params) {
+  params[[1]] <- rgamma(length(h), shape = prior_params$shape + h, rate = prior_params$rate + 1)
+  params
+}
+
+fit <- CCM_MissingInference(
+  g_obs = g_obs,
+  partial_g = partial_g,
+  network_stats = c("edges"),
+  prob_distr = c("poisson"),
+  prob_distr_params = list(list(300)),
+  prior_distr = list(my_update),
+  prior_params = list(list(shape = 4, rate = 0.01))
+)
+```
+
+# Section 6: Continuing a Chain
+
+The returned object contains the last imputed network (`g_final`, an `igraph` object) and the last parameter values (`params_final`). These can be used to continue a chain:
+
+```{r continue-chain, eval=FALSE}
+
+fit_more <- CCM_MissingInference(
+  g_obs = fit_deg$g_final,
+  partial_g = partial_g,
+  network_stats = c("degreedist"),
+  prob_distr = c("poisson"),
+  prob_distr_params = fit_deg$params_final,
+  prior_distr = c("dirichlet"),
+  prior_params = list(list(alpha = 1)),
+  n_mcmc_trials = 2000L,
+  burnin_trials = 0L
+)
+```
+
+Because only missing dyads are ever changed, `fit_deg$g_final` still contains exactly the observed edges among the fixed dyads, so it is a valid starting network.

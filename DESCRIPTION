@@ -1,7 +1,7 @@
 Package: CCMnet
 Type: Package
 Title: Congruence Class Models for Networks
-Version: 1.1.2
+Version: 2.0.0
 Authors@R: c(person("Ravi", "Goyal", email = "ravi.j.goyal@gmail.com",
                   role = c("aut", "cre")),
              person("Statnet Development Team", 
@@ -38,5 +38,5 @@ Suggests:
     rmarkdown,
     testthat
 VignetteBuilder: knitr
-RoxygenNote: 7.3.2
 NeedsCompilation: yes
+Config/roxygen2/version: 8.1.1

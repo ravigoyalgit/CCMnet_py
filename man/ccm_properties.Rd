@@ -55,8 +55,8 @@ Orsini, C., et al. (2015). Quantifying randomness in real networks.
 \seealso{
 \code{\link{ccm_distributions}}, \code{\link{sample_ccm}}
 
-Other ccm_core: 
+Other ccm_core:
 \code{\link{ccm_distributions}},
-\code{\link{sample_ccm}()}
+\code{\link[=sample_ccm]{sample_ccm()}}
 }
 \concept{ccm_core}
